@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "476169304708",
+    "project_id": "cognitive-training-6c8ff",
+    "storage_bucket": "cognitive-training-6c8ff.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:476169304708:android:1e164aa6db6528365be0d1",
+        "android_client_info": {
+          "package_name": "com.example.cognitive_training"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "476169304708-oh7edgibccegldabc62tlellh9qnh4q2.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDekOJkydhBLnxZPTs6nIY0yl2zolyF820"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "476169304708-oh7edgibccegldabc62tlellh9qnh4q2.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
