@@ -33,17 +33,81 @@ class _LotteryGameState extends State<LotteryGame> {
     super.dispose();
   }
 
+  String imagePath = 'assets/lottery_game_scene/Temple1_withoutWord.png';
+
   @override
   Widget build(BuildContext context) {
     final Size size = MediaQuery.of(context).size;
+    bool isChanged = false;
 
-    return Scaffold(
-      backgroundColor: Colors.lightGreen,
-      appBar: AppBar(
-        title: Text('game'),
-        backgroundColor: Colors.green,
+    return Container(
+      height: size.height,
+      width: size.width,
+      child: AnimatedContainer(
+        duration: Duration(seconds: 1),
+        decoration: BoxDecoration(
+          image: DecorationImage(
+            image: AssetImage(imagePath),
+            fit: BoxFit.fill,
+          ),
+        ),
+        child: Column(children: [
+          SizedBox(height: 50),
+          ElevatedButton(
+            onPressed: () {
+              _showAlertDialog();
+              //Navigator.pop(context);
+            },
+            child: Text('sdas'),
+          ),
+          SizedBox(height: 50),
+          ElevatedButton(
+            onPressed: () {
+              setState(() {
+                imagePath = 'assets/lottery_game_scene/Temple1_withWord.png';
+                isChanged = !isChanged;
+              });
+              print('change');
+            },
+            child: Text('change image'),
+          ),
+        ]),
       ),
-      body: Text('game'),
+    );
+  }
+
+  Future<void> _showAlertDialog() async {
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false, // user must tap button!
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('leave the game ?'),
+          // this part can put multiple messages
+          content: SingleChildScrollView(
+            child: ListBody(
+              children: const <Widget>[
+                Text('The game process info won\'t be recorded !'),
+              ],
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('No'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: const Text('Yes'),
+              onPressed: () {
+                Navigator.of(context).pop();
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
     );
   }
 }
