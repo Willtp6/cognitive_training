@@ -55,14 +55,14 @@ class _SignInState extends State<SignIn> {
                     onPressed: () async {
                       if (_formKey.currentState!.validate()) {
                         setState(() => isLoading = true);
-                        dynamic result =
+                        /*dynamic result =
                             await _auth.signInWithEmailAndPasswd(userId);
                         if (result == null) {
                           setState(() {
                             error = 'could\'t sign in with those credential';
                             isLoading = false;
                           });
-                        }
+                        }*/
                       }
                     },
                     child: Text('signed in'),
