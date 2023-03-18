@@ -3,6 +3,7 @@
    <application
         android:label="cognitive_training"
         android:name="${applicationName}"
+        android:allowBackup="false" <!-- for flutter_secure_storage -->
         android:icon="@mipmap/ic_launcher">
         <activity
             android:name=".MainActivity"
