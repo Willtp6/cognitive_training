@@ -3,8 +3,9 @@
    <application
         android:label="cognitive_training"
         android:name="${applicationName}"
-        android:allowBackup="false" <!-- for flutter_secure_storage -->
+        android:allowBackup="false" 
         android:icon="@mipmap/ic_launcher">
+        <!-- allow back up is set  flutter_secure_storage -->
         <activity
             android:name=".MainActivity"
             android:exported="true"

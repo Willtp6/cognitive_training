@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cognitive_training/firebase/get_user_info.dart';
+import 'package:cognitive_training/screens/gmaes/lottery_game/lottery_game.dart';
 import 'package:flutter/material.dart';
 import 'package:cognitive_training/firebase/auth.dart';
 import 'package:provider/provider.dart';
@@ -28,6 +29,9 @@ class _HomePageState extends State<HomePage> {
         num = querySnapshot.get('coins');
       });
     });
+
+    final Size size = MediaQuery.of(context).size;
+
     return Scaffold(
       appBar: AppBar(
         title: Text('home page'),
@@ -43,17 +47,28 @@ class _HomePageState extends State<HomePage> {
           )
         ],
       ),
-      body: Center(
-          child: Column(
-        children: <Widget>[
-          Text(num.toString()),
-          ElevatedButton(
+      body: Container(
+        width: size.width,
+        height: size.height,
+        child: Center(
+            child: Column(
+          children: <Widget>[
+            Text(num.toString()),
+            ElevatedButton(
               onPressed: () {
                 reference.update({'coins': num + 1});
               },
-              child: Text('press me to update coins'))
-        ],
-      )),
+              child: Text('press me to update coins'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                _navigateToLotteryGame(context);
+              },
+              child: Text('Lottery game'),
+            ),
+          ],
+        )),
+      ),
       drawer: Drawer(
         child: ListView(
           // Important: Remove any padding from the ListView.
@@ -86,5 +101,10 @@ class _HomePageState extends State<HomePage> {
         ),
       ),
     );
+  }
+
+  void _navigateToLotteryGame(BuildContext context) {
+    Navigator.of(context)
+        .push(MaterialPageRoute(builder: (context) => LotteryGame()));
   }
 }
