@@ -29,3 +29,15 @@ var buttonDecoration = ButtonStyle(
     ),
   ),
 );
+
+var buttonDecorationWhite = ButtonStyle(
+  shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+    RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(18.0),
+      side: BorderSide(
+        color: Colors.white54,
+        width: 2.0,
+      ),
+    ),
+  ),
+);
