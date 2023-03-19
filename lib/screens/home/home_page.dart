@@ -53,18 +53,40 @@ class _HomePageState extends State<HomePage> {
         child: Center(
             child: Column(
           children: <Widget>[
-            Text(num.toString()),
+            SizedBox(
+              height: 40,
+            ),
+            Text(num.toString(),
+                style: TextStyle(
+                  fontSize: 40,
+                )),
+            SizedBox(
+              height: 40,
+            ),
             ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.blueGrey,
+              ),
               onPressed: () {
                 reference.update({'coins': num + 1});
               },
-              child: Text('press me to update coins'),
+              child: Text(
+                'press me to update coins',
+                style: TextStyle(fontSize: 40, color: Colors.white),
+              ),
             ),
+            SizedBox(height: 40),
             ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.blueGrey,
+              ),
               onPressed: () {
                 _navigateToLotteryGame(context);
               },
-              child: Text('Lottery game'),
+              child: Text(
+                'Lottery game',
+                style: TextStyle(fontSize: 40, color: Colors.white),
+              ),
             ),
           ],
         )),

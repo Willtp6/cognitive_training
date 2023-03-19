@@ -3,6 +3,9 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:audioplayers/audioplayers.dart';
+import 'package:logger/logger.dart';
+
+import '../../../shared/design_type.dart';
 
 class LotteryGame extends StatefulWidget {
   const LotteryGame({super.key});
@@ -12,29 +15,18 @@ class LotteryGame extends StatefulWidget {
 }
 
 class _LotteryGameState extends State<LotteryGame> {
-  late AudioPlayer audioPlayer;
   late Timer mytimer;
+  late List<int> numArray;
+  late List<int> userArray;
 
   @override
   void initState() {
     super.initState();
-
     // Init
     SystemChrome.setPreferredOrientations([
       DeviceOrientation.landscapeRight,
       DeviceOrientation.landscapeLeft,
     ]);
-
-    gameLevel = 0;
-    gameProcess = 0;
-    numberOfDigits = 2;
-    playerWin = false;
-    disableButton = false;
-    audioPlayer = AudioPlayer();
-    audioPlayer.onPlayerComplete.listen((event) {
-      onComplete();
-      setState(() {});
-    });
   }
 
   @override
@@ -55,9 +47,10 @@ class _LotteryGameState extends State<LotteryGame> {
 
   void _playNumberSound() async {
     final player = AudioPlayer();
-    if (currentIndex < numberOfDigits)
+    if (currentIndex < numberOfDigits) {
       await player.play(AssetSource(
           'lottery_game_sound/${numArray[currentIndex].toString()}.mp3'));
+    }
     currentIndex++;
     if (currentIndex >= numArray.length) {
       setState(() {
@@ -92,6 +85,13 @@ class _LotteryGameState extends State<LotteryGame> {
 
   String imagePathWin = 'assets/lottery_game_scene/BuyLotter_win.png';
   String imagePathLose = 'assets/lottery_game_scene/BuyLotter_lose.png';
+  List<String> gmaeRules = [
+    'level 1 rule',
+    'level 2 rule',
+    'level 3 rule',
+    'level 4 rule',
+    'level 5 rule'
+  ];
 
   int gameLevel = 0;
   int gameProcess = 0;
@@ -100,16 +100,13 @@ class _LotteryGameState extends State<LotteryGame> {
   bool disableButton = false;
   bool isPaused = false;
   int currentIndex = 0;
-  int min = 1;
-  int max = 9;
-
-  late List<int> numArray;
+  int min = 1; // min of possible number
+  int max = 9; // max of possible number
 
   @override
   Widget build(BuildContext context) {
-    AudioPlayer audioPlayer = AudioPlayer();
-
     final Size size = MediaQuery.of(context).size;
+    final _formKey = GlobalKey<FormState>();
     // game logic in here
     switch (gameProcess) {
       case 0:
@@ -127,6 +124,7 @@ class _LotteryGameState extends State<LotteryGame> {
         // generate num array here
         numArray = List.generate(
             numberOfDigits, (index) => min + Random().nextInt(max - min));
+        userArray = List.generate(numberOfDigits, (index) => -1);
         print(numArray);
         break;
       case 3:
@@ -162,62 +160,117 @@ class _LotteryGameState extends State<LotteryGame> {
         });
         break;
     }
-    return Container(
-      height: size.height,
-      width: size.width,
-      child: AnimatedContainer(
-        duration: const Duration(seconds: 1, milliseconds: 500),
-        decoration: BoxDecoration(
-          image: DecorationImage(
-            image: gameProcess <= 7
-                ? AssetImage(imagePath[gameProcess])
-                : playerWin
-                    ? AssetImage(imagePathWin)
-                    : AssetImage(imagePathLose),
-            fit: BoxFit.fill,
+    return Scaffold(
+      body: Container(
+        height: size.height,
+        width: size.width,
+        child: AnimatedContainer(
+          duration: const Duration(seconds: 1, milliseconds: 500),
+          decoration: BoxDecoration(
+            image: DecorationImage(
+              image: gameProcess <= 7
+                  ? AssetImage(imagePath[gameProcess])
+                  : playerWin
+                      ? AssetImage(imagePathWin)
+                      : AssetImage(imagePathLose),
+              fit: BoxFit.fill,
+            ),
+          ),
+          //curve: Curves.fastOutSlowIn,
+          child: Row(
+            children: [
+              Align(
+                alignment: Alignment.topLeft,
+                child: ElevatedButton(
+                  onPressed: () {
+                    isPaused = true;
+                    _showAlertDialog();
+                  },
+                  style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.pink,
+                      shape: const CircleBorder()),
+                  child: const Icon(
+                    Icons.cancel,
+                    size: 40,
+                  ),
+                ),
+              ),
+              if (gameProcess == 5 || gameProcess == 6) ...[
+                AspectRatio(
+                    aspectRatio: 1,
+                    child: Form(
+                      child: GridView.count(
+                        crossAxisCount: 3,
+                        padding: const EdgeInsets.all(20),
+                        crossAxisSpacing: 10,
+                        mainAxisSpacing: 10,
+                        children: [
+                          for (int i = 0; i < numberOfDigits; i++) ...[
+                            SizedBox(
+                              height: 10,
+                              width: 10,
+                              child: TextFormField(
+                                maxLength: 1,
+                                decoration: inputNumberDecoration.copyWith(
+                                    hintText: 'Input number'),
+                                keyboardType: TextInputType.number,
+                                validator: (val) =>
+                                    val!.isEmpty ? 'Enter a number' : null,
+                                onChanged: (val) {
+                                  setState(() {
+                                    userArray[i] = int.parse(val);
+                                  });
+                                },
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                    )),
+              ],
+              if (centerRightButtonEnable[gameProcess]) ...[
+                SizedBox(
+                  height: 125,
+                  child: AnimatedOpacity(
+                    // If the widget is visible, animate to 0.0 (invisible).
+                    // If the widget is hidden, animate to 1.0 (fully visible).
+                    opacity: gameProcess == 2 ? 1.0 : 0.0,
+                    duration: const Duration(
+                      seconds: 1,
+                      milliseconds: 500,
+                    ),
+                    // The green box must be a child of the AnimatedOpacity widget.
+                    child: Text(gmaeRules[gameLevel]),
+                  ),
+                ),
+                Expanded(
+                  child: Align(
+                    alignment: Alignment.centerRight,
+                    child: ElevatedButton(
+                      onPressed: disableButton
+                          ? null
+                          : () {
+                              setState(() {
+                                print(size);
+                                gameProcess++;
+                              });
+                            },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor:
+                            disableButton ? Colors.grey : Colors.green,
+                        shape: const CircleBorder(),
+                      ),
+                      child: const Icon(
+                        Icons.arrow_circle_right,
+                        size: 40,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ],
           ),
         ),
-        curve: Curves.linear,
-        child: Column(children: [
-          Align(
-            alignment: Alignment.topLeft,
-            child: ElevatedButton(
-              onPressed: () {
-                isPaused = true;
-                _showAlertDialog();
-              },
-              style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.pink, shape: const CircleBorder()),
-              child: const Icon(
-                Icons.cancel,
-                size: 40,
-              ),
-            ),
-          ),
-          if (centerRightButtonEnable[gameProcess]) ...[
-            const SizedBox(height: 125),
-            Align(
-              alignment: Alignment.bottomRight,
-              child: ElevatedButton(
-                onPressed: disableButton
-                    ? null
-                    : () {
-                        setState(() {
-                          gameProcess++;
-                        });
-                      },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: disableButton ? Colors.grey : Colors.green,
-                  shape: CircleBorder(),
-                ),
-                child: const Icon(
-                  Icons.arrow_circle_right,
-                  size: 40,
-                ),
-              ),
-            ),
-          ]
-        ]),
       ),
     );
   }
@@ -294,6 +347,4 @@ class _LotteryGameState extends State<LotteryGame> {
       },
     );
   }
-
-  void onComplete() {}
 }
