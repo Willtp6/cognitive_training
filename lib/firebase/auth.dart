@@ -1,8 +1,6 @@
 import 'package:cognitive_training/firebase/userinfo_database.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:meta/meta.dart';
 import 'package:cognitive_training/models/user.dart';
-import 'package:logger/logger.dart';
 
 class AuthService {
   // create an Auth instance
