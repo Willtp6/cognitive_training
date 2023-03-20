@@ -34,7 +34,7 @@ class _HomePageState extends State<HomePage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('home page'),
+        title: const Text('home page'),
         backgroundColor: Colors.brown[400],
         elevation: 0.0,
         actions: <Widget>[
@@ -42,8 +42,8 @@ class _HomePageState extends State<HomePage> {
             onPressed: () async {
               await _authService.signOut();
             },
-            label: Text('logout'),
-            icon: Icon(Icons.person),
+            label: const Text('logout'),
+            icon: const Icon(Icons.person),
           )
         ],
       ),
@@ -53,14 +53,14 @@ class _HomePageState extends State<HomePage> {
         child: Center(
             child: Column(
           children: <Widget>[
-            SizedBox(
+            const SizedBox(
               height: 40,
             ),
             Text(num.toString(),
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 40,
                 )),
-            SizedBox(
+            const SizedBox(
               height: 40,
             ),
             ElevatedButton(
@@ -70,12 +70,12 @@ class _HomePageState extends State<HomePage> {
               onPressed: () {
                 reference.update({'coins': num + 1});
               },
-              child: Text(
+              child: const Text(
                 'press me to update coins',
                 style: TextStyle(fontSize: 40, color: Colors.white),
               ),
             ),
-            SizedBox(height: 40),
+            const SizedBox(height: 40),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.blueGrey,
@@ -83,7 +83,7 @@ class _HomePageState extends State<HomePage> {
               onPressed: () {
                 _navigateToLotteryGame(context);
               },
-              child: Text(
+              child: const Text(
                 'Lottery game',
                 style: TextStyle(fontSize: 40, color: Colors.white),
               ),
@@ -103,14 +103,14 @@ class _HomePageState extends State<HomePage> {
               child: Text('Drawer Header'),
             ),
             Padding(
-              padding: EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
               child: Text(
                 "Coins you have: ${num.toString()}",
-                style: TextStyle(color: Colors.pink, fontSize: 20),
+                style: const TextStyle(color: Colors.pink, fontSize: 20),
               ),
             ),
             ListTile(
-              leading: Icon(Icons.abc),
+              leading: const Icon(Icons.abc),
               title: const Text('Item 1'),
               onTap: () {
                 // Update the state of the app
@@ -127,6 +127,6 @@ class _HomePageState extends State<HomePage> {
 
   void _navigateToLotteryGame(BuildContext context) {
     Navigator.of(context)
-        .push(MaterialPageRoute(builder: (context) => LotteryGame()));
+        .push(MaterialPageRoute(builder: (context) => const LotteryGame()));
   }
 }

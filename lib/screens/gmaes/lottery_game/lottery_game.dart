@@ -15,9 +15,15 @@ class LotteryGame extends StatefulWidget {
 }
 
 class _LotteryGameState extends State<LotteryGame> {
-  late Timer mytimer;
+  Timer? mytimer;
   late List<int> numArray;
   late List<int> userArray;
+
+  late AudioPlayer player;
+
+  var logger = Logger(
+    printer: PrettyPrinter(),
+  );
 
   @override
   void initState() {
@@ -38,24 +44,49 @@ class _LotteryGameState extends State<LotteryGame> {
     ]);
 
     super.dispose();
+    mytimer?.cancel();
+    player.dispose();
   }
 
   void _playGameSound(String path) async {
-    final player = AudioPlayer();
+    player = AudioPlayer();
     await player.play(AssetSource('lottery_game_sound/$path'));
   }
 
   void _playNumberSound() async {
-    final player = AudioPlayer();
     if (currentIndex < numberOfDigits) {
+      player = AudioPlayer();
       await player.play(AssetSource(
           'lottery_game_sound/${numArray[currentIndex].toString()}.mp3'));
+      setState(() {
+        showNumber = numArray[currentIndex].toString();
+      });
+      Timer(const Duration(seconds: 1), () {
+        setState(() {
+          showNumber = "";
+        });
+      });
     }
     currentIndex++;
     if (currentIndex >= numArray.length) {
+      cancelTimer();
       setState(() {
         disableButton = false;
       });
+    }
+  }
+
+  void startTimer() {
+    roundTimerCreated = true;
+    mytimer = Timer.periodic(const Duration(seconds: 2), (timer) {
+      _playNumberSound();
+    });
+  }
+
+  void cancelTimer() {
+    if (mytimer != null) {
+      mytimer!.cancel();
+      logger.v('Timer canceled');
     }
   }
 
@@ -65,7 +96,6 @@ class _LotteryGameState extends State<LotteryGame> {
     'assets/lottery_game_scene/Temple1_withWord.png',
     'assets/lottery_game_scene/Temple2_withoutWord.png',
     'assets/lottery_game_scene/Temple2_withInstruction.png',
-    'assets/lottery_game_scene/NumberInput_withoutWord.png',
     'assets/lottery_game_scene/NumberInput_withWord.png',
     'assets/lottery_game_scene/NumberInput_withButton.png',
     'assets/lottery_game_scene/BuyLotter.png',
@@ -76,7 +106,6 @@ class _LotteryGameState extends State<LotteryGame> {
     true,
     true,
     true,
-    false,
     true,
     true,
     false,
@@ -99,14 +128,17 @@ class _LotteryGameState extends State<LotteryGame> {
   bool playerWin = false;
   bool disableButton = false;
   bool isPaused = false;
+  bool roundTimerCreated = false;
   int currentIndex = 0;
+  int loseInCurrentDigits = 0;
   int min = 1; // min of possible number
   int max = 9; // max of possible number
+  String showNumber = '';
 
   @override
   Widget build(BuildContext context) {
-    final Size size = MediaQuery.of(context).size;
-    final _formKey = GlobalKey<FormState>();
+    //final Size size = MediaQuery.of(context).size;
+    final formKey = GlobalKey<FormState>();
     // game logic in here
     switch (gameProcess) {
       case 0:
@@ -125,50 +157,40 @@ class _LotteryGameState extends State<LotteryGame> {
         numArray = List.generate(
             numberOfDigits, (index) => min + Random().nextInt(max - min));
         userArray = List.generate(numberOfDigits, (index) => -1);
-        print(numArray);
+        logger.d(numArray);
+        roundTimerCreated = false;
         break;
       case 3:
-        if (currentIndex < numArray.length) {
-          disableButton = true;
-          mytimer = Timer.periodic(Duration(seconds: 2), (timer) {
-            if (!isPaused) _playNumberSound();
-          });
+        if (!roundTimerCreated) {
+          startTimer();
         }
         break;
       case 4:
-        Timer(const Duration(seconds: 1), () {
-          setState(() {
-            gameProcess += 1;
-          });
-        });
         break;
       case 5:
         break;
       case 6:
-        break;
-      case 7:
         Timer(const Duration(seconds: 3), () {
           setState(() {
-            gameProcess += 1;
+            gameProcess = 7;
           });
         });
         break;
-      // end of game leave 5 seconds to check result
-      case 8:
+      case 7:
         Timer(const Duration(seconds: 3), () {
           _showGameEndDialog();
         });
         break;
+      // end of game leave 5 seconds to check result
     }
     return Scaffold(
-      body: Container(
-        height: size.height,
-        width: size.width,
+      resizeToAvoidBottomInset: false,
+      body: SizedBox(
         child: AnimatedContainer(
           duration: const Duration(seconds: 1, milliseconds: 500),
           decoration: BoxDecoration(
             image: DecorationImage(
-              image: gameProcess <= 7
+              image: gameProcess < 7
                   ? AssetImage(imagePath[gameProcess])
                   : playerWin
                       ? AssetImage(imagePathWin)
@@ -176,98 +198,136 @@ class _LotteryGameState extends State<LotteryGame> {
               fit: BoxFit.fill,
             ),
           ),
-          //curve: Curves.fastOutSlowIn,
+          curve: Curves.fastOutSlowIn,
           child: Row(
             children: [
-              Align(
-                alignment: Alignment.topLeft,
-                child: ElevatedButton(
-                  onPressed: () {
-                    isPaused = true;
-                    _showAlertDialog();
-                  },
-                  style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.pink,
-                      shape: const CircleBorder()),
-                  child: const Icon(
-                    Icons.cancel,
-                    size: 40,
+              Expanded(
+                flex: 1,
+                child: Align(
+                  alignment: Alignment.topLeft,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      isPaused = true;
+                      _showAlertDialog();
+                    },
+                    style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.pink,
+                        shape: const CircleBorder()),
+                    child: const Icon(
+                      Icons.cancel,
+                      size: 40,
+                    ),
                   ),
                 ),
               ),
-              if (gameProcess == 5 || gameProcess == 6) ...[
-                AspectRatio(
-                    aspectRatio: 1,
-                    child: Form(
-                      child: GridView.count(
-                        crossAxisCount: 3,
-                        padding: const EdgeInsets.all(20),
-                        crossAxisSpacing: 10,
-                        mainAxisSpacing: 10,
-                        children: [
-                          for (int i = 0; i < numberOfDigits; i++) ...[
-                            SizedBox(
-                              height: 10,
-                              width: 10,
-                              child: TextFormField(
-                                maxLength: 1,
-                                decoration: inputNumberDecoration.copyWith(
-                                    hintText: 'Input number'),
-                                keyboardType: TextInputType.number,
-                                validator: (val) =>
-                                    val!.isEmpty ? 'Enter a number' : null,
-                                onChanged: (val) {
-                                  setState(() {
-                                    userArray[i] = int.parse(val);
-                                  });
-                                },
+              //input form
+              Expanded(
+                flex: 5,
+                child: gameProcess == 3
+                    ? Text(
+                        showNumber,
+                        style: const TextStyle(
+                          fontSize: 100,
+                          color: Colors.red,
+                        ),
+                      )
+                    : gameProcess == 5
+                        ? AspectRatio(
+                            aspectRatio: 1,
+                            child: Form(
+                              key: formKey,
+                              child: Row(
+                                children: <Widget>[
+                                  Expanded(
+                                    flex: 3,
+                                    child: GridView.count(
+                                      crossAxisCount: 3,
+                                      padding: const EdgeInsets.all(20),
+                                      crossAxisSpacing: 10,
+                                      mainAxisSpacing: 10,
+                                      children: [
+                                        for (int i = 0;
+                                            i < numberOfDigits;
+                                            i++) ...[
+                                          SizedBox(
+                                            height: 10,
+                                            width: 10,
+                                            child: TextFormField(
+                                              maxLength: 1,
+                                              decoration: inputNumberDecoration
+                                                  .copyWith(hintText: ''),
+                                              keyboardType:
+                                                  TextInputType.number,
+                                              validator: (val) => val!.isEmpty
+                                                  ? 'Enter a number'
+                                                  : null,
+                                              onChanged: (val) {
+                                                userArray[i] = int.parse(val);
+                                              },
+                                            ),
+                                          ),
+                                        ],
+                                      ],
+                                    ),
+                                  ),
+                                  Expanded(
+                                    flex: 2,
+                                    child: ElevatedButton(
+                                      onPressed: () {
+                                        if (formKey.currentState!.validate()) {
+                                          logger.v(numArray);
+                                          userArray.sort();
+                                          logger.v(userArray);
+                                        }
+                                      },
+                                      child: const Text('done'),
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
-                          ],
-                        ],
-                      ),
-                    )),
-              ],
-              if (centerRightButtonEnable[gameProcess]) ...[
-                SizedBox(
-                  height: 125,
-                  child: AnimatedOpacity(
-                    // If the widget is visible, animate to 0.0 (invisible).
-                    // If the widget is hidden, animate to 1.0 (fully visible).
-                    opacity: gameProcess == 2 ? 1.0 : 0.0,
-                    duration: const Duration(
-                      seconds: 1,
-                      milliseconds: 500,
-                    ),
-                    // The green box must be a child of the AnimatedOpacity widget.
-                    child: Text(gmaeRules[gameLevel]),
-                  ),
-                ),
-                Expanded(
-                  child: Align(
-                    alignment: Alignment.centerRight,
-                    child: ElevatedButton(
-                      onPressed: disableButton
-                          ? null
-                          : () {
-                              setState(() {
-                                print(size);
-                                gameProcess++;
-                              });
-                            },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor:
-                            disableButton ? Colors.grey : Colors.green,
-                        shape: const CircleBorder(),
-                      ),
-                      child: const Icon(
-                        Icons.arrow_circle_right,
-                        size: 40,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
+                          )
+                        : SizedBox(
+                            height: 125,
+                            child: AnimatedOpacity(
+                              // If the widget is visible, animate to 0.0 (invisible).
+                              // If the widget is hidden, animate to 1.0 (fully visible).
+                              opacity: gameProcess == 2 ? 1.0 : 0.0,
+                              duration: const Duration(
+                                seconds: 1,
+                                milliseconds: 500,
+                              ),
+                              // The green box must be a child of the AnimatedOpacity widget.
+                              child: Text(gmaeRules[gameLevel]),
+                            ),
+                          ),
+              ),
+              Expanded(
+                flex: 1,
+                child: centerRightButtonEnable[gameProcess]
+                    ? Align(
+                        alignment: Alignment.centerRight,
+                        child: ElevatedButton(
+                          onPressed: disableButton
+                              ? null
+                              : () {
+                                  setState(() {
+                                    gameProcess++;
+                                  });
+                                },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor:
+                                disableButton ? Colors.grey : Colors.green,
+                            shape: const CircleBorder(),
+                          ),
+                          child: const Icon(
+                            Icons.arrow_circle_right,
+                            size: 40,
+                          ),
+                        ),
+                      )
+                    : Container(),
+              ),
             ],
           ),
         ),
@@ -330,16 +390,20 @@ class _LotteryGameState extends State<LotteryGame> {
               },
             ),
             TextButton(
-              child: const Text('go to next level'),
+              child: const Text('continue ?'),
               onPressed: () {
                 Navigator.of(context).pop();
-                gameLevel++;
+                if (numberOfDigits == 8) {
+                  gameLevel++;
+                  numberOfDigits = 2;
+                } else {
+                  numberOfDigits++;
+                }
                 setState(() {
+                  currentIndex = 0;
                   gameProcess = 0;
                 });
-                print('go to next level');
-                //Navigator.of(context).pop();
-                //Navigator.of(context).pop();
+                logger.d('go to next level');
               },
             ),
           ],
