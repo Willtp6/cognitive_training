@@ -17,16 +17,16 @@ class _LotteryGameState extends State<LotteryGame> {
   Timer? mytimer;
   late List<int> numArray;
   late List<int> userArray;
-
-  late AudioPlayer player;
+  static final formKey = GlobalKey<FormState>();
+  AudioPlayer? player;
 // background image of game process
-  List<String> imagePath = [
+  final List<String> imagePath = [
     'assets/lottery_game_scene/Temple1_withoutWord.png',
     'assets/lottery_game_scene/Temple1_withWord.png',
     'assets/lottery_game_scene/Temple2_withoutWord.png',
     'assets/lottery_game_scene/Temple2_withInstruction.png',
     'assets/lottery_game_scene/NumberInput_withWord.png',
-    'assets/lottery_game_scene/NumberInput_withButton.png',
+    'assets/lottery_game_scene/NumberInput_withoutWord.png',
     'assets/lottery_game_scene/BuyLotter.png',
   ];
 
@@ -41,8 +41,8 @@ class _LotteryGameState extends State<LotteryGame> {
     false
   ];
 
-  String imagePathWin = 'assets/lottery_game_scene/BuyLotter_win.png';
-  String imagePathLose = 'assets/lottery_game_scene/BuyLotter_lose.png';
+  final String imagePathWin = 'assets/lottery_game_scene/BuyLotter_win.png';
+  final String imagePathLose = 'assets/lottery_game_scene/BuyLotter_lose.png';
   List<String> gmaeRules = [
     'level 1 rule',
     'level 2 rule',
@@ -58,6 +58,8 @@ class _LotteryGameState extends State<LotteryGame> {
   bool disableButton = false;
   bool isPaused = false;
   bool roundTimerCreated = false;
+  bool isCaseZerofunctioned = false;
+  bool isCaseSixfunctioned = false;
   int currentIndex = 0;
   int loseInCurrentDigits = 0;
   int continuousWinInEightDigits = 0;
@@ -66,6 +68,8 @@ class _LotteryGameState extends State<LotteryGame> {
   int specialRules = 0;
   String showNumber = '';
   int numOfCorrectAns = 0;
+  String _currentImagePath =
+      'assets/lottery_game_scene/Temple1_withoutWord.png';
 
   var logger = Logger(printer: PrettyPrinter());
 
@@ -77,6 +81,14 @@ class _LotteryGameState extends State<LotteryGame> {
       DeviceOrientation.landscapeRight,
       DeviceOrientation.landscapeLeft,
     ]);
+
+    Future.delayed(Duration.zero, () {
+      for (var imagePath in imagePath) {
+        precacheImage(AssetImage(imagePath), context);
+      }
+      precacheImage(AssetImage(imagePathWin), context);
+      precacheImage(AssetImage(imagePathLose), context);
+    });
   }
 
   @override
@@ -89,18 +101,29 @@ class _LotteryGameState extends State<LotteryGame> {
 
     super.dispose();
     mytimer?.cancel();
-    player.dispose();
+    player?.dispose();
+  }
+
+  void changeImage() {
+    logger.d('it\'s me');
+    gameProcess++;
+    _currentImagePath = gameProcess < 7
+        ? imagePath[gameProcess]
+        : playerWin
+            ? imagePathWin
+            : imagePathLose;
+    setState(() {});
   }
 
   void _playPathSound(String path) async {
     player = AudioPlayer();
-    await player.play(AssetSource('lottery_game_sound/$path'));
+    await player!.play(AssetSource('lottery_game_sound/$path'));
   }
 
   void _playNumberSound() async {
     if (currentIndex < numberOfDigits) {
       player = AudioPlayer();
-      await player.play(AssetSource(
+      await player!.play(AssetSource(
           'lottery_game_sound/${numArray[currentIndex].toString()}.mp3'));
       setState(() {
         showNumber = numArray[currentIndex].toString();
@@ -187,21 +210,22 @@ class _LotteryGameState extends State<LotteryGame> {
     playerWin = false;
     currentIndex = 0;
     gameProcess = 0;
+    isCaseZerofunctioned = false;
+    isCaseSixfunctioned = false;
+    changeImage();
   }
 
   @override
   Widget build(BuildContext context) {
-    //final Size size = MediaQuery.of(context).size;
-    final formKey = GlobalKey<FormState>();
     // game logic in here
     switch (gameProcess) {
       case 0:
-        // to go to next page
-        Timer(const Duration(seconds: 2), () {
-          setState(() {
-            gameProcess = 1;
+        if (!isCaseZerofunctioned) {
+          isCaseZerofunctioned = true;
+          Timer(const Duration(seconds: 2), () {
+            changeImage();
           });
-        });
+        }
         break;
       case 1:
         break;
@@ -224,16 +248,19 @@ class _LotteryGameState extends State<LotteryGame> {
       case 5:
         break;
       case 6:
-        Timer(const Duration(seconds: 3), () {
-          setState(() {
-            gameProcess = 7;
+        if (!isCaseSixfunctioned) {
+          isCaseSixfunctioned = true;
+          Timer(const Duration(seconds: 3), () {
+            changeImage();
           });
-        });
+        }
         break;
       case 7:
-        playerWin
-            ? _playPathSound("Applause.mp3")
-            : _playPathSound("horror_lose.wav");
+        Timer(const Duration(seconds: 1), () {
+          playerWin
+              ? _playPathSound("Applause.mp3")
+              : _playPathSound("horror_lose.wav");
+        });
         Timer(const Duration(seconds: 3), () {
           _showGameEndDialog();
         });
@@ -244,18 +271,15 @@ class _LotteryGameState extends State<LotteryGame> {
       resizeToAvoidBottomInset: false,
       body: SizedBox(
         child: AnimatedContainer(
-          duration: const Duration(seconds: 1, milliseconds: 500),
+          duration: const Duration(seconds: 2, milliseconds: 500),
           decoration: BoxDecoration(
+            color: Colors.black,
             image: DecorationImage(
-              image: gameProcess < 7
-                  ? AssetImage(imagePath[gameProcess])
-                  : playerWin
-                      ? AssetImage(imagePathWin)
-                      : AssetImage(imagePathLose),
+              image: AssetImage(_currentImagePath),
               fit: BoxFit.fill,
             ),
           ),
-          curve: Curves.fastOutSlowIn,
+          curve: Curves.easeIn,
           child: Row(
             children: [
               Expanded(
@@ -369,9 +393,7 @@ class _LotteryGameState extends State<LotteryGame> {
                                         if (formKey.currentState!.validate()) {
                                           //judge the result
                                           getResult();
-                                          setState(() {
-                                            gameProcess++;
-                                          });
+                                          changeImage();
                                         }
                                       },
                                       child: const Text('done'),
@@ -404,9 +426,7 @@ class _LotteryGameState extends State<LotteryGame> {
                           onPressed: disableButton
                               ? null
                               : () {
-                                  setState(() {
-                                    gameProcess++;
-                                  });
+                                  changeImage();
                                 },
                           style: ElevatedButton.styleFrom(
                             backgroundColor:
@@ -486,27 +506,25 @@ class _LotteryGameState extends State<LotteryGame> {
               child: const Text('continue'),
               onPressed: () {
                 Navigator.of(context).pop();
-                setState(() {
-                  if (playerWin) {
-                    if (numberOfDigits == 8) {
-                      continuousWinInEightDigits++;
-                      if (continuousWinInEightDigits == 2) levelUpgrades();
-                    } else {
-                      //temporary rules
-                      numberOfDigits++;
-                    }
+                if (playerWin) {
+                  if (numberOfDigits == 8) {
+                    continuousWinInEightDigits++;
+                    if (continuousWinInEightDigits == 2) levelUpgrades();
                   } else {
-                    if (numberOfDigits == 8) continuousWinInEightDigits = 0;
-                    loseInCurrentDigits++;
-                    if (loseInCurrentDigits == 2) {
-                      if (numberOfDigits > 2) {
-                        numberOfDigits--;
-                        loseInCurrentDigits = 0;
-                      }
+                    //temporary rules
+                    numberOfDigits++;
+                  }
+                } else {
+                  if (numberOfDigits == 8) continuousWinInEightDigits = 0;
+                  loseInCurrentDigits++;
+                  if (loseInCurrentDigits == 2) {
+                    if (numberOfDigits > 2) {
+                      numberOfDigits--;
+                      loseInCurrentDigits = 0;
                     }
                   }
-                  setForNextGame();
-                });
+                }
+                setForNextGame();
               },
             ),
           ],
