@@ -1,10 +1,12 @@
 import 'package:cognitive_training/firebase/userinfo_database.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cognitive_training/models/user.dart';
+import 'package:logger/logger.dart';
 
 class AuthService {
   // create an Auth instance
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  var logger = Logger();
 
   // create user obj on FirebaseUser
   LocalUser? _userFromFirebaseUser(User? user) {
@@ -13,7 +15,6 @@ class AuthService {
 
   // auth change user stream in main defined stream provider
   Stream<LocalUser?> get user {
-    print('int get');
     return _auth.authStateChanges().map(_userFromFirebaseUser);
   }
 
@@ -26,7 +27,7 @@ class AuthService {
       User? user = result.user;
       return user;
     } catch (e) {
-      print(e.toString());
+      logger.v(e.toString());
       return null;
     }
   }
@@ -57,17 +58,17 @@ class AuthService {
       }
     } catch (e) {
       //throw CustomException(errorMessage: "Unknown Error");
-      print(e.toString());
+      logger.v(e.toString());
     }
   }
 
   // sign out
   Future signOut() async {
     try {
-      print('signed out');
+      logger.v('signed out');
       return await _auth.signOut();
     } catch (e) {
-      print(e.toString());
+      logger.v(e.toString());
       return null;
     }
   }

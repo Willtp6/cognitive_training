@@ -7,7 +7,6 @@ import 'package:cognitive_training/screens/login/login_page.dart';
 import 'package:cognitive_training/screens/splash/splash_page.dart';
 import 'firebase_options.dart';
 import 'package:provider/provider.dart';
-import 'package:cognitive_training/models/user.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

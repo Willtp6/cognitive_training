@@ -65,8 +65,6 @@ class _LoginPageState extends State<LoginPage> {
                                 error = 'Login failed';
                                 isLoading = false;
                               });
-                            } else {
-                              print("in login $result");
                             }
                           }
                         },

@@ -10,12 +10,10 @@ class Wrapper extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final user = Provider.of<LocalUser?>(context);
-    print(user);
     if (user == null) {
-      return LoginPage();
+      return const LoginPage();
     } else {
-      print("login succeed: ${user.uid}");
-      return HomePage();
+      return const HomePage();
     }
   }
 }

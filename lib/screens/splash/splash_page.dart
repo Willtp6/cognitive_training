@@ -14,7 +14,7 @@ class _SplashPageState extends State<SplashPage> {
   Widget build(BuildContext context) {
     return SplashScreen.navigate(
       name: 'assets/liquid_download.riv',
-      next: (context) => Wrapper(),
+      next: (context) => const Wrapper(),
       until: () => Future.delayed(const Duration(seconds: 3)),
       startAnimation: 'Demo',
     );

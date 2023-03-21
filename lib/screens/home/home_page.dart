@@ -1,5 +1,4 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:cognitive_training/firebase/get_user_info.dart';
 import 'package:cognitive_training/screens/gmaes/lottery_game/lottery_game.dart';
 import 'package:flutter/material.dart';
 import 'package:cognitive_training/firebase/auth.dart';
@@ -30,8 +29,6 @@ class _HomePageState extends State<HomePage> {
       });
     });
 
-    final Size size = MediaQuery.of(context).size;
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('home page'),
@@ -47,50 +44,46 @@ class _HomePageState extends State<HomePage> {
           )
         ],
       ),
-      body: Container(
-        width: size.width,
-        height: size.height,
-        child: Center(
-            child: Column(
-          children: <Widget>[
-            const SizedBox(
-              height: 40,
+      body: Center(
+          child: Column(
+        children: <Widget>[
+          const SizedBox(
+            height: 40,
+          ),
+          Text(num.toString(),
+              style: const TextStyle(
+                fontSize: 40,
+              )),
+          const SizedBox(
+            height: 40,
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.blueGrey,
             ),
-            Text(num.toString(),
-                style: const TextStyle(
-                  fontSize: 40,
-                )),
-            const SizedBox(
-              height: 40,
+            onPressed: () {
+              reference.update({'coins': num + 1});
+            },
+            child: const Text(
+              'press me to update coins',
+              style: TextStyle(fontSize: 40, color: Colors.white),
             ),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blueGrey,
-              ),
-              onPressed: () {
-                reference.update({'coins': num + 1});
-              },
-              child: const Text(
-                'press me to update coins',
-                style: TextStyle(fontSize: 40, color: Colors.white),
-              ),
+          ),
+          const SizedBox(height: 40),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.blueGrey,
             ),
-            const SizedBox(height: 40),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blueGrey,
-              ),
-              onPressed: () {
-                _navigateToLotteryGame(context);
-              },
-              child: const Text(
-                'Lottery game',
-                style: TextStyle(fontSize: 40, color: Colors.white),
-              ),
+            onPressed: () {
+              _navigateToLotteryGame(context);
+            },
+            child: const Text(
+              'Lottery game',
+              style: TextStyle(fontSize: 40, color: Colors.white),
             ),
-          ],
-        )),
-      ),
+          ),
+        ],
+      )),
       drawer: Drawer(
         child: ListView(
           // Important: Remove any padding from the ListView.

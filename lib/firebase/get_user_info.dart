@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:logger/logger.dart';
 
 class GetUserInfo extends StatelessWidget {
   final String documentId;
 
-  GetUserInfo(this.documentId);
+  const GetUserInfo(this.documentId, {super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -16,12 +17,12 @@ class GetUserInfo extends StatelessWidget {
       builder:
           (BuildContext context, AsyncSnapshot<DocumentSnapshot> snapshot) {
         if (snapshot.hasError) {
-          return Text("Something went wrong");
+          return const Text("Something went wrong");
         }
 
         if (snapshot.hasData && !snapshot.data!.exists) {
-          print(documentId);
-          return Text("Document does not exist");
+          Logger().v(documentId);
+          return const Text("Document does not exist");
         }
 
         if (snapshot.connectionState == ConnectionState.done) {
@@ -30,7 +31,7 @@ class GetUserInfo extends StatelessWidget {
           return Text("Coins: ${data['coins']}");
         }
 
-        return Text("loading");
+        return const Text("loading");
       },
     );
   }
