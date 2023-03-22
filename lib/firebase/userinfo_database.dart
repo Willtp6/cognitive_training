@@ -5,14 +5,14 @@ class UserinfoDatabaseService {
   UserinfoDatabaseService({required this.docId});
 
   // to record the user info such as coins held by each user
-  final CollectionReference userCollection =
+  final CollectionReference userInfoCollection =
       FirebaseFirestore.instance.collection('user_basic_info');
 
   Future createUserInfo({required int coins}) async {
-    return await userCollection.doc(docId).set({'coins': 0});
+    return await userInfoCollection.doc(docId).set({'coins': 0});
   }
 
   Stream<QuerySnapshot> get uerInfo {
-    return userCollection.snapshots();
+    return userInfoCollection.snapshots();
   }
 }

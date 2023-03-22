@@ -1,9 +1,12 @@
 import 'dart:async';
 import 'dart:math';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:logger/logger.dart';
+import 'package:provider/provider.dart';
+import '../../../models/user.dart';
 import '../../../shared/design_type.dart';
 
 class LotteryGame extends StatefulWidget {
@@ -18,13 +21,14 @@ class _LotteryGameState extends State<LotteryGame> {
   late List<int> numArray;
   late List<int> userArray;
   static final formKey = GlobalKey<FormState>();
+
   AudioPlayer? player;
-// background image of game process
+  // background image of game process
   final List<String> imagePath = [
     'assets/lottery_game_scene/Temple1_withoutWord.png',
     'assets/lottery_game_scene/Temple1_withWord.png',
     'assets/lottery_game_scene/Temple2_withoutWord.png',
-    'assets/lottery_game_scene/Temple2_withInstruction.png',
+    'assets/lottery_game_scene/Temple2_withoutWord.png',
     'assets/lottery_game_scene/NumberInput_withWord.png',
     'assets/lottery_game_scene/NumberInput_withoutWord.png',
     'assets/lottery_game_scene/BuyLotter.png',
@@ -35,7 +39,7 @@ class _LotteryGameState extends State<LotteryGame> {
     true,
     true,
     true,
-    true,
+    false,
     false,
     false,
     false
@@ -57,9 +61,7 @@ class _LotteryGameState extends State<LotteryGame> {
   bool playerWin = false;
   bool disableButton = false;
   bool isPaused = false;
-  bool roundTimerCreated = false;
-  bool isCaseZerofunctioned = false;
-  bool isCaseSixfunctioned = false;
+  bool isCaseFunctioned = false;
   int currentIndex = 0;
   int loseInCurrentDigits = 0;
   int continuousWinInEightDigits = 0;
@@ -71,6 +73,8 @@ class _LotteryGameState extends State<LotteryGame> {
   String _currentImagePath =
       'assets/lottery_game_scene/Temple1_withoutWord.png';
 
+  late DateTime start;
+  late DateTime end;
   var logger = Logger(printer: PrettyPrinter());
 
   @override
@@ -105,14 +109,15 @@ class _LotteryGameState extends State<LotteryGame> {
   }
 
   void changeImage() {
-    logger.d('it\'s me');
-    gameProcess++;
-    _currentImagePath = gameProcess < 7
-        ? imagePath[gameProcess]
-        : playerWin
-            ? imagePathWin
-            : imagePathLose;
-    setState(() {});
+    setState(() {
+      isCaseFunctioned = false;
+      gameProcess++;
+      _currentImagePath = gameProcess < 7
+          ? imagePath[gameProcess]
+          : playerWin
+              ? imagePathWin
+              : imagePathLose;
+    });
   }
 
   void _playPathSound(String path) async {
@@ -133,27 +138,28 @@ class _LotteryGameState extends State<LotteryGame> {
           showNumber = "";
         });
       });
+    } else {
+      cancelTimer();
     }
     currentIndex++;
-    if (currentIndex >= numArray.length) {
-      cancelTimer();
-      setState(() {
-        disableButton = false;
-      });
-    }
   }
 
   void startTimer() {
-    roundTimerCreated = true;
     mytimer = Timer.periodic(const Duration(seconds: 2), (timer) {
       if (!isPaused) _playNumberSound();
+    });
+    setState(() {
+      isCaseFunctioned = true;
+      disableButton = true;
     });
   }
 
   void cancelTimer() {
     if (mytimer != null) {
       mytimer!.cancel();
-      logger.v('Timer canceled');
+      setState(() {
+        disableButton = false;
+      });
     }
   }
 
@@ -210,68 +216,91 @@ class _LotteryGameState extends State<LotteryGame> {
     playerWin = false;
     currentIndex = 0;
     gameProcess = 0;
-    isCaseZerofunctioned = false;
-    isCaseSixfunctioned = false;
     changeImage();
+  }
+
+  Future<void> recordGame(LocalUser user) {
+    logger.d(user.uid);
+    DocumentReference reference = FirebaseFirestore.instance
+        .collection('user_game_info')
+        .doc(user.uid)
+        .collection('game1')
+        .doc(DateTime.now().toString());
+    return reference
+        .set({
+          'game_record': {
+            'gameDifficulties': gameLevel + 1,
+            'numOfDigits': numberOfDigits,
+            'accuracy': numOfCorrectAns / numberOfDigits,
+            'responseTime(seconds)': end.difference(start).inSeconds,
+            'start': start,
+            'end': end,
+          }
+        })
+        .then((value) => logger.d('succeed'))
+        .catchError((error) => logger.d(error.message));
   }
 
   @override
   Widget build(BuildContext context) {
-    // game logic in here
-    switch (gameProcess) {
-      case 0:
-        if (!isCaseZerofunctioned) {
-          isCaseZerofunctioned = true;
-          Timer(const Duration(seconds: 2), () {
+    final user = Provider.of<LocalUser?>(context)!;
+    // reference.snapshots().listen((querySnapshot) {
+    //   logger.v(querySnapshot);
+    // });
+    // game logic when load the page
+    if (!isCaseFunctioned) {
+      switch (gameProcess) {
+        case 0:
+          Timer(const Duration(seconds: 2, milliseconds: 500), () {
             changeImage();
           });
-        }
-        break;
-      case 1:
-        break;
-      case 2:
-        _playPathSound('footsteps_in_temple.mp3');
-        // generate num array here
-        numArray = List.generate(
-            numberOfDigits, (index) => min + Random().nextInt(max - min));
-        userArray = List.generate(numberOfDigits, (index) => -1);
-        logger.d(numArray);
-        roundTimerCreated = false;
-        break;
-      case 3:
-        if (!roundTimerCreated) {
+          break;
+        case 1:
+          break;
+        case 2:
+          _playPathSound('footsteps_in_temple.mp3');
+          // generate num array here
+          numArray = List.generate(
+              numberOfDigits, (index) => min + Random().nextInt(max - min));
+          userArray = List.generate(numberOfDigits, (index) => -1);
+          logger.d(numArray);
+          isCaseFunctioned = false;
+          break;
+        case 3:
           startTimer();
-        }
-        break;
-      case 4:
-        break;
-      case 5:
-        break;
-      case 6:
-        if (!isCaseSixfunctioned) {
-          isCaseSixfunctioned = true;
+          break;
+        case 4:
+          Timer(const Duration(seconds: 1, milliseconds: 500), () {
+            changeImage();
+            logger.d('jump');
+          });
+          break;
+        case 5:
+          start = DateTime.now();
+          break;
+        case 6:
           Timer(const Duration(seconds: 3), () {
             changeImage();
           });
-        }
-        break;
-      case 7:
-        Timer(const Duration(seconds: 1), () {
-          playerWin
-              ? _playPathSound("Applause.mp3")
-              : _playPathSound("horror_lose.wav");
-        });
-        Timer(const Duration(seconds: 3), () {
-          _showGameEndDialog();
-        });
-        break;
-      // end of game leave 5 seconds to check result
+          break;
+        case 7:
+          Timer(const Duration(seconds: 1), () {
+            playerWin
+                ? _playPathSound("Applause.mp3")
+                : _playPathSound("horror_lose.wav");
+          });
+          Timer(const Duration(seconds: 3), () {
+            _showGameEndDialog(user);
+          });
+          break;
+        // end of game leave 5 seconds to check result
+      }
     }
     return Scaffold(
       resizeToAvoidBottomInset: false,
       body: SizedBox(
         child: AnimatedContainer(
-          duration: const Duration(seconds: 2, milliseconds: 500),
+          duration: const Duration(seconds: 1, milliseconds: 0),
           decoration: BoxDecoration(
             color: Colors.black,
             image: DecorationImage(
@@ -279,7 +308,7 @@ class _LotteryGameState extends State<LotteryGame> {
               fit: BoxFit.fill,
             ),
           ),
-          curve: Curves.easeIn,
+          curve: Curves.fastOutSlowIn,
           child: Row(
             children: [
               Expanded(
@@ -306,103 +335,9 @@ class _LotteryGameState extends State<LotteryGame> {
                 flex: 5,
                 child: gameProcess == 3
                     // need to change position
-                    ? Row(
-                        children: [
-                          Expanded(
-                            flex: 3,
-                            child: Container(),
-                          ),
-                          Expanded(
-                            flex: 2,
-                            child: Column(
-                              children: [
-                                Expanded(
-                                  flex: 1,
-                                  child: Container(),
-                                ),
-                                Expanded(
-                                  flex: 3,
-                                  child: AnimatedOpacity(
-                                      opacity: showNumber != '' ? 1.0 : 0.0,
-                                      duration: const Duration(
-                                        milliseconds: 500,
-                                      ),
-                                      child: AspectRatio(
-                                        aspectRatio: 1,
-                                        child: Container(
-                                          padding: const EdgeInsets.all(5),
-                                          decoration: BoxDecoration(
-                                              color: Colors.white,
-                                              borderRadius:
-                                                  BorderRadius.circular(10)),
-                                          child: Text(
-                                            showNumber,
-                                            textAlign: TextAlign.center,
-                                            style: const TextStyle(
-                                              fontSize: 100,
-                                              color: Colors.red,
-                                            ),
-                                          ),
-                                        ),
-                                      )),
-                                ),
-                                Expanded(flex: 5, child: Container()),
-                              ],
-                            ),
-                          ),
-                        ],
-                      )
+                    ? _showNumber()
                     : gameProcess == 5
-                        ? Form(
-                            key: formKey,
-                            child: Row(
-                              children: <Widget>[
-                                Expanded(
-                                  flex: 3,
-                                  child: GridView.count(
-                                    crossAxisCount: 3,
-                                    padding: const EdgeInsets.all(20),
-                                    crossAxisSpacing: 10,
-                                    mainAxisSpacing: 10,
-                                    children: [
-                                      for (int i = 0;
-                                          i < numberOfDigits;
-                                          i++) ...[
-                                        TextFormField(
-                                          maxLength: 1,
-                                          decoration: inputNumberDecoration
-                                              .copyWith(hintText: ''),
-                                          keyboardType: TextInputType.number,
-                                          validator: (val) => val!.isEmpty
-                                              ? 'Enter a number'
-                                              : null,
-                                          onChanged: (val) {
-                                            userArray[i] = int.parse(val);
-                                          },
-                                        ),
-                                      ],
-                                    ],
-                                  ),
-                                ),
-                                Expanded(
-                                  flex: 2,
-                                  child: ClipRRect(
-                                    borderRadius: BorderRadius.circular(30.0),
-                                    child: ElevatedButton(
-                                      onPressed: () {
-                                        if (formKey.currentState!.validate()) {
-                                          //judge the result
-                                          getResult();
-                                          changeImage();
-                                        }
-                                      },
-                                      child: const Text('done'),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          )
+                        ? _getForm()
                         : AnimatedOpacity(
                             opacity: gameProcess == 2 ? 1.0 : 0.0,
                             duration: const Duration(
@@ -439,11 +374,102 @@ class _LotteryGameState extends State<LotteryGame> {
                           ),
                         ),
                       )
-                    : Container(),
+                    : const Placeholder(),
               ),
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Row _showNumber() {
+    return Row(
+      children: [
+        const Expanded(flex: 3, child: Placeholder()),
+        Expanded(
+          flex: 2,
+          child: Column(
+            children: [
+              const Expanded(flex: 1, child: Placeholder()),
+              Expanded(
+                flex: 3,
+                child: AnimatedOpacity(
+                    opacity: showNumber != '' ? 1.0 : 0.0,
+                    duration: const Duration(
+                      milliseconds: 500,
+                    ),
+                    child: AspectRatio(
+                      aspectRatio: 1,
+                      child: Container(
+                        padding: const EdgeInsets.all(5),
+                        decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(10)),
+                        child: Text(
+                          showNumber,
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                            fontSize: 100,
+                            color: Colors.red,
+                          ),
+                        ),
+                      ),
+                    )),
+              ),
+              const Expanded(flex: 5, child: Placeholder()),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Form _getForm() {
+    return Form(
+      key: formKey,
+      child: Row(
+        children: <Widget>[
+          Expanded(
+            flex: 3,
+            child: GridView.count(
+              crossAxisCount: 3,
+              padding: const EdgeInsets.all(20),
+              crossAxisSpacing: 10,
+              mainAxisSpacing: 10,
+              children: [
+                for (int i = 0; i < numberOfDigits; i++) ...[
+                  TextFormField(
+                    maxLength: 1,
+                    decoration: inputNumberDecoration.copyWith(hintText: ''),
+                    keyboardType: TextInputType.number,
+                    validator: (val) => val!.isEmpty ? 'Enter a number' : null,
+                    onChanged: (val) {
+                      userArray[i] = int.parse(val);
+                    },
+                  ),
+                ],
+              ],
+            ),
+          ),
+          Expanded(
+            flex: 2,
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(30.0),
+              child: ElevatedButton(
+                onPressed: () {
+                  if (formKey.currentState!.validate()) {
+                    end = DateTime.now();
+                    //judge the result
+                    getResult();
+                    changeImage();
+                  }
+                },
+                child: const Text('done'),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -484,7 +510,7 @@ class _LotteryGameState extends State<LotteryGame> {
     );
   }
 
-  Future<void> _showGameEndDialog() async {
+  Future<void> _showGameEndDialog(LocalUser user) async {
     return showDialog<void>(
       context: context,
       barrierDismissible: false, // user must tap button!
@@ -506,6 +532,7 @@ class _LotteryGameState extends State<LotteryGame> {
               child: const Text('continue'),
               onPressed: () {
                 Navigator.of(context).pop();
+                recordGame(user);
                 if (playerWin) {
                   if (numberOfDigits == 8) {
                     continuousWinInEightDigits++;
@@ -513,18 +540,21 @@ class _LotteryGameState extends State<LotteryGame> {
                   } else {
                     //temporary rules
                     numberOfDigits++;
+                    loseInCurrentDigits = 0;
                   }
                 } else {
                   if (numberOfDigits == 8) continuousWinInEightDigits = 0;
                   loseInCurrentDigits++;
-                  if (loseInCurrentDigits == 2) {
+                  if (loseInCurrentDigits >= 2) {
                     if (numberOfDigits > 2) {
                       numberOfDigits--;
                       loseInCurrentDigits = 0;
                     }
                   }
                 }
-                setForNextGame();
+                Timer(const Duration(seconds: 1), () {
+                  setForNextGame();
+                });
               },
             ),
           ],

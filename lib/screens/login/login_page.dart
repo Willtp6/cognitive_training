@@ -23,9 +23,9 @@ class _LoginPageState extends State<LoginPage> {
     return isLoading
         ? const Loading()
         : Scaffold(
-            backgroundColor: Colors.brown[100],
+            backgroundColor: Colors.blue[100],
             appBar: AppBar(
-              backgroundColor: Colors.brown[400],
+              backgroundColor: Colors.blue[400],
               elevation: 0.0,
               title: const Text('Login'),
             ),
@@ -51,8 +51,8 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                     const SizedBox(height: 30.0),
                     SizedBox(
-                      height: 100.0,
-                      width: 200.0,
+                      height: 50.0,
+                      width: 150.0,
                       child: ElevatedButton(
                         style: buttonDecoration,
                         onPressed: () async {
@@ -68,7 +68,10 @@ class _LoginPageState extends State<LoginPage> {
                             }
                           }
                         },
-                        child: const Text('register'),
+                        child: const Text(
+                          'register',
+                          style: TextStyle(fontSize: 20),
+                        ),
                       ),
                     ),
                     const SizedBox(height: 20),
