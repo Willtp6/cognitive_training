@@ -9,7 +9,13 @@ class UserinfoDatabaseService {
       FirebaseFirestore.instance.collection('user_basic_info');
 
   Future createUserInfo({required int coins}) async {
-    return await userInfoCollection.doc(docId).set({'coins': 0});
+    return await userInfoCollection.doc(docId).set({
+      'coins': 0,
+      'doneTutorial_1': false,
+      'doneTutorial_2': false,
+      'doneTutorial_3': false,
+      'doneTutorial_4': false,
+    });
   }
 
   Stream<QuerySnapshot> get uerInfo {

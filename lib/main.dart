@@ -1,3 +1,4 @@
+import 'package:cognitive_training/models/user_info_provider.dart';
 import 'package:cognitive_training/screens/wrapper.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
@@ -23,10 +24,13 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        StreamProvider.value(
-          value: AuthService().user,
+        StreamProvider(
+          create: (context) => AuthService().userStream,
           initialData: null,
         ),
+        ChangeNotifierProvider(
+          create: (context) => UserInfoProvider(),
+        )
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,

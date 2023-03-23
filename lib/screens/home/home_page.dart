@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cognitive_training/models/user_info_provider.dart';
 import 'package:cognitive_training/screens/gmaes/lottery_game/lottery_game.dart';
 import 'package:flutter/material.dart';
 import 'package:cognitive_training/firebase/auth.dart';
@@ -21,14 +22,9 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    final user = Provider.of<LocalUser?>(context);
-    DocumentReference reference =
-        FirebaseFirestore.instance.collection('user_basic_info').doc(user!.uid);
-    reference.snapshots().listen((userInfoSnapshot) {
-      setState(() {
-        numOfCoins = userInfoSnapshot.get('coins');
-      });
-    });
+    //final user = Provider.of<LocalUser?>(context);
+    var userInfoProvider = context.watch<UserInfoProvider>();
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('home page'),
@@ -41,10 +37,14 @@ class _HomePageState extends State<HomePage> {
           const SizedBox(
             height: 40,
           ),
-          Text(numOfCoins.toString(),
-              style: const TextStyle(
-                fontSize: 40,
-              )),
+          Consumer<UserInfoProvider>(
+            builder: (context, userInfoProvider, child) {
+              return Text(
+                "Coins you have: ${userInfoProvider.coins}",
+                style: const TextStyle(color: Colors.black, fontSize: 40),
+              );
+            },
+          ),
           const SizedBox(
             height: 40,
           ),
@@ -53,7 +53,8 @@ class _HomePageState extends State<HomePage> {
               backgroundColor: Colors.blueGrey,
             ),
             onPressed: () {
-              reference.update({'coins': numOfCoins + 1});
+              //reference.update({'coins': numOfCoins + 1});
+              userInfoProvider.coins = userInfoProvider.coins + 1;
             },
             child: const Text(
               'press me to update coins',
@@ -88,9 +89,13 @@ class _HomePageState extends State<HomePage> {
             ),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
-              child: Text(
-                "Coins you have: ${numOfCoins.toString()}",
-                style: const TextStyle(color: Colors.pink, fontSize: 20),
+              child: Consumer<UserInfoProvider>(
+                builder: (context, userInfoProvider, child) {
+                  return Text(
+                    "Coins you have: ${userInfoProvider.coins}",
+                    style: const TextStyle(color: Colors.pink, fontSize: 20),
+                  );
+                },
               ),
             ),
             ListTile(

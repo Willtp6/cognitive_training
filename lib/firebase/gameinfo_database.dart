@@ -10,8 +10,4 @@ class GameInfoDatabaseService {
   Future createUserGameInfo() async {
     return await userGameInfoCollection.doc(docId).set({'game1': {}});
   }
-/*
-  Stream<QuerySnapshot> get uerGameInfo {
-    return userGameInfoCollection.snapshots();
-  }*/
 }

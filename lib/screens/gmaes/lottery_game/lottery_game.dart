@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cognitive_training/models/user_info_provider.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:audioplayers/audioplayers.dart';
@@ -62,6 +64,7 @@ class _LotteryGameState extends State<LotteryGame> {
   bool disableButton = false;
   bool isPaused = false;
   bool isCaseFunctioned = false;
+  bool doneTutorialMode = false;
   int currentIndex = 0;
   int loseInCurrentDigits = 0;
   int continuousWinInEightDigits = 0;
@@ -219,7 +222,7 @@ class _LotteryGameState extends State<LotteryGame> {
     changeImage();
   }
 
-  Future<void> recordGame(LocalUser user) {
+  Future<void> recordGame(User user) {
     logger.d(user.uid);
     DocumentReference reference = FirebaseFirestore.instance
         .collection('user_game_info')
@@ -233,8 +236,6 @@ class _LotteryGameState extends State<LotteryGame> {
             'numOfDigits': numberOfDigits,
             'accuracy': numOfCorrectAns / numberOfDigits,
             'responseTime(seconds)': end.difference(start).inSeconds,
-            'start': start,
-            'end': end,
           }
         })
         .then((value) => logger.d('succeed'))
@@ -243,12 +244,12 @@ class _LotteryGameState extends State<LotteryGame> {
 
   @override
   Widget build(BuildContext context) {
-    final user = Provider.of<LocalUser?>(context)!;
-    // reference.snapshots().listen((querySnapshot) {
-    //   logger.v(querySnapshot);
-    // });
-    // game logic when load the page
+    //listen and reset the state
+    final user = FirebaseAuth.instance.currentUser;
+    var userInfoProvider = context.watch<UserInfoProvider>();
+
     if (!isCaseFunctioned) {
+      isCaseFunctioned = true;
       switch (gameProcess) {
         case 0:
           Timer(const Duration(seconds: 2, milliseconds: 500), () {
@@ -272,25 +273,29 @@ class _LotteryGameState extends State<LotteryGame> {
         case 4:
           Timer(const Duration(seconds: 1, milliseconds: 500), () {
             changeImage();
-            logger.d('jump');
           });
           break;
         case 5:
           start = DateTime.now();
           break;
         case 6:
+          recordGame(user!);
           Timer(const Duration(seconds: 3), () {
             changeImage();
           });
           break;
         case 7:
           Timer(const Duration(seconds: 1), () {
-            playerWin
-                ? _playPathSound("Applause.mp3")
-                : _playPathSound("horror_lose.wav");
+            if (playerWin) {
+              userInfoProvider.coins = userInfoProvider.coins + 10;
+              _playPathSound("Applause.mp3");
+            } else {
+              userInfoProvider.coins = userInfoProvider.coins - 10;
+              _playPathSound("horror_lose.wav");
+            }
           });
           Timer(const Duration(seconds: 3), () {
-            _showGameEndDialog(user);
+            _showGameEndDialog();
           });
           break;
         // end of game leave 5 seconds to check result
@@ -325,7 +330,7 @@ class _LotteryGameState extends State<LotteryGame> {
                         shape: const CircleBorder()),
                     child: const Icon(
                       Icons.cancel,
-                      size: 40,
+                      size: 70,
                     ),
                   ),
                 ),
@@ -334,7 +339,6 @@ class _LotteryGameState extends State<LotteryGame> {
               Expanded(
                 flex: 5,
                 child: gameProcess == 3
-                    // need to change position
                     ? _showNumber()
                     : gameProcess == 5
                         ? _getForm()
@@ -370,11 +374,11 @@ class _LotteryGameState extends State<LotteryGame> {
                           ),
                           child: const Icon(
                             Icons.arrow_circle_right,
-                            size: 40,
+                            size: 70,
                           ),
                         ),
                       )
-                    : const Placeholder(),
+                    : Container(),
               ),
             ],
           ),
@@ -383,45 +387,31 @@ class _LotteryGameState extends State<LotteryGame> {
     );
   }
 
-  Row _showNumber() {
-    return Row(
-      children: [
-        const Expanded(flex: 3, child: Placeholder()),
-        Expanded(
-          flex: 2,
-          child: Column(
-            children: [
-              const Expanded(flex: 1, child: Placeholder()),
-              Expanded(
-                flex: 3,
-                child: AnimatedOpacity(
-                    opacity: showNumber != '' ? 1.0 : 0.0,
-                    duration: const Duration(
-                      milliseconds: 500,
-                    ),
-                    child: AspectRatio(
-                      aspectRatio: 1,
-                      child: Container(
-                        padding: const EdgeInsets.all(5),
-                        decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(10)),
-                        child: Text(
-                          showNumber,
-                          textAlign: TextAlign.center,
-                          style: const TextStyle(
-                            fontSize: 100,
-                            color: Colors.red,
-                          ),
-                        ),
-                      ),
-                    )),
-              ),
-              const Expanded(flex: 5, child: Placeholder()),
-            ],
+  Align _showNumber() {
+    return Align(
+      alignment: const Alignment(0.7, -0.5),
+      child: AnimatedOpacity(
+        opacity: showNumber != '' ? 1.0 : 0.0,
+        duration: const Duration(
+          milliseconds: 500,
+        ),
+        child: Container(
+          height: 125,
+          width: 125,
+          padding: const EdgeInsets.all(5),
+          decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.9),
+              borderRadius: BorderRadius.circular(10)),
+          child: Text(
+            showNumber,
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              fontSize: 100,
+              color: Colors.red,
+            ),
           ),
         ),
-      ],
+      ),
     );
   }
 
@@ -431,27 +421,38 @@ class _LotteryGameState extends State<LotteryGame> {
       child: Row(
         children: <Widget>[
           Expanded(
-            flex: 3,
-            child: GridView.count(
-              crossAxisCount: 3,
-              padding: const EdgeInsets.all(20),
-              crossAxisSpacing: 10,
-              mainAxisSpacing: 10,
-              children: [
-                for (int i = 0; i < numberOfDigits; i++) ...[
-                  TextFormField(
-                    maxLength: 1,
-                    decoration: inputNumberDecoration.copyWith(hintText: ''),
-                    keyboardType: TextInputType.number,
-                    validator: (val) => val!.isEmpty ? 'Enter a number' : null,
-                    onChanged: (val) {
-                      userArray[i] = int.parse(val);
-                    },
+              flex: 3,
+              child: Column(children: <Widget>[
+                Expanded(flex: 1, child: Container()),
+                Expanded(
+                  flex: 9,
+                  child: GridView.count(
+                    crossAxisCount: 3,
+                    padding: const EdgeInsets.all(20),
+                    crossAxisSpacing: 25,
+                    mainAxisSpacing: 5,
+                    childAspectRatio: 1,
+                    children: [
+                      for (int i = 0; i < numberOfDigits; i++) ...[
+                        TextFormField(
+                          maxLength: 1,
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(fontSize: 30),
+                          decoration: inputNumberDecoration.copyWith(
+                              hintText: '',
+                              contentPadding: const EdgeInsets.all(5)),
+                          keyboardType: TextInputType.number,
+                          validator: (val) =>
+                              val!.isEmpty ? 'Enter a number' : null,
+                          onChanged: (val) {
+                            userArray[i] = val.isEmpty ? -1 : int.parse(val);
+                          },
+                        ),
+                      ],
+                    ],
                   ),
-                ],
-              ],
-            ),
-          ),
+                )
+              ])),
           Expanded(
             flex: 2,
             child: ClipRRect(
@@ -510,7 +511,7 @@ class _LotteryGameState extends State<LotteryGame> {
     );
   }
 
-  Future<void> _showGameEndDialog(LocalUser user) async {
+  Future<void> _showGameEndDialog() async {
     return showDialog<void>(
       context: context,
       barrierDismissible: false, // user must tap button!
@@ -532,7 +533,6 @@ class _LotteryGameState extends State<LotteryGame> {
               child: const Text('continue'),
               onPressed: () {
                 Navigator.of(context).pop();
-                recordGame(user);
                 if (playerWin) {
                   if (numberOfDigits == 8) {
                     continuousWinInEightDigits++;

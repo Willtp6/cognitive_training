@@ -1,4 +1,3 @@
-import 'package:cognitive_training/firebase/gameinfo_database.dart';
 import 'package:cognitive_training/firebase/userinfo_database.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cognitive_training/models/user.dart';
@@ -15,7 +14,7 @@ class AuthService {
   }
 
   // auth change user stream in main defined stream provider
-  Stream<LocalUser?> get user {
+  Stream<LocalUser?> get userStream {
     return _auth.authStateChanges().map(_userFromFirebaseUser);
   }
 
@@ -41,7 +40,6 @@ class AuthService {
         // create new database with initial amount of coins is 0
         await UserinfoDatabaseService(docId: user!.uid)
             .createUserInfo(coins: 0);
-        await GameInfoDatabaseService(docId: user.uid).createUserGameInfo();
         return _userFromFirebaseUser(user);
       }
     } catch (e) {
