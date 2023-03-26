@@ -27,8 +27,6 @@ class _LotteryGameState extends State<LotteryGame> {
   AudioPlayer? player;
   // background image of game process
   final List<String> imagePath = [
-    'assets/lottery_game_scene/Temple1_withoutWord.png',
-    'assets/lottery_game_scene/Temple1_withWord.png',
     'assets/lottery_game_scene/Temple2_withoutWord.png',
     'assets/lottery_game_scene/Temple2_withoutWord.png',
     'assets/lottery_game_scene/NumberInput_withWord.png',
@@ -36,16 +34,7 @@ class _LotteryGameState extends State<LotteryGame> {
     'assets/lottery_game_scene/BuyLotter.png',
   ];
 
-  List<bool> centerRightButtonEnable = [
-    false,
-    true,
-    true,
-    true,
-    false,
-    false,
-    false,
-    false
-  ];
+  List<bool> centerRightButtonEnable = [true, true, false, false, false, false];
 
   final String imagePathWin = 'assets/lottery_game_scene/BuyLotter_win.png';
   final String imagePathLose = 'assets/lottery_game_scene/BuyLotter_lose.png';
@@ -74,7 +63,7 @@ class _LotteryGameState extends State<LotteryGame> {
   String showNumber = '';
   int numOfCorrectAns = 0;
   String _currentImagePath =
-      'assets/lottery_game_scene/Temple1_withoutWord.png';
+      'assets/lottery_game_scene/Temple2_withoutWord.png';
 
   late DateTime start;
   late DateTime end;
@@ -84,10 +73,10 @@ class _LotteryGameState extends State<LotteryGame> {
   void initState() {
     super.initState();
     // Init
-    SystemChrome.setPreferredOrientations([
-      DeviceOrientation.landscapeRight,
-      DeviceOrientation.landscapeLeft,
-    ]);
+    // SystemChrome.setPreferredOrientations([
+    //   DeviceOrientation.landscapeRight,
+    //   DeviceOrientation.landscapeLeft,
+    // ]);
 
     Future.delayed(Duration.zero, () {
       for (var imagePath in imagePath) {
@@ -101,21 +90,21 @@ class _LotteryGameState extends State<LotteryGame> {
   @override
   void dispose() {
     // Change
-    SystemChrome.setPreferredOrientations([
-      DeviceOrientation.portraitUp,
-      DeviceOrientation.portraitDown,
-    ]);
+    // SystemChrome.setPreferredOrientations([
+    //   DeviceOrientation.portraitUp,
+    //   DeviceOrientation.portraitDown,
+    // ]);
 
-    super.dispose();
     mytimer?.cancel();
     player?.dispose();
+    super.dispose();
   }
 
   void changeImage() {
     setState(() {
       isCaseFunctioned = false;
       gameProcess++;
-      _currentImagePath = gameProcess < 7
+      _currentImagePath = gameProcess < 5
           ? imagePath[gameProcess]
           : playerWin
               ? imagePathWin
@@ -218,6 +207,7 @@ class _LotteryGameState extends State<LotteryGame> {
   void setForNextGame() {
     playerWin = false;
     currentIndex = 0;
+    // TODO just set to the first scene
     gameProcess = 0;
     changeImage();
   }
@@ -246,46 +236,37 @@ class _LotteryGameState extends State<LotteryGame> {
   Widget build(BuildContext context) {
     //listen and reset the state
     final user = FirebaseAuth.instance.currentUser;
-    var userInfoProvider = context.watch<UserInfoProvider>();
-
+    var userInfoProvider = Provider.of<UserInfoProvider>(context);
     if (!isCaseFunctioned) {
       isCaseFunctioned = true;
       switch (gameProcess) {
         case 0:
-          Timer(const Duration(seconds: 2, milliseconds: 500), () {
-            changeImage();
-          });
-          break;
-        case 1:
-          break;
-        case 2:
-          _playPathSound('footsteps_in_temple.mp3');
-          // generate num array here
           numArray = List.generate(
               numberOfDigits, (index) => min + Random().nextInt(max - min));
           userArray = List.generate(numberOfDigits, (index) => -1);
           logger.d(numArray);
-          isCaseFunctioned = false;
+          // ignore: todo
+          //TODO will add audio to play game rule
           break;
-        case 3:
+        case 1:
           startTimer();
           break;
-        case 4:
+        case 2:
           Timer(const Duration(seconds: 1, milliseconds: 500), () {
             changeImage();
           });
           break;
-        case 5:
+        case 3:
           start = DateTime.now();
           break;
-        case 6:
+        case 4:
           recordGame(user!);
-          Timer(const Duration(seconds: 3), () {
+          Timer(const Duration(seconds: 2), () {
             changeImage();
           });
           break;
-        case 7:
-          Timer(const Duration(seconds: 1), () {
+        case 5:
+          Timer(const Duration(milliseconds: 500), () {
             if (playerWin) {
               userInfoProvider.coins = userInfoProvider.coins + 10;
               _playPathSound("Applause.mp3");
@@ -294,7 +275,7 @@ class _LotteryGameState extends State<LotteryGame> {
               _playPathSound("horror_lose.wav");
             }
           });
-          Timer(const Duration(seconds: 3), () {
+          Timer(const Duration(seconds: 2), () {
             _showGameEndDialog();
           });
           break;
@@ -338,12 +319,12 @@ class _LotteryGameState extends State<LotteryGame> {
               //input form
               Expanded(
                 flex: 5,
-                child: gameProcess == 3
+                child: gameProcess == 1
                     ? _showNumber()
-                    : gameProcess == 5
+                    : gameProcess == 3
                         ? _getForm()
                         : AnimatedOpacity(
-                            opacity: gameProcess == 2 ? 1.0 : 0.0,
+                            opacity: gameProcess == 0 ? 1.0 : 0.0,
                             duration: const Duration(
                               seconds: 1,
                             ),

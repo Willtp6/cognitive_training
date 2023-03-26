@@ -3,6 +3,7 @@ import 'package:cognitive_training/models/user_info_provider.dart';
 import 'package:cognitive_training/screens/gmaes/lottery_game/lottery_game.dart';
 import 'package:flutter/material.dart';
 import 'package:cognitive_training/firebase/auth.dart';
+import 'package:go_router/go_router.dart';
 import 'package:logger/logger.dart';
 import 'package:provider/provider.dart';
 
@@ -18,13 +19,10 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   final AuthService _authService = AuthService();
 
-  int numOfCoins = 0;
-
   @override
   Widget build(BuildContext context) {
-    //final user = Provider.of<LocalUser?>(context);
+    final user = Provider.of<LocalUser?>(context);
     var userInfoProvider = context.watch<UserInfoProvider>();
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('home page'),
@@ -53,7 +51,6 @@ class _HomePageState extends State<HomePage> {
               backgroundColor: Colors.blueGrey,
             ),
             onPressed: () {
-              //reference.update({'coins': numOfCoins + 1});
               userInfoProvider.coins = userInfoProvider.coins + 1;
             },
             child: const Text(
@@ -67,7 +64,7 @@ class _HomePageState extends State<HomePage> {
               backgroundColor: Colors.blueGrey,
             ),
             onPressed: () {
-              _navigateToLotteryGame(context);
+              GoRouter.of(context).push('/home/lottery_game_menu');
             },
             child: const Text(
               'Lottery game',
@@ -118,11 +115,6 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  void _navigateToLotteryGame(BuildContext context) {
-    Navigator.of(context)
-        .push(MaterialPageRoute(builder: (context) => const LotteryGame()));
-  }
-
   Future<void> _showAlertDialog(BuildContext context) async {
     return showDialog<void>(
       context: context,
@@ -142,7 +134,7 @@ class _HomePageState extends State<HomePage> {
             TextButton(
               child: const Text('No'),
               onPressed: () {
-                Navigator.of(context).pop();
+                GoRouter.of(context).pop();
               },
             ),
             TextButton(
@@ -150,8 +142,8 @@ class _HomePageState extends State<HomePage> {
               onPressed: () async {
                 await _authService.signOut();
                 if (context.mounted) {
-                  Navigator.of(context).pop();
-                  Navigator.of(context).pop();
+                  GoRouter.of(context).pop();
+                  GoRouter.of(context).pop();
                 }
               },
             ),
