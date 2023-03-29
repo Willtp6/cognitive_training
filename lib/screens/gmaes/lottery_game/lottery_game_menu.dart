@@ -1,8 +1,12 @@
+import 'dart:async';
+
+import 'package:cognitive_training/models/user_info_provider.dart';
 import 'package:cognitive_training/screens/gmaes/lottery_game/lottery_game.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:logger/logger.dart';
+import 'package:provider/provider.dart';
 
 class LotteryGameMenu extends StatefulWidget {
   const LotteryGameMenu({super.key});
@@ -41,6 +45,10 @@ class _LotteryGameMenu extends State<LotteryGameMenu>
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.landscapeRight,
+      DeviceOrientation.landscapeLeft,
+    ]);
     _controller.reset();
     _controller.dispose();
     _controller =
@@ -49,6 +57,7 @@ class _LotteryGameMenu extends State<LotteryGameMenu>
 
   @override
   Widget build(BuildContext context) {
+    var userInfoProvider = context.watch<UserInfoProvider>();
     return Stack(
       children: [
         ScaleTransition(
@@ -80,62 +89,121 @@ class _LotteryGameMenu extends State<LotteryGameMenu>
           opacity: Tween(begin: 1.0, end: 0.0)
               .chain(CurveTween(curve: const Interval(0.0, 0.7)))
               .animate(_controller),
-          child: Container(
-            alignment: Alignment.center,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Container(
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(15.0),
-                  ),
-                  child: const Text(
-                    'Game Label',
-                    style: TextStyle(
-                        fontSize: 100,
-                        color: Colors.black,
-                        decoration: TextDecoration.none),
-                  ),
+          child: Consumer<UserInfoProvider>(
+            builder: (context, userInfoProvider, child) {
+              return Container(
+                alignment: Alignment.center,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Flexible(
+                      flex: 3,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(15.0),
+                        ),
+                        child: const Text(
+                          'Game Label',
+                          style: TextStyle(
+                            color: Colors.black,
+                            decoration: TextDecoration.none,
+                          ),
+                        ),
+                      ),
+                    ),
+                    Flexible(
+                      flex: 1,
+                      child: Container(),
+                    ),
+                    Flexible(
+                      flex: 1,
+                      child: ElevatedButton(
+                        onPressed: () {
+                          _controller.reset();
+                          _controller.forward();
+                          _controller.addListener(() {
+                            if (_controller.isCompleted) {
+                              Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) => LotteryGame(
+                                          startLevel: 0,
+                                          startDigit: 2,
+                                          isTutorial: false)));
+                              Future.delayed(Duration(milliseconds: 200), () {
+                                _controller.reset();
+                              });
+                            }
+                          });
+                        },
+                        child: const Text('開始新遊戲'),
+                      ),
+                    ),
+                    Flexible(
+                      flex: 1,
+                      child: ElevatedButton(
+                        onPressed: () {
+                          _controller.reset();
+                          _controller.forward();
+                          _controller.addListener(() {
+                            if (_controller.isCompleted) {
+                              Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) => LotteryGame(
+                                          startLevel: userInfoProvider
+                                              .lotteryGameDatabase.currentLevel,
+                                          startDigit: userInfoProvider
+                                              .lotteryGameDatabase.currentDigit,
+                                          isTutorial: false)));
+                              Future.delayed(Duration(milliseconds: 200), () {
+                                _controller.reset();
+                              });
+                            }
+                          });
+                        },
+                        child: const Text('繼續遊戲'),
+                      ),
+                    ),
+                    Flexible(
+                      flex: 1,
+                      child: ElevatedButton(
+                        onPressed: () {
+                          _controller.reset();
+                          _controller.forward();
+                          _controller.addListener(() {
+                            if (_controller.isCompleted) {
+                              Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) => LotteryGame(
+                                          startLevel: 0,
+                                          startDigit: 2,
+                                          isTutorial: true)));
+                              Future.delayed(Duration(milliseconds: 200), () {
+                                _controller.reset();
+                              });
+                            }
+                          });
+                        },
+                        child: const Text('教學模式'),
+                      ),
+                    ),
+                    Flexible(
+                      flex: 1,
+                      child: ElevatedButton(
+                        onPressed: () {
+                          GoRouter.of(context).pop();
+                        },
+                        child: const Text('返回'),
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(
-                  height: 40,
-                ),
-                ElevatedButton(
-                  onPressed: () {
-                    _controller.forward();
-                    _controller.addListener(() {
-                      if (_controller.isCompleted) {
-                        GoRouter.of(context)
-                            .push('/home/lottery_game_menu/lottery_game');
-                      }
-                    });
-                  },
-                  child: const Text('開始新遊戲'),
-                ),
-                ElevatedButton(
-                  onPressed: () {
-                    _controller.reset();
-                    _controller.forward();
-                    _controller.addListener(() {
-                      if (_controller.isCompleted) {
-                        Logger().d('called');
-                        GoRouter.of(context)
-                            .push('/home/lottery_game_menu/lottery_game');
-                      }
-                    });
-                  },
-                  child: const Text('繼續遊戲'),
-                ),
-                ElevatedButton(
-                  onPressed: () {
-                    GoRouter.of(context).pop();
-                  },
-                  child: const Text('返回'),
-                ),
-              ],
-            ),
+              );
+            },
           ),
         ),
       ],

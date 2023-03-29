@@ -3,14 +3,21 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 
+class LotteryGameDatabase {
+  int currentLevel;
+  int currentDigit;
+  bool doneTutorial;
+  LotteryGameDatabase(
+      {required this.currentLevel,
+      required this.currentDigit,
+      required this.doneTutorial});
+}
+
 class UserInfoProvider with ChangeNotifier {
   //var user = FirebaseAuth.instance.currentUser;
   User? _user;
   int _coins = 0;
-  late bool _doneTutorial_1;
-  late bool _doneTutorial_2;
-  late bool _doneTutorial_3;
-  late bool _doneTutorial_4;
+  late LotteryGameDatabase _lotteryGameDatabase;
 
   UserInfoProvider() {
     FirebaseAuth.instance.authStateChanges().listen((User? newUser) {
@@ -22,10 +29,7 @@ class UserInfoProvider with ChangeNotifier {
 
   User? get usr => _user;
   int get coins => _coins;
-  bool get doneTutorial_1 => _doneTutorial_1;
-  bool get doneTutorial_2 => _doneTutorial_2;
-  bool get doneTutorial_3 => _doneTutorial_3;
-  bool get doneTutorial_4 => _doneTutorial_4;
+  LotteryGameDatabase get lotteryGameDatabase => _lotteryGameDatabase;
 
   void updateUser(User newUser) {
     _user = newUser;
@@ -36,16 +40,15 @@ class UserInfoProvider with ChangeNotifier {
         .then((doc) {
       if (doc.exists) {
         _coins = doc.data()!['coins'];
-        _doneTutorial_1 = doc.data()!['doneTutorial_1'];
-        _doneTutorial_2 = doc.data()!['doneTutorial_2'];
-        _doneTutorial_3 = doc.data()!['doneTutorial_3'];
-        _doneTutorial_4 = doc.data()!['doneTutorial_4'];
+        _lotteryGameDatabase = LotteryGameDatabase(
+          currentLevel: doc.data()!['lotteryGameDatabase']['level'],
+          currentDigit: doc.data()!['lotteryGameDatabase']['digits'],
+          doneTutorial: doc.data()!['lotteryGameDatabase']['doneTutorial'],
+        );
       } else {
         _coins = 0;
-        _doneTutorial_1 = false;
-        _doneTutorial_2 = false;
-        _doneTutorial_3 = false;
-        _doneTutorial_4 = false;
+        _lotteryGameDatabase = LotteryGameDatabase(
+            currentLevel: 0, currentDigit: 2, doneTutorial: false);
       }
       notifyListeners();
     });
@@ -57,36 +60,27 @@ class UserInfoProvider with ChangeNotifier {
         .collection('user_basic_info')
         .doc(_user?.uid)
         .update({'coins': _coins}).then((value) {
-      Logger().d(_user?.uid);
       notifyListeners();
     });
   }
 
-  set doneTutorial_1(bool value) {
+  set lotteryGameDatabase(LotteryGameDatabase database) {
+    _lotteryGameDatabase = LotteryGameDatabase(
+        currentLevel: database.currentLevel,
+        currentDigit: database.currentDigit,
+        doneTutorial: database.doneTutorial);
     FirebaseFirestore.instance
         .collection('user_basic_info')
         .doc(_user?.uid)
-        .update({'doneTutorial_1': true}).then((value) => null);
-  }
-
-  set doneTutorial_2(bool value) {
-    FirebaseFirestore.instance
-        .collection('user_basic_info')
-        .doc(_user?.uid)
-        .update({'doneTutorial_2': true}).then((value) => null);
-  }
-
-  set doneTutorial_3(bool value) {
-    FirebaseFirestore.instance
-        .collection('user_basic_info')
-        .doc(_user?.uid)
-        .update({'doneTutorial_3': true}).then((value) => null);
-  }
-
-  set doneTutorial_4(bool value) {
-    FirebaseFirestore.instance
-        .collection('user_basic_info')
-        .doc(_user?.uid)
-        .update({'doneTutorial_4': true}).then((value) => null);
+        .update({
+      'lotteryGameDatabase': {
+        'level': database.currentLevel,
+        'digits': database.currentDigit,
+        'doneTutorial': database.doneTutorial,
+      }
+    }).then((value) {
+      notifyListeners();
+      Logger().d('updated map');
+    });
   }
 }

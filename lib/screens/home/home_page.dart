@@ -3,6 +3,7 @@ import 'package:cognitive_training/models/user_info_provider.dart';
 import 'package:cognitive_training/screens/gmaes/lottery_game/lottery_game.dart';
 import 'package:flutter/material.dart';
 import 'package:cognitive_training/firebase/auth.dart';
+import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:logger/logger.dart';
 import 'package:provider/provider.dart';
@@ -17,6 +18,15 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  @override
+  void initState() {
+    super.initState();
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.portraitDown,
+    ]);
+  }
+
   final AuthService _authService = AuthService();
 
   @override
@@ -24,55 +34,73 @@ class _HomePageState extends State<HomePage> {
     final user = Provider.of<LocalUser?>(context);
     var userInfoProvider = context.watch<UserInfoProvider>();
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       appBar: AppBar(
         title: const Text('home page'),
         backgroundColor: Colors.blue[400],
         elevation: 0.0,
       ),
       body: Center(
+        child: SingleChildScrollView(
+          scrollDirection: Axis.vertical,
           child: Column(
-        children: <Widget>[
-          const SizedBox(
-            height: 40,
+            children: <Widget>[
+              const SizedBox(
+                height: 40,
+              ),
+              Consumer<UserInfoProvider>(
+                builder: (context, userInfoProvider, child) {
+                  return Text(
+                    "Coins you have: ${userInfoProvider.coins}",
+                    style: const TextStyle(color: Colors.black, fontSize: 40),
+                  );
+                },
+              ),
+              const SizedBox(
+                height: 40,
+              ),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blueGrey,
+                ),
+                onPressed: () {
+                  userInfoProvider.coins = userInfoProvider.coins + 1;
+                },
+                child: const Text(
+                  'press me to update coins',
+                  style: TextStyle(fontSize: 40, color: Colors.white),
+                ),
+              ),
+              const SizedBox(height: 40),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blueGrey,
+                ),
+                onPressed: () {
+                  GoRouter.of(context).push('/home/lottery_game_menu');
+                },
+                child: const Text(
+                  'Lottery game',
+                  style: TextStyle(fontSize: 40, color: Colors.white),
+                ),
+              ),
+              const SizedBox(height: 40),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blueGrey,
+                ),
+                onPressed: () {
+                  GoRouter.of(context).push('/home/poker_game_menu');
+                },
+                child: const Text(
+                  'Poker game',
+                  style: TextStyle(fontSize: 40, color: Colors.white),
+                ),
+              ),
+            ],
           ),
-          Consumer<UserInfoProvider>(
-            builder: (context, userInfoProvider, child) {
-              return Text(
-                "Coins you have: ${userInfoProvider.coins}",
-                style: const TextStyle(color: Colors.black, fontSize: 40),
-              );
-            },
-          ),
-          const SizedBox(
-            height: 40,
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.blueGrey,
-            ),
-            onPressed: () {
-              userInfoProvider.coins = userInfoProvider.coins + 1;
-            },
-            child: const Text(
-              'press me to update coins',
-              style: TextStyle(fontSize: 40, color: Colors.white),
-            ),
-          ),
-          const SizedBox(height: 40),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.blueGrey,
-            ),
-            onPressed: () {
-              GoRouter.of(context).push('/home/lottery_game_menu');
-            },
-            child: const Text(
-              'Lottery game',
-              style: TextStyle(fontSize: 40, color: Colors.white),
-            ),
-          ),
-        ],
-      )),
+        ),
+      ),
       drawer: Drawer(
         child: ListView(
           // Important: Remove any padding from the ListView.
