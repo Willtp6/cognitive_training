@@ -10,11 +10,7 @@ class UserinfoDatabaseService {
 
   Future createUserInfo({required int coins}) async {
     return await userInfoCollection.doc(docId).set({
-      'coins': 0,
-      // 'doneTutorial_1': false,
-      // 'doneTutorial_2': false,
-      // 'doneTutorial_3': false,
-      // 'doneTutorial_4': false,
+      'coins': coins,
       'lotteryGameDatabase': {
         'level': 0,
         'digit': 2,

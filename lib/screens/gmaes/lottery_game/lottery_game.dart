@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cognitive_training/firebase/record_game.dart';
 import 'package:cognitive_training/models/user_info_provider.dart';
 import 'package:cognitive_training/screens/gmaes/lottery_game/lottery_game_menu.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -91,7 +92,9 @@ class _LotteryGameState extends State<LotteryGame>
     startLevel = widget.startLevel;
     startDigit = widget.startDigit;
     isTutorial = widget.isTutorial;
-
+    logger.d(widget.startLevel);
+    logger.d(widget.startDigit);
+    logger.d(widget.isTutorial);
     gameLevel = startLevel;
     numberOfDigits = startDigit;
 
@@ -224,27 +227,6 @@ class _LotteryGameState extends State<LotteryGame>
     changeImage();
   }
 
-  Future<void> recordGame(User user) {
-    logger.d(user.uid);
-    //record the game info
-    DocumentReference reference = FirebaseFirestore.instance
-        .collection('user_game_info')
-        .doc(user.uid)
-        .collection('game1')
-        .doc(DateTime.now().toString());
-    return reference
-        .set({
-          'game_record': {
-            'gameDifficulties': gameLevel + 1,
-            'numOfDigits': numberOfDigits,
-            'accuracy': numOfCorrectAns / numberOfDigits,
-            'responseTime(Milliseconds)': end.difference(start).inMilliseconds,
-          }
-        })
-        .then((value) => logger.d('succeed'))
-        .catchError((error) => logger.d(error.message));
-  }
-
   @override
   Widget build(BuildContext context) {
     //listen and reset the state
@@ -275,7 +257,12 @@ class _LotteryGameState extends State<LotteryGame>
           start = DateTime.now();
           break;
         case 4:
-          recordGame(user!);
+          RecordLotteryGame().recordGame(
+              gameLevel: gameLevel,
+              numberOfDigits: numberOfDigits,
+              numOfCorrectAns: numOfCorrectAns,
+              end: end,
+              start: start);
           Timer(const Duration(seconds: 2), () {
             changeImage();
           });

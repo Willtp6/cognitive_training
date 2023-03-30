@@ -1,4 +1,5 @@
 import 'package:cognitive_training/models/user_info_provider.dart';
+import 'package:cognitive_training/screens/gmaes/fishing_game/fishing_game.dart';
 import 'package:cognitive_training/screens/gmaes/lottery_game/lottery_game.dart';
 import 'package:cognitive_training/screens/gmaes/lottery_game/lottery_game_menu.dart';
 import 'package:cognitive_training/screens/gmaes/poker_game/poker_game.dart';
@@ -13,6 +14,8 @@ import 'package:cognitive_training/screens/splash/splash_page.dart';
 import 'firebase_options.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
+
+import 'screens/gmaes/fishing_game/fishing_game_menu.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -44,14 +47,19 @@ class MyApp extends StatelessWidget {
                 builder: (context, state) => const LotteryGameMenu(),
                 routes: [
                   GoRoute(
-                    name: 'lottery_game',
-                    path: 'lottery_game',
-                    builder: (context, state) => LotteryGame(
-                      startLevel: state.queryParams['startLevel'],
-                      startDigit: state.queryParams['startDigit'],
-                      isTutorial: state.queryParams['isTutorial'],
-                    ),
-                  ),
+                      name: 'lottery_game',
+                      path: 'lottery_game',
+                      builder: (context, state) {
+                        final parameters = state.queryParams;
+                        final startLevel = parameters['startLevel'] ?? '0';
+                        final startDigit = parameters['startDigit'] ?? '2';
+                        final isTutorial = parameters['isTutorial'] ?? 'true';
+                        return LotteryGame(
+                          startLevel: int.tryParse(startLevel),
+                          startDigit: int.tryParse(startDigit),
+                          isTutorial: isTutorial == 'true',
+                        );
+                      }),
                 ],
               ),
               GoRoute(
@@ -62,6 +70,16 @@ class MyApp extends StatelessWidget {
                     path: 'poker_game',
                     builder: (context, state) => const PokerGame(),
                   ),
+                ],
+              ),
+              GoRoute(
+                path: 'fishing_game_menu',
+                builder: (context, state) => FishingGameMenu(),
+                routes: [
+                  GoRoute(
+                    path: 'fishing_game',
+                    builder: (context, state) => FishingGame(),
+                  )
                 ],
               ),
             ],

@@ -39,7 +39,7 @@ class AuthService {
         User? user = result.user;
         // create new database with initial amount of coins is 0
         await UserinfoDatabaseService(docId: user!.uid)
-            .createUserInfo(coins: 0);
+            .createUserInfo(coins: 1000);
         return _userFromFirebaseUser(user);
       }
     } catch (e) {

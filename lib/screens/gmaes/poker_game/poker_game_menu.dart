@@ -106,11 +106,6 @@ class _PokerGameMenu extends State<PokerGameMenu>
                   child: ElevatedButton(
                     onPressed: () {
                       _controller.forward();
-                      /*Timer(Duration(milliseconds: 950), () {
-                        GoRouter.of(context)
-                            .push('/home/lottery_game_menu/lottery_game');
-                      });
-                      */
                       _controller.addListener(() {
                         if (_controller.isCompleted) {
                           GoRouter.of(context)
@@ -127,16 +122,12 @@ class _PokerGameMenu extends State<PokerGameMenu>
                     onPressed: () {
                       _controller.reset();
                       _controller.forward();
-                      Timer(Duration(milliseconds: 900), () {
-                        GoRouter.of(context)
-                            .push('/home/poker_game_menu/poker_game');
-                      });
-                      /*_controller.addListener(() {
+                      _controller.addListener(() {
                         if (_controller.isCompleted) {
                           GoRouter.of(context)
                               .push('/home/poker_game_menu/poker_game');
                         }
-                      });*/
+                      });
                     },
                     child: const Text('繼續遊戲'),
                   ),

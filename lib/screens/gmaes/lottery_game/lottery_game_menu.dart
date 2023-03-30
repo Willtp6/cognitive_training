@@ -125,14 +125,10 @@ class _LotteryGameMenu extends State<LotteryGameMenu>
                           _controller.forward();
                           _controller.addListener(() {
                             if (_controller.isCompleted) {
-                              Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                      builder: (context) => LotteryGame(
-                                          startLevel: 0,
-                                          startDigit: 2,
-                                          isTutorial: false)));
-                              Future.delayed(Duration(milliseconds: 200), () {
+                              GoRouter.of(context).push(
+                                  '/home/lottery_game_menu/lottery_game?startLevel=0&startDigit=2&isTutorial=false');
+                              Future.delayed(const Duration(milliseconds: 200),
+                                  () {
                                 _controller.reset();
                               });
                             }
@@ -149,16 +145,19 @@ class _LotteryGameMenu extends State<LotteryGameMenu>
                           _controller.forward();
                           _controller.addListener(() {
                             if (_controller.isCompleted) {
-                              Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                      builder: (context) => LotteryGame(
-                                          startLevel: userInfoProvider
-                                              .lotteryGameDatabase.currentLevel,
-                                          startDigit: userInfoProvider
-                                              .lotteryGameDatabase.currentDigit,
-                                          isTutorial: false)));
-                              Future.delayed(Duration(milliseconds: 200), () {
+                              final level = userInfoProvider
+                                  .lotteryGameDatabase.currentLevel;
+                              final digit = userInfoProvider
+                                  .lotteryGameDatabase.currentDigit;
+                              final isTutorial = userInfoProvider
+                                      .lotteryGameDatabase.doneTutorial
+                                  ? false
+                                  : true;
+                              GoRouter.of(context).push(
+                                  '/home/lottery_game_menu/lottery_game?startLevel=$level&startDigit=$digit&isTutorial=$isTutorial');
+                              Logger().d('called');
+                              Future.delayed(const Duration(milliseconds: 200),
+                                  () {
                                 _controller.reset();
                               });
                             }
@@ -182,7 +181,8 @@ class _LotteryGameMenu extends State<LotteryGameMenu>
                                           startLevel: 0,
                                           startDigit: 2,
                                           isTutorial: true)));
-                              Future.delayed(Duration(milliseconds: 200), () {
+                              Future.delayed(const Duration(milliseconds: 200),
+                                  () {
                                 _controller.reset();
                               });
                             }
