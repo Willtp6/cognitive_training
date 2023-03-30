@@ -10,14 +10,18 @@ class PokerGame extends StatefulWidget {
   State<PokerGame> createState() => _PokerGameState();
 }
 
-class _PokerGameState extends State<PokerGame>
-    with SingleTickerProviderStateMixin {
+class _PokerGameState extends State<PokerGame> with TickerProviderStateMixin {
   late AnimationController _controller;
+  late AnimationController _controllerChosen;
   @override
   void initState() {
     super.initState();
     _controller = AnimationController(
-      duration: const Duration(milliseconds: 5000),
+      duration: const Duration(milliseconds: 2000),
+      vsync: this,
+    );
+    _controllerChosen = AnimationController(
+      duration: Duration(milliseconds: 1000),
       vsync: this,
     );
   }
@@ -25,6 +29,7 @@ class _PokerGameState extends State<PokerGame>
   @override
   void dispose() {
     _controller.dispose();
+    _controllerChosen.dispose();
     super.dispose();
   }
 
@@ -34,6 +39,7 @@ class _PokerGameState extends State<PokerGame>
       player.addCard(deck.draw());
       computer.addCard(deck.draw());
     }
+    isChosen = List.generate(5, (index) => false);
   }
 
   void reshuffleDeck() {
@@ -55,6 +61,7 @@ class _PokerGameState extends State<PokerGame>
   Deck deck = Deck();
   Player player = Player();
   Player computer = Player();
+  late List<bool> isChosen;
 
   @override
   Widget build(BuildContext context) {
@@ -75,16 +82,14 @@ class _PokerGameState extends State<PokerGame>
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 for (int i = 0; i < player.hand.length; i++) ...[
-                  FadeTransition(
-                    opacity: Tween(begin: 0.0, end: 1.0)
-                        .chain(CurveTween(
-                            curve: Interval(i / player.hand.length,
-                                (i + 1) / player.hand.length)))
-                        .animate(_controller),
-                    child: Image.asset(
-                        'assets/poker_game_card/${player.hand[i].suit}_${player.hand[i].rank}.png',
-                        scale: 6),
-                  ),
+                  Image.asset(
+                      'assets/poker_game_card/${computer.hand[i].suit}_${computer.hand[i].rank}.png',
+                      scale: 6,
+                      opacity: Tween(begin: 0.0, end: 1.0)
+                          .chain(CurveTween(
+                              curve: Interval(i / computer.hand.length,
+                                  (i + 1) / computer.hand.length)))
+                          .animate(_controller)),
                 ]
               ],
             ),
@@ -101,24 +106,41 @@ class _PokerGameState extends State<PokerGame>
                       _controller.reset();
                       _controller.forward();
                     },
-                    child: Text('發牌'),
+                    child: const Text('發牌'),
                   ),
                 ],
                 for (int i = 0; i < player.hand.length; i++) ...[
-                  FadeTransition(
-                    opacity: Tween(begin: 0.0, end: 1.0)
-                        .chain(CurveTween(
-                            curve: Interval(i / player.hand.length,
-                                (i + 1) / player.hand.length)))
-                        .animate(_controller),
-                    child: Image.asset(
-                        'assets/poker_game_card/${computer.hand[i].suit}_${computer.hand[i].rank}.png',
-                        scale: 6),
+                  SlideTransition(
+                    position: isChosen[i]
+                        ? Tween(
+                                begin: const Offset(0.0, 0.0),
+                                end: const Offset(0.0, 0.2))
+                            .animate(_controllerChosen)
+                        : Tween(
+                                begin: const Offset(0.0, 0.2),
+                                end: const Offset(0.0, 0.0))
+                            .animate(_controllerChosen),
+                    child: GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          isChosen.fillRange(0, isChosen.length, false);
+                          isChosen[i] = true;
+                        });
+                      },
+                      child: Image.asset(
+                          'assets/poker_game_card/${player.hand[i].suit}_${player.hand[i].rank}.png',
+                          scale: 6,
+                          opacity: Tween(begin: 0.0, end: 1.0)
+                              .chain(CurveTween(
+                                  curve: Interval(i / player.hand.length,
+                                      (i + 1) / player.hand.length)))
+                              .animate(_controller)),
+                    ),
                   ),
                 ]
               ],
             ),
-            Expanded(flex: 1, child: Container()),
+            Expanded(flex: 2, child: Container()),
           ],
         ),
       ],
