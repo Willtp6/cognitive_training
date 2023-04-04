@@ -97,10 +97,7 @@ class _PokerGameMenu extends State<PokerGameMenu>
                     ),
                   ),
                 ),
-                Flexible(
-                  flex: 1,
-                  child: Container(),
-                ),
+                Flexible(flex: 2, child: Container()),
                 Flexible(
                   flex: 1,
                   child: ElevatedButton(
@@ -152,6 +149,7 @@ class _PokerGameMenu extends State<PokerGameMenu>
                     child: const Text('返回'),
                   ),
                 ),
+                //Expanded(flex: 1, child: Placeholder()),
               ],
             ),
           ),

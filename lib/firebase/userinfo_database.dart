@@ -16,6 +16,10 @@ class UserinfoDatabaseService {
         'digit': 2,
         'doneTutorial': false,
       },
+      'pokerGameDatabase': {
+        'level': 0,
+        'doneTutorial': false,
+      },
     });
   }
 

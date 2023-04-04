@@ -1,18 +1,18 @@
-class Card {
+class PokerCard {
   String suit;
   int rank;
 
-  Card(this.suit, this.rank);
+  PokerCard(this.suit, this.rank);
 }
 
 class Deck {
-  late List<Card> cards;
+  late List<PokerCard> cards;
 
   Deck() {
     cards = [];
     for (int i = 0; i < 4; i++) {
       for (int j = 1; j <= 13; j++) {
-        Card card = Card(_getSuit(i), j);
+        PokerCard card = PokerCard(_getSuit(i), j);
         cards.add(card);
       }
     }
@@ -37,19 +37,19 @@ class Deck {
     cards.shuffle();
   }
 
-  Card draw() {
+  PokerCard draw() {
     return cards.removeLast();
   }
 }
 
 class Player {
-  late List<Card> hand;
+  late List<PokerCard> hand;
 
   Player() {
     hand = [];
   }
 
-  void addCard(Card card) {
+  void addCard(PokerCard card) {
     hand.add(card);
   }
 
@@ -77,7 +77,7 @@ class Game {
   void dealCards() {
     for (int i = 0; i < 2; i++) {
       for (var player in players) {
-        Card card = deck.draw();
+        PokerCard card = deck.draw();
         player.addCard(card);
       }
     }
