@@ -13,11 +13,18 @@ class LotteryGameDatabase {
       required this.doneTutorial});
 }
 
+class PokerGameDatabase {
+  int currentLevel;
+  bool doneTutorial;
+  PokerGameDatabase({required this.currentLevel, required this.doneTutorial});
+}
+
 class UserInfoProvider with ChangeNotifier {
   //var user = FirebaseAuth.instance.currentUser;
   User? _user;
   int _coins = 0;
   late LotteryGameDatabase _lotteryGameDatabase;
+  late PokerGameDatabase _pokerGameDatabase;
 
   UserInfoProvider() {
     FirebaseAuth.instance.authStateChanges().listen((User? newUser) {
@@ -30,6 +37,7 @@ class UserInfoProvider with ChangeNotifier {
   User? get usr => _user;
   int get coins => _coins;
   LotteryGameDatabase get lotteryGameDatabase => _lotteryGameDatabase;
+  PokerGameDatabase get pokerGameDatabase => _pokerGameDatabase;
 
   void updateUser(User newUser) {
     _user = newUser;
@@ -45,10 +53,16 @@ class UserInfoProvider with ChangeNotifier {
           currentDigit: doc.data()!['lotteryGameDatabase']['digits'],
           doneTutorial: doc.data()!['lotteryGameDatabase']['doneTutorial'],
         );
+        _pokerGameDatabase = PokerGameDatabase(
+          currentLevel: doc.data()!['pokerGameDatabase']['level'],
+          doneTutorial: doc.data()!['pokerGameDatabase']['doneTutorial'],
+        );
       } else {
         _coins = 0;
         _lotteryGameDatabase = LotteryGameDatabase(
             currentLevel: 0, currentDigit: 2, doneTutorial: false);
+        _pokerGameDatabase =
+            PokerGameDatabase(currentLevel: 0, doneTutorial: false);
       }
       notifyListeners();
     });
@@ -65,10 +79,6 @@ class UserInfoProvider with ChangeNotifier {
   }
 
   set lotteryGameDatabase(LotteryGameDatabase database) {
-    _lotteryGameDatabase = LotteryGameDatabase(
-        currentLevel: database.currentLevel,
-        currentDigit: database.currentDigit,
-        doneTutorial: database.doneTutorial);
     FirebaseFirestore.instance
         .collection('user_basic_info')
         .doc(_user?.uid)
@@ -81,6 +91,18 @@ class UserInfoProvider with ChangeNotifier {
     }).then((value) {
       notifyListeners();
       Logger().d('updated map');
+    });
+  }
+
+  set pokerGameDatabase(PokerGameDatabase database) {
+    FirebaseFirestore.instance
+        .collection('user_basic_info')
+        .doc(usr?.uid)
+        .update({
+      'pokerGameDatabase': {
+        'level': database.currentLevel,
+        'doneTutorial': database.doneTutorial,
+      }
     });
   }
 }

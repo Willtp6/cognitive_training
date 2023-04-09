@@ -68,7 +68,15 @@ class MyApp extends StatelessWidget {
                 routes: [
                   GoRoute(
                     path: 'poker_game',
-                    builder: (context, state) => const PokerGame(),
+                    builder: (context, state) {
+                      final parameters = state.queryParams;
+                      final startLevel = parameters['startLevel'] ?? '0';
+                      final isTutorial = parameters['isTutorial'] ?? 'true';
+                      return PokerGame(
+                        startLevel: int.tryParse(startLevel),
+                        isTutorial: isTutorial == 'true',
+                      );
+                    },
                   ),
                 ],
               ),

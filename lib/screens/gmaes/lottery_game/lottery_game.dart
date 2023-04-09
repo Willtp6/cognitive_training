@@ -39,7 +39,7 @@ class _LotteryGameState extends State<LotteryGame>
     'assets/lottery_game_scene/Temple2_withoutWord.png',
     'assets/lottery_game_scene/Temple2_withoutWord.png',
     'assets/lottery_game_scene/NumberInput_withWord.png',
-    'assets/lottery_game_scene/NumberInput_withoutWord.png',
+    'assets/lottery_game_scene/NumberInput_recognition.png',
     'assets/lottery_game_scene/BuyLotter.png',
   ];
 
@@ -61,6 +61,7 @@ class _LotteryGameState extends State<LotteryGame>
   bool isPaused = false;
   bool isCaseFunctioned = false;
   bool doneTutorialMode = false;
+  int numOfChosen = 0;
   int currentIndex = 0;
   int loseInCurrentDigits = 0;
   int continuousWinInEightDigits = 0;
@@ -78,6 +79,7 @@ class _LotteryGameState extends State<LotteryGame>
   late int startDigit;
   late bool isTutorial;
   late UserInfoProvider userInfoProvider;
+  late List<bool> isChosen;
   var logger = Logger(printer: PrettyPrinter());
 
   @override
@@ -92,9 +94,9 @@ class _LotteryGameState extends State<LotteryGame>
     startLevel = widget.startLevel;
     startDigit = widget.startDigit;
     isTutorial = widget.isTutorial;
-    logger.d(widget.startLevel);
-    logger.d(widget.startDigit);
-    logger.d(widget.isTutorial);
+    // logger.d(widget.startLevel);
+    // logger.d(widget.startDigit);
+    // logger.d(widget.isTutorial);
     gameLevel = startLevel;
     numberOfDigits = startDigit;
 
@@ -113,6 +115,27 @@ class _LotteryGameState extends State<LotteryGame>
     mytimer?.cancel();
     player?.dispose();
     super.dispose();
+  }
+
+  List<int> generateUniqueRandomNumbers(int min, int max, int count) {
+    if (count > (max - min + 1)) {
+      throw Exception(
+          "Count must be less than or equal to the range between min and max.");
+    }
+
+    Random random = Random();
+    Set<int> usedNumbers = {};
+    List<int> results = [];
+
+    while (usedNumbers.length < count) {
+      int randomNumber = min + random.nextInt(max - min + 1);
+      if (!usedNumbers.contains(randomNumber)) {
+        usedNumbers.add(randomNumber);
+        results.add(randomNumber);
+      }
+    }
+
+    return results;
   }
 
   void changeImage() {
@@ -135,8 +158,8 @@ class _LotteryGameState extends State<LotteryGame>
   void _playNumberSound() async {
     if (currentIndex < numberOfDigits) {
       player = AudioPlayer();
-      await player!.play(AssetSource(
-          'lottery_game_sound/${numArray[currentIndex].toString()}.mp3'));
+      // await player!.play(AssetSource(
+      //     'lottery_game_sound/${numArray[currentIndex].toString()}.mp3'));
       setState(() {
         showNumber = numArray[currentIndex].toString();
       });
@@ -183,7 +206,7 @@ class _LotteryGameState extends State<LotteryGame>
         numArray.sort();
         userArray.sort();
         for (int i = 0; i < numArray.length; i++) {
-          if (numArray[i] == userArray[i]) {
+          if (isChosen[numArray[i]]) {
             numOfCorrectAns++;
           }
         }
@@ -230,16 +253,16 @@ class _LotteryGameState extends State<LotteryGame>
   @override
   Widget build(BuildContext context) {
     //listen and reset the state
-    final user = FirebaseAuth.instance.currentUser;
     userInfoProvider = Provider.of<UserInfoProvider>(context);
     if (!isCaseFunctioned) {
       isCaseFunctioned = true;
       switch (gameProcess) {
         case 0:
-          numArray = List.generate(
-              numberOfDigits, (index) => min + Random().nextInt(max - min));
+          numArray = generateUniqueRandomNumbers(1, 49, numberOfDigits);
           userArray = List.generate(numberOfDigits, (index) => -1);
           logger.d(numArray);
+          isChosen = List.generate(50, (index) => false);
+          numOfChosen = 0;
           // ignore: todo
           //TODO will add audio to play game rule
           _controller.reset();
@@ -257,6 +280,8 @@ class _LotteryGameState extends State<LotteryGame>
           start = DateTime.now();
           break;
         case 4:
+          end = DateTime.now();
+          // record this game
           RecordLotteryGame().recordGame(
               gameLevel: gameLevel,
               numberOfDigits: numberOfDigits,
@@ -422,7 +447,7 @@ class _LotteryGameState extends State<LotteryGame>
                 ),
                 Expanded(
                   flex: 1,
-                  child: gameProcess == 0
+                  child: gameProcess == 0 || gameProcess == 3
                       ? Align(
                           alignment: Alignment.centerRight,
                           child: ElevatedButton(
@@ -482,57 +507,96 @@ class _LotteryGameState extends State<LotteryGame>
   Form _getForm() {
     return Form(
         key: formKey,
-        child: Row(children: <Widget>[
+        child: Row(
+          children: [
+            Flexible(flex: 1, child: Placeholder()),
+            Flexible(
+              flex: 5,
+              child: Column(
+                children: [
+                  Flexible(flex: 2, child: Placeholder()),
+                  Expanded(flex: 3, child: Placeholder()),
+                  Expanded(
+                    flex: 20,
+                    child: GridView.count(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        crossAxisCount: 7,
+                        padding: EdgeInsets.zero,
+                        crossAxisSpacing: 5,
+                        mainAxisSpacing: 5,
+                        childAspectRatio: 1.5,
+                        children: [
+                          for (int i = 1; i <= 49; i++) ...[
+                            Container(
+                              decoration: BoxDecoration(
+                                border: Border.all(color: Colors.red),
+                                color:
+                                    isChosen[i] ? Colors.yellow : Colors.white,
+                              ),
+                              child: Center(
+                                child: GestureDetector(
+                                    onTap: () {
+                                      logger.d('$i');
+                                      setState(() {
+                                        if (numOfChosen == numberOfDigits &&
+                                            isChosen[i] == false) {
+                                          //show that need to cancel one of them first
+                                          _exceedLimitAlertDialog();
+                                        } else {
+                                          isChosen[i] = !isChosen[i];
+                                          if (isChosen[i]) {
+                                            numOfChosen++;
+                                          } else {
+                                            numOfChosen--;
+                                          }
+                                        }
+                                      });
+                                    },
+                                    child: Container(
+                                      child: Text("$i",
+                                          style: TextStyle(
+                                              fontStyle: FontStyle.italic)),
+                                    )),
+                              ),
+                            ),
+                          ]
+                        ]),
+                  ),
+                  Flexible(flex: 1, child: Placeholder()),
+                ],
+              ),
+            ),
+            Flexible(flex: 1, child: Placeholder()),
+          ],
+        )
+        /*Row(children: <Widget>[
           Expanded(
-              flex: 3,
+              flex: 5,
               child: Column(children: <Widget>[
                 Expanded(flex: 1, child: Container()),
                 Expanded(
                     flex: 9,
-                    child: GridView.count(
-                        crossAxisCount: 3,
-                        padding: const EdgeInsets.all(20),
-                        crossAxisSpacing: 25,
-                        mainAxisSpacing: 5,
-                        childAspectRatio: 1,
-                        children: [
-                          for (int i = 0; i < numberOfDigits; i++) ...[
-                            TextFormField(
-                                maxLength: 1,
-                                textAlign: TextAlign.center,
-                                style: const TextStyle(fontSize: 30),
-                                decoration: inputNumberDecoration.copyWith(
-                                    hintText: '',
-                                    contentPadding: const EdgeInsets.all(5)),
-                                keyboardType: TextInputType.number,
-                                validator: (val) =>
-                                    val!.isEmpty ? '輸入數字' : null,
-                                textInputAction: i == numberOfDigits - 1
-                                    ? TextInputAction.next
-                                    : TextInputAction.done,
-                                onChanged: (val) {
-                                  userArray[i] =
-                                      val.isEmpty ? -1 : int.parse(val);
-                                })
-                          ]
-                        ]))
+                    child: )
               ])),
-          Expanded(
+          /*Expanded(
               flex: 2,
               child: ClipRRect(
                   borderRadius: BorderRadius.circular(30.0),
                   child: ElevatedButton(
                     onPressed: () {
-                      if (formKey.currentState!.validate()) {
+                      /*if (formKey.currentState!.validate()) {
                         end = DateTime.now();
                         //judge the result
                         getResult();
                         changeImage();
-                      }
+                      }*/
+                      changeImage();
                     },
                     child: const Text('決定好了'),
-                  )))
-        ]));
+                  )))*/
+        ]),*/
+        );
   }
 
   Future<void> _showAlertDialog() async {
@@ -563,6 +627,35 @@ class _LotteryGameState extends State<LotteryGame>
               child: const Text('確定離開'),
               onPressed: () {
                 Navigator.of(context).pop();
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _exceedLimitAlertDialog() async {
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false, // user must tap button!
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('劃記太多了喔'),
+          // this part can put multiple messages
+          content: SingleChildScrollView(
+            child: ListBody(
+              children: <Widget>[
+                Text('最多只能劃記$numberOfDigits個數字'),
+              ],
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('OK'),
+              onPressed: () {
+                isPaused = false;
                 Navigator.of(context).pop();
               },
             ),

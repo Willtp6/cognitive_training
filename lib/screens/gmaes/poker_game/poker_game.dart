@@ -1,14 +1,20 @@
 import 'dart:async';
 import 'dart:math';
 
+import 'package:cognitive_training/firebase/record_game.dart';
+import 'package:cognitive_training/models/user_info_provider.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
+import 'package:provider/provider.dart';
 
 import 'poker_game_instance.dart';
 
 class PokerGame extends StatefulWidget {
-  const PokerGame({super.key});
+  final startLevel;
+  final isTutorial;
+  const PokerGame(
+      {super.key, required this.startLevel, required this.isTutorial});
 
   @override
   State<PokerGame> createState() => _PokerGameState();
@@ -91,25 +97,63 @@ class _PokerGameState extends State<PokerGame> with TickerProviderStateMixin {
           computerCard = computer.hand
               .removeAt(computer.hand.indexWhere((element) => true));
           isChosenComputer.fillRange(0, isChosenComputer.length, false);
+          start = DateTime.now();
         }
       });
     });
   }
 
   void getResult() {
+    end = DateTime.now();
     List<String> suits = ['Spades', 'Hearts', 'Diamonds', 'Clubs'];
     isTie = false;
-    if (gameLevel > 1) {
-      isTie = playerCard!.suit == computerCard!.suit ||
-          playerCard!.rank == computerCard!.rank;
+    isPlayerWin = false;
+
+    if (playerCard != null) {
+      if (gameLevel > 1) {
+        isPlayerWin = playerCard!.suit == computerCard!.suit ||
+            playerCard!.rank == computerCard!.rank;
+      } else {
+        isPlayerWin = playerCard!.rank > computerCard!.rank ||
+            (playerCard!.rank == computerCard!.rank &&
+                suits.indexOf(playerCard!.suit) <
+                    suits.indexOf(computerCard!.suit));
+      }
+    } else {
+      // check if any of card in hand is winable
+      for (PokerCard card in player.hand) {
+        if (gameLevel > 1) {
+          isTie = !(card.suit == computerCard!.suit ||
+              card.rank == computerCard!.rank);
+          if (!isTie) break;
+        } else {
+          isPlayerWin = !(card.rank > computerCard!.rank ||
+              (card.rank == computerCard!.rank &&
+                  suits.indexOf(card.suit) <
+                      suits.indexOf(computerCard!.suit)));
+          if (!isPlayerWin) break;
+        }
+      }
     }
-    isPlayerWin = playerCard!.rank > computerCard!.rank ||
-        (playerCard!.rank == computerCard!.rank &&
-            suits.indexOf(playerCard!.suit) <
-                suits.indexOf(computerCard!.suit));
     if (isTie || isPlayerWin) {
       continuousWin++;
+    } else {
+      continuousWin = 0;
     }
+    RecordPokerGame().recordGame(
+        end: end,
+        gameLevel: gameLevel,
+        result: isTie
+            ? 'Tie'
+            : isPlayerWin
+                ? 'Win'
+                : 'Lose',
+        start: start);
+    userInfoProvider.pokerGameDatabase =
+        PokerGameDatabase(currentLevel: gameLevel, doneTutorial: true);
+    Timer(const Duration(seconds: 1), () {
+      _showGameEndDialog();
+    });
   }
 
   void setNextGame() {
@@ -118,9 +162,8 @@ class _PokerGameState extends State<PokerGame> with TickerProviderStateMixin {
       continuousWin = 0;
     }
     setState(() {
-      deck.cards
-        ..add(playerCard!)
-        ..add(computerCard!);
+      deck.cards.add(computerCard!);
+      if (playerCard != null) deck.cards.add(playerCard!);
       playerCard = null;
       computerCard = null;
     });
@@ -140,6 +183,8 @@ class _PokerGameState extends State<PokerGame> with TickerProviderStateMixin {
   bool isPlayerWin = false;
   bool isTie = false;
   List<int> numberOfCards = [5, 6, 6, 8];
+  late DateTime start, end;
+  late UserInfoProvider userInfoProvider;
 
   Deck deck = Deck();
   Player player = Player();
@@ -151,6 +196,7 @@ class _PokerGameState extends State<PokerGame> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
+    userInfoProvider = Provider.of<UserInfoProvider>(context);
     return SizedBox(
         child: Stack(
       children: [
@@ -227,7 +273,10 @@ class _PokerGameState extends State<PokerGame> with TickerProviderStateMixin {
                       ? Align(
                           alignment: Alignment.center,
                           child: ElevatedButton(
-                              onPressed: () {}, child: const Text('no')),
+                              onPressed: () {
+                                getResult();
+                              },
+                              child: const Text('no')),
                         )
                       : Container(),
                 ),
@@ -268,9 +317,6 @@ class _PokerGameState extends State<PokerGame> with TickerProviderStateMixin {
                               playerCard = player.hand.removeAt(i);
                               isChosen.fillRange(0, isChosen.length, false);
                               getResult();
-                              Timer(const Duration(seconds: 1), () {
-                                _showGameEndDialog();
-                              });
                             });
                           }
                         }

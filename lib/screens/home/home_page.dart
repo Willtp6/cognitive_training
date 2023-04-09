@@ -31,7 +31,6 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    final user = Provider.of<LocalUser?>(context);
     var userInfoProvider = context.watch<UserInfoProvider>();
     return Scaffold(
       resizeToAvoidBottomInset: false,
@@ -56,21 +55,21 @@ class _HomePageState extends State<HomePage> {
                   );
                 },
               ),
-              const SizedBox(
-                height: 40,
-              ),
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blueGrey,
-                ),
-                onPressed: () {
-                  userInfoProvider.coins = userInfoProvider.coins + 1;
-                },
-                child: const Text(
-                  'press me to update coins',
-                  style: TextStyle(fontSize: 40, color: Colors.white),
-                ),
-              ),
+              // const SizedBox(
+              //   height: 40,
+              // ),
+              // ElevatedButton(
+              //   style: ElevatedButton.styleFrom(
+              //     backgroundColor: Colors.blueGrey,
+              //   ),
+              //   onPressed: () {
+              //     userInfoProvider.coins = userInfoProvider.coins + 1;
+              //   },
+              //   child: const Text(
+              //     'press me to update coins',
+              //     style: TextStyle(fontSize: 40, color: Colors.white),
+              //   ),
+              // ),
               const SizedBox(height: 40),
               ElevatedButton(
                 style: ElevatedButton.styleFrom(
@@ -94,6 +93,20 @@ class _HomePageState extends State<HomePage> {
                 },
                 child: const Text(
                   'Poker game',
+                  style: TextStyle(fontSize: 40, color: Colors.white),
+                ),
+              ),
+              const SizedBox(height: 40),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blueGrey,
+                ),
+                onPressed: () {
+                  showDialog(
+                      context: context, builder: (context) => MyDialog());
+                },
+                child: const Text(
+                  'check in',
                   style: TextStyle(fontSize: 40, color: Colors.white),
                 ),
               ),
@@ -178,6 +191,116 @@ class _HomePageState extends State<HomePage> {
           ],
         );
       },
+    );
+  }
+}
+
+class MyDialog extends StatelessWidget {
+  const MyDialog({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final width = MediaQuery.of(context).size.width;
+    final seperateSize = width * 0.05;
+    final iconSize = width * 0.13;
+    final fontSize = width * 0.05;
+    return Dialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      backgroundColor: Colors.brown[100],
+      child: Container(
+        padding: EdgeInsets.all(seperateSize),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text('連 續 登 入',
+                style: TextStyle(
+                    fontSize: fontSize * 2,
+                    color: Colors.blue,
+                    fontWeight: FontWeight.bold)),
+            SizedBox(height: seperateSize),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                for (int i = 1; i <= 4; i++) ...[
+                  Container(
+                    decoration: BoxDecoration(
+                        border: Border.all(color: Colors.black),
+                        borderRadius: BorderRadius.circular(10),
+                        color: Colors.orange),
+                    child: Column(
+                      children: [
+                        Stack(
+                          children: [
+                            Icon(
+                              Icons.attach_money_rounded,
+                              size: iconSize,
+                              color: Colors.yellow,
+                            ),
+                            Opacity(
+                              opacity: 0.5,
+                              child: Icon(Icons.check),
+                            ),
+                          ],
+                        ),
+                        Text(
+                          '+${i}00',
+                          style: TextStyle(fontSize: fontSize),
+                        ),
+                      ],
+                    ),
+                  ),
+                  if (i != 4) SizedBox(width: seperateSize),
+                ],
+              ],
+            ),
+            SizedBox(height: seperateSize),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                for (int i = 5; i <= 7; i++) ...[
+                  Container(
+                    decoration: BoxDecoration(
+                        border: Border.all(color: Colors.black),
+                        borderRadius: BorderRadius.circular(10),
+                        color: Colors.orange),
+                    child: Column(
+                      children: [
+                        Stack(
+                          children: [
+                            Icon(
+                              Icons.attach_money_rounded,
+                              size: iconSize,
+                              color: Colors.yellow,
+                            ),
+                            Opacity(
+                              opacity: 0.5,
+                              child: Icon(Icons.check),
+                            ),
+                          ],
+                        ),
+                        Text(
+                          '+${i}00',
+                          style: TextStyle(fontSize: fontSize),
+                        ),
+                      ],
+                    ),
+                  ),
+                  if (i != 7) SizedBox(width: seperateSize),
+                ],
+              ],
+            ),
+            SizedBox(height: seperateSize),
+            ElevatedButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                child: Text(
+                  '關閉',
+                  style: TextStyle(fontSize: fontSize),
+                )),
+          ],
+        ),
+      ),
     );
   }
 }

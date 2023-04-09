@@ -43,7 +43,7 @@ class RecordPokerGame {
     DocumentReference reference = FirebaseFirestore.instance
         .collection('user_game_info')
         .doc(user?.uid)
-        .collection('lottery_game')
+        .collection('poker_game')
         .doc(DateTime.now().toString());
     return reference
         .set({
