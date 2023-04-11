@@ -1,10 +1,9 @@
-import 'package:cognitive_training/models/user_info_provider.dart';
+import 'package:cognitive_training/models/userinfo_provider.dart';
 import 'package:cognitive_training/screens/gmaes/fishing_game/fishing_game.dart';
 import 'package:cognitive_training/screens/gmaes/lottery_game/lottery_game.dart';
 import 'package:cognitive_training/screens/gmaes/lottery_game/lottery_game_menu.dart';
 import 'package:cognitive_training/screens/gmaes/poker_game/poker_game.dart';
 import 'package:cognitive_training/screens/gmaes/poker_game/poker_game_menu.dart';
-import 'package:cognitive_training/screens/wrapper.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:cognitive_training/firebase/auth.dart';
@@ -36,7 +35,16 @@ class MyApp extends StatelessWidget {
     routes: [
       GoRoute(
         path: '/',
-        builder: (context, state) => const Wrapper(),
+        builder: (context, state) {
+          return Consumer<UserInfoProvider>(
+            builder: (context, userInfoProvider, child) {
+              return userInfoProvider.usr != null &&
+                      userInfoProvider.fileFunctionNormally
+                  ? HomePage()
+                  : LoginPage();
+            },
+          );
+        },
         routes: [
           GoRoute(
             path: 'home',

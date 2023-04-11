@@ -20,37 +20,60 @@ class PokerGameDatabase {
 }
 
 class UserInfoProvider with ChangeNotifier {
-  //var user = FirebaseAuth.instance.currentUser;
   User? _user;
-  int _coins = 0;
+  bool _fileFunctionNormally = false;
+  late int _coins;
+  late DateTime _registerTime;
+  late DateTime _lastLoginTime;
+  late DateTime _lastUpdateTime;
+  late int _continuousLoginDays;
+  late List<bool> _loginCycle;
+  late List<bool> _loginRewardRecord;
   late LotteryGameDatabase _lotteryGameDatabase;
   late PokerGameDatabase _pokerGameDatabase;
 
   UserInfoProvider() {
     FirebaseAuth.instance.authStateChanges().listen((User? newUser) {
-      if (newUser != null && newUser != _user) {
+      if (newUser != _user) {
         updateUser(newUser);
       }
     });
   }
 
   User? get usr => _user;
+  bool get fileFunctionNormally => _fileFunctionNormally;
   int get coins => _coins;
+  DateTime get registerTime => _registerTime;
+  DateTime get lastLoginTime => _lastLoginTime;
+  DateTime get lastUpdateTime => _lastUpdateTime;
+  int get continuousLoginDays => _continuousLoginDays;
+  List<bool> get loginCycle => _loginCycle;
+  List<bool> get loginRewardRecord => _loginRewardRecord;
   LotteryGameDatabase get lotteryGameDatabase => _lotteryGameDatabase;
   PokerGameDatabase get pokerGameDatabase => _pokerGameDatabase;
 
-  void updateUser(User newUser) {
+  void updateUser(User? newUser) {
     _user = newUser;
     FirebaseFirestore.instance
         .collection('user_basic_info')
-        .doc(_user!.uid)
+        .doc(_user?.uid)
         .get()
         .then((doc) {
       if (doc.exists) {
+        _fileFunctionNormally = true;
         _coins = doc.data()!['coins'];
+        Timestamp timestampRegister = doc.data()!['registerTime'];
+        _registerTime = timestampRegister.toDate();
+        Timestamp timestampLogin = doc.data()!['lastLoginTime'];
+        _lastLoginTime = timestampLogin.toDate();
+        Timestamp timestampUpdate = doc.data()!['lastUpdateTime'];
+        _lastUpdateTime = timestampUpdate.toDate();
+        _continuousLoginDays = doc.data()!['continuousLoginDays'];
+        _loginCycle = doc.data()!['loginCycle'].cast<bool>();
+        _loginRewardRecord = doc.data()!['loginRewardRecord'].cast<bool>();
         _lotteryGameDatabase = LotteryGameDatabase(
           currentLevel: doc.data()!['lotteryGameDatabase']['level'],
-          currentDigit: doc.data()!['lotteryGameDatabase']['digits'],
+          currentDigit: doc.data()!['lotteryGameDatabase']['digit'],
           doneTutorial: doc.data()!['lotteryGameDatabase']['doneTutorial'],
         );
         _pokerGameDatabase = PokerGameDatabase(
@@ -58,11 +81,14 @@ class UserInfoProvider with ChangeNotifier {
           doneTutorial: doc.data()!['pokerGameDatabase']['doneTutorial'],
         );
       } else {
-        _coins = 0;
+        //! this part should throw error about data missing
+        //TODO add some function which will notice the user to developer or someone who can modify the database
+        _fileFunctionNormally = false;
+        /*_coins = 0;
         _lotteryGameDatabase = LotteryGameDatabase(
             currentLevel: 0, currentDigit: 2, doneTutorial: false);
         _pokerGameDatabase =
-            PokerGameDatabase(currentLevel: 0, doneTutorial: false);
+            PokerGameDatabase(currentLevel: 0, doneTutorial: false);*/
       }
       notifyListeners();
     });
@@ -79,6 +105,10 @@ class UserInfoProvider with ChangeNotifier {
   }
 
   set lotteryGameDatabase(LotteryGameDatabase database) {
+    _lotteryGameDatabase = LotteryGameDatabase(
+        currentLevel: database.currentLevel,
+        currentDigit: database.currentDigit,
+        doneTutorial: database.doneTutorial);
     FirebaseFirestore.instance
         .collection('user_basic_info')
         .doc(_user?.uid)
@@ -95,6 +125,9 @@ class UserInfoProvider with ChangeNotifier {
   }
 
   set pokerGameDatabase(PokerGameDatabase database) {
+    _pokerGameDatabase = PokerGameDatabase(
+        currentLevel: database.currentLevel,
+        doneTutorial: database.doneTutorial);
     FirebaseFirestore.instance
         .collection('user_basic_info')
         .doc(usr?.uid)
@@ -104,5 +137,21 @@ class UserInfoProvider with ChangeNotifier {
         'doneTutorial': database.doneTutorial,
       }
     });
+  }
+
+  set lastLoginTime(DateTime dateTime) {
+    _lastLoginTime = dateTime;
+    FirebaseFirestore.instance
+        .collection('user_basic_info')
+        .doc(usr?.uid)
+        .update({'lastLoginTime': dateTime});
+  }
+
+  set lastUpdateTime(DateTime dateTime) {
+    _lastUpdateTime = dateTime;
+    FirebaseFirestore.instance
+        .collection('user_basic_info')
+        .doc(usr?.uid)
+        .update({'lastUpdateTime': dateTime});
   }
 }

@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cognitive_training/firebase/record_game.dart';
-import 'package:cognitive_training/models/user_info_provider.dart';
+import 'package:cognitive_training/models/userinfo_provider.dart';
 import 'package:cognitive_training/screens/gmaes/lottery_game/lottery_game_menu.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -65,8 +65,6 @@ class _LotteryGameState extends State<LotteryGame>
   int currentIndex = 0;
   int loseInCurrentDigits = 0;
   int continuousWinInEightDigits = 0;
-  int min = 1; // min of possible number
-  int max = 9; // max of possible number
   int specialRules = 0;
   String showNumber = '';
   int numOfCorrectAns = 0;
@@ -94,9 +92,6 @@ class _LotteryGameState extends State<LotteryGame>
     startLevel = widget.startLevel;
     startDigit = widget.startDigit;
     isTutorial = widget.isTutorial;
-    // logger.d(widget.startLevel);
-    // logger.d(widget.startDigit);
-    // logger.d(widget.isTutorial);
     gameLevel = startLevel;
     numberOfDigits = startDigit;
 
@@ -158,8 +153,8 @@ class _LotteryGameState extends State<LotteryGame>
   void _playNumberSound() async {
     if (currentIndex < numberOfDigits) {
       player = AudioPlayer();
-      // await player!.play(AssetSource(
-      //     'lottery_game_sound/${numArray[currentIndex].toString()}.mp3'));
+      await player!.play(AssetSource(
+          'lottery_game_sound/${numArray[currentIndex].toString()}.mp3'));
       setState(() {
         showNumber = numArray[currentIndex].toString();
       });

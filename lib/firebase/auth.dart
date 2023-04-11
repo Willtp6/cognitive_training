@@ -37,9 +37,8 @@ class AuthService {
         UserCredential result = await _auth.createUserWithEmailAndPassword(
             email: email, password: passwd);
         User? user = result.user;
-        // create new database with initial amount of coins is 0
-        await UserinfoDatabaseService(docId: user!.uid)
-            .createUserInfo(coins: 1000);
+        // create new user info database
+        await UserinfoDatabaseService(docId: user!.uid).createUserInfo();
         return _userFromFirebaseUser(user);
       }
     } catch (e) {

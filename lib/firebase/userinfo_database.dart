@@ -8,9 +8,15 @@ class UserinfoDatabaseService {
   final CollectionReference userInfoCollection =
       FirebaseFirestore.instance.collection('user_basic_info');
 
-  Future createUserInfo({required int coins}) async {
+  Future createUserInfo() async {
     return await userInfoCollection.doc(docId).set({
       'coins': 1200,
+      'registerTime': DateTime.now(),
+      'lastLoginTime': DateTime.now(),
+      'lastUpdateTime': DateTime.now(),
+      'continuousLoginDays': 0,
+      'loginCycle': [true, false, false, false, false, false, false],
+      'loginRewardRecord': [false, false, false, false, false, false, false],
       'lotteryGameDatabase': {
         'level': 0,
         'digit': 2,

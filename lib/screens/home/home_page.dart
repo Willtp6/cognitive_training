@@ -1,14 +1,11 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:cognitive_training/models/user_info_provider.dart';
-import 'package:cognitive_training/screens/gmaes/lottery_game/lottery_game.dart';
+import 'package:cognitive_training/models/userinfo_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:cognitive_training/firebase/auth.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:logger/logger.dart';
 import 'package:provider/provider.dart';
-
-import '../../models/user.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -28,10 +25,18 @@ class _HomePageState extends State<HomePage> {
   }
 
   final AuthService _authService = AuthService();
+  bool haveLoginReward = false;
+
+  void checkCheckinStatus() {
+    // do some check
+    // check if continuous login and reward status etc.
+
+    // update the lastupdate time
+  }
 
   @override
   Widget build(BuildContext context) {
-    var userInfoProvider = context.watch<UserInfoProvider>();
+    checkCheckinStatus();
     return Scaffold(
       resizeToAvoidBottomInset: false,
       appBar: AppBar(
@@ -44,32 +49,6 @@ class _HomePageState extends State<HomePage> {
           scrollDirection: Axis.vertical,
           child: Column(
             children: <Widget>[
-              const SizedBox(
-                height: 40,
-              ),
-              Consumer<UserInfoProvider>(
-                builder: (context, userInfoProvider, child) {
-                  return Text(
-                    "Coins you have: ${userInfoProvider.coins}",
-                    style: const TextStyle(color: Colors.black, fontSize: 40),
-                  );
-                },
-              ),
-              // const SizedBox(
-              //   height: 40,
-              // ),
-              // ElevatedButton(
-              //   style: ElevatedButton.styleFrom(
-              //     backgroundColor: Colors.blueGrey,
-              //   ),
-              //   onPressed: () {
-              //     userInfoProvider.coins = userInfoProvider.coins + 1;
-              //   },
-              //   child: const Text(
-              //     'press me to update coins',
-              //     style: TextStyle(fontSize: 40, color: Colors.white),
-              //   ),
-              // ),
               const SizedBox(height: 40),
               ElevatedButton(
                 style: ElevatedButton.styleFrom(
@@ -103,13 +82,56 @@ class _HomePageState extends State<HomePage> {
                 ),
                 onPressed: () {
                   showDialog(
-                      context: context, builder: (context) => MyDialog());
+                      context: context,
+                      builder: (context) => const CheckinDialog());
                 },
                 child: const Text(
                   'check in',
                   style: TextStyle(fontSize: 40, color: Colors.white),
                 ),
               ),
+              const SizedBox(
+                height: 40,
+              ),
+              Consumer<UserInfoProvider>(
+                builder: (context, userInfoProvider, child) {
+                  return userInfoProvider.usr != null &&
+                          userInfoProvider.fileFunctionNormally
+                      ? Column(
+                          children: [
+                            Text(
+                              "Coins you have: ${userInfoProvider.coins}",
+                              style: const TextStyle(
+                                  color: Colors.black, fontSize: 40),
+                            ),
+                            const SizedBox(height: 40),
+                            ElevatedButton(
+                              onPressed: () {
+                                setState(() {});
+                              },
+                              child: Text(
+                                "${userInfoProvider.lastLoginTime}",
+                                style: const TextStyle(
+                                    color: Colors.black, fontSize: 40),
+                              ),
+                            ),
+                            const SizedBox(height: 40),
+                            ElevatedButton(
+                              onPressed: () {
+                                setState(() {});
+                              },
+                              child: Text(
+                                "${userInfoProvider.loginCycle}",
+                                style: const TextStyle(
+                                    color: Colors.black, fontSize: 40),
+                              ),
+                            ),
+                          ],
+                        )
+                      : const CircularProgressIndicator();
+                },
+              ),
+              Text(DateTime.now().toString()),
             ],
           ),
         ),
@@ -195,8 +217,8 @@ class _HomePageState extends State<HomePage> {
   }
 }
 
-class MyDialog extends StatelessWidget {
-  const MyDialog({super.key});
+class CheckinDialog extends StatelessWidget {
+  const CheckinDialog({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -236,7 +258,7 @@ class MyDialog extends StatelessWidget {
                               size: iconSize,
                               color: Colors.yellow,
                             ),
-                            Opacity(
+                            const Opacity(
                               opacity: 0.5,
                               child: Icon(Icons.check),
                             ),
@@ -272,7 +294,7 @@ class MyDialog extends StatelessWidget {
                               size: iconSize,
                               color: Colors.yellow,
                             ),
-                            Opacity(
+                            const Opacity(
                               opacity: 0.5,
                               child: Icon(Icons.check),
                             ),
