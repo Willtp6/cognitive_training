@@ -95,8 +95,8 @@ class _HomePageState extends State<HomePage> {
               ),
               Consumer<UserInfoProvider>(
                 builder: (context, userInfoProvider, child) {
-                  return userInfoProvider.usr != null &&
-                          userInfoProvider.fileFunctionNormally
+                  Logger().d(userInfoProvider.fileFunctionNormally);
+                  return userInfoProvider.fileFunctionNormally
                       ? Column(
                           children: [
                             Text(
@@ -147,17 +147,17 @@ class _HomePageState extends State<HomePage> {
               ),
               child: Text('Drawer Header'),
             ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
-              child: Consumer<UserInfoProvider>(
-                builder: (context, userInfoProvider, child) {
-                  return Text(
-                    "Coins you have: ${userInfoProvider.coins}",
-                    style: const TextStyle(color: Colors.pink, fontSize: 20),
-                  );
-                },
-              ),
-            ),
+            // Padding(
+            //   padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+            //   child: Consumer<UserInfoProvider>(
+            //     builder: (context, userInfoProvider, child) {
+            //       return Text(
+            //         "Coins you have: ${userInfoProvider.coins}",
+            //         style: const TextStyle(color: Colors.pink, fontSize: 20),
+            //       );
+            //     },
+            //   ),
+            // ),
             ListTile(
               leading: const Icon(Icons.person),
               title: const Text('Logout'),

@@ -33,10 +33,10 @@ class UserInfoProvider with ChangeNotifier {
   late PokerGameDatabase _pokerGameDatabase;
 
   UserInfoProvider() {
-    FirebaseAuth.instance.authStateChanges().listen((User? newUser) {
-      if (newUser != _user) {
-        updateUser(newUser);
-      }
+    FirebaseAuth.instance.authStateChanges().listen((User? newUser) async {
+      await updateUserData(newUser);
+      _user = newUser;
+      notifyListeners();
     });
   }
 
@@ -52,14 +52,14 @@ class UserInfoProvider with ChangeNotifier {
   LotteryGameDatabase get lotteryGameDatabase => _lotteryGameDatabase;
   PokerGameDatabase get pokerGameDatabase => _pokerGameDatabase;
 
-  void updateUser(User? newUser) {
-    _user = newUser;
+  Future updateUserData(User? newUser) {
     FirebaseFirestore.instance
         .collection('user_basic_info')
-        .doc(_user?.uid)
+        .doc(newUser?.uid)
         .get()
         .then((doc) {
       if (doc.exists) {
+        Logger().d(newUser?.uid);
         _fileFunctionNormally = true;
         _coins = doc.data()!['coins'];
         Timestamp timestampRegister = doc.data()!['registerTime'];
@@ -80,18 +80,19 @@ class UserInfoProvider with ChangeNotifier {
           currentLevel: doc.data()!['pokerGameDatabase']['level'],
           doneTutorial: doc.data()!['pokerGameDatabase']['doneTutorial'],
         );
+        Logger().d('success');
       } else {
         //! this part should throw error about data missing
         //TODO add some function which will notice the user to developer or someone who can modify the database
         _fileFunctionNormally = false;
-        /*_coins = 0;
-        _lotteryGameDatabase = LotteryGameDatabase(
-            currentLevel: 0, currentDigit: 2, doneTutorial: false);
-        _pokerGameDatabase =
-            PokerGameDatabase(currentLevel: 0, doneTutorial: false);*/
+        Logger().d('error');
       }
+    });
+    // delay for the conaumer initilaize time
+    Future.delayed(Duration(milliseconds: 100), () {
       notifyListeners();
     });
+    return Future.value(true);
   }
 
   set coins(int value) {
@@ -115,7 +116,7 @@ class UserInfoProvider with ChangeNotifier {
         .update({
       'lotteryGameDatabase': {
         'level': database.currentLevel,
-        'digits': database.currentDigit,
+        'digit': database.currentDigit,
         'doneTutorial': database.doneTutorial,
       }
     }).then((value) {
@@ -136,6 +137,8 @@ class UserInfoProvider with ChangeNotifier {
         'level': database.currentLevel,
         'doneTutorial': database.doneTutorial,
       }
+    }).then((value) {
+      notifyListeners();
     });
   }
 
@@ -144,7 +147,9 @@ class UserInfoProvider with ChangeNotifier {
     FirebaseFirestore.instance
         .collection('user_basic_info')
         .doc(usr?.uid)
-        .update({'lastLoginTime': dateTime});
+        .update({'lastLoginTime': dateTime}).then((value) {
+      notifyListeners();
+    });
   }
 
   set lastUpdateTime(DateTime dateTime) {
@@ -152,6 +157,8 @@ class UserInfoProvider with ChangeNotifier {
     FirebaseFirestore.instance
         .collection('user_basic_info')
         .doc(usr?.uid)
-        .update({'lastUpdateTime': dateTime});
+        .update({'lastUpdateTime': dateTime}).then((value) {
+      notifyListeners();
+    });
   }
 }

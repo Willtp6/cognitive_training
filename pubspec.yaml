@@ -103,5 +103,24 @@ flutter:
   #       - asset: fonts/TrajanPro_Bold.ttf
   #         weight: 700
   #
+  fonts:
+    - family: NotoSansTC_Black
+      fonts:
+        - asset: assets/Noto_Sans_TC/NotoSansTc-Black.otf
+    - family: NotoSansTC_Bold
+      fonts:
+        - asset: assets/Noto_Sans_TC/NotoSansTc-Bold.otf
+    - family: NotoSansTC_Light
+      fonts:
+        - asset: assets/Noto_Sans_TC/NotoSansTc-Light.otf
+    - family: NotoSansTC_Medium
+      fonts:
+        - asset: assets/Noto_Sans_TC/NotoSansTc-Medium.otf
+    - family: NotoSansTC_Regular
+      fonts:
+        - asset: assets/Noto_Sans_TC/NotoSansTc-Regular.otf
+    - family: NotoSansTC_Thin
+      fonts:
+        - asset: assets/Noto_Sans_TC/NotoSansTc-Thin.otf
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/custom-fonts/#from-packages

@@ -10,6 +10,7 @@ import 'package:cognitive_training/firebase/auth.dart';
 import 'package:cognitive_training/screens/home/home_page.dart';
 import 'package:cognitive_training/screens/login/login_page.dart';
 import 'package:cognitive_training/screens/splash/splash_page.dart';
+import 'package:logger/logger.dart';
 import 'firebase_options.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
@@ -26,6 +27,7 @@ void main() async {
     value: userInfoProvider,
     child: MyApp(),
   ));
+  // runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
@@ -38,10 +40,8 @@ class MyApp extends StatelessWidget {
         builder: (context, state) {
           return Consumer<UserInfoProvider>(
             builder: (context, userInfoProvider, child) {
-              return userInfoProvider.usr != null &&
-                      userInfoProvider.fileFunctionNormally
-                  ? HomePage()
-                  : LoginPage();
+              Logger().d(userInfoProvider.usr?.uid);
+              return userInfoProvider.usr != null ? HomePage() : LoginPage();
             },
           );
         },
@@ -117,6 +117,7 @@ class MyApp extends StatelessWidget {
           create: (context) => AuthService().userStream,
           initialData: null,
         ),
+        //ChangeNotifierProvider.value(value: UserInfoProvider())
       ],
       child: MaterialApp.router(
         debugShowCheckedModeBanner: false,

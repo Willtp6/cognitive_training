@@ -39,7 +39,7 @@ class _LotteryGameState extends State<LotteryGame>
     'assets/lottery_game_scene/Temple2_withoutWord.png',
     'assets/lottery_game_scene/Temple2_withoutWord.png',
     'assets/lottery_game_scene/NumberInput_withWord.png',
-    'assets/lottery_game_scene/NumberInput_recognition.png',
+    'assets/lottery_game_scene/NumberInput_recognitionWithoutNum.png',
     'assets/lottery_game_scene/BuyLotter.png',
   ];
 
@@ -410,7 +410,9 @@ class _LotteryGameState extends State<LotteryGame>
                   child: gameProcess == 1
                       ? _showNumber()
                       : gameProcess == 3
-                          ? _getForm()
+                          ? _getForm(
+                              height: MediaQuery.of(context).size.height,
+                              width: MediaQuery.of(context).size.width * 5 / 7)
                           : AnimatedOpacity(
                               opacity: gameProcess == 0 ? 1.0 : 0.0,
                               duration: const Duration(seconds: 1),
@@ -499,38 +501,71 @@ class _LotteryGameState extends State<LotteryGame>
     );
   }
 
-  Form _getForm() {
+  Widget _getForm({required double height, required double width}) {
+    double lotteryHeight = height * 20 / 28;
+    double lotteryWidth = width * 7 / 9;
     return Form(
         key: formKey,
         child: Row(
           children: [
-            Flexible(flex: 1, child: Placeholder()),
+            Flexible(flex: 1, child: Container()),
             Flexible(
-              flex: 5,
+              flex: 7,
               child: Column(
                 children: [
-                  Flexible(flex: 2, child: Placeholder()),
-                  Expanded(flex: 3, child: Placeholder()),
+                  Flexible(flex: 2, child: Container()),
+                  Expanded(
+                    flex: 4,
+                    child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Stack(children: [
+                          Container(
+                            decoration: BoxDecoration(
+                              border: Border.all(color: Colors.red),
+                              color: Colors.white,
+                            ),
+                          ),
+                          Center(
+                            child: LayoutBuilder(
+                              builder: (buildContext, boxConstraints) {
+                                return AutoSizeText(
+                                  '彩 券 單',
+                                  style: TextStyle(
+                                      color: Colors.red,
+                                      fontFamily: 'NotoSansTC_Bold',
+                                      fontSize: boxConstraints.maxHeight),
+                                );
+                              },
+                            ),
+                          )
+                        ])),
+                  ),
                   Expanded(
                     flex: 20,
-                    child: GridView.count(
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        crossAxisCount: 7,
-                        padding: EdgeInsets.zero,
-                        crossAxisSpacing: 5,
-                        mainAxisSpacing: 5,
-                        childAspectRatio: 1.5,
-                        children: [
-                          for (int i = 1; i <= 49; i++) ...[
-                            Container(
-                              decoration: BoxDecoration(
-                                border: Border.all(color: Colors.red),
-                                color:
-                                    isChosen[i] ? Colors.yellow : Colors.white,
-                              ),
-                              child: Center(
-                                child: GestureDetector(
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(
+                          vertical: 0.2 * lotteryHeight / 8,
+                          horizontal: 0.2 * lotteryWidth / 8),
+                      child: GridView.count(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          crossAxisCount: 7,
+                          padding: EdgeInsets.zero,
+                          crossAxisSpacing: 0.2 * lotteryWidth / 8,
+                          mainAxisSpacing: 0.2 * lotteryHeight / 8,
+                          childAspectRatio:
+                              (lotteryWidth * 0.8) / (lotteryHeight * 0.8),
+                          children: [
+                            for (int i = 1; i <= 49; i++) ...[
+                              Container(
+                                decoration: BoxDecoration(
+                                  border: Border.all(color: Colors.red),
+                                  color: isChosen[i]
+                                      ? Colors.yellow
+                                      : Colors.white,
+                                ),
+                                child: Center(
+                                  child: GestureDetector(
                                     onTap: () {
                                       logger.d('$i');
                                       setState(() {
@@ -548,21 +583,25 @@ class _LotteryGameState extends State<LotteryGame>
                                         }
                                       });
                                     },
-                                    child: Container(
-                                      child: Text("$i",
-                                          style: TextStyle(
-                                              fontStyle: FontStyle.italic)),
-                                    )),
+                                    child: Text(
+                                      "$i",
+                                      style: const TextStyle(
+                                        fontStyle: FontStyle.italic,
+                                        fontFamily: 'NotoSansTC_Bold',
+                                      ),
+                                    ),
+                                  ),
+                                ),
                               ),
-                            ),
-                          ]
-                        ]),
+                            ]
+                          ]),
+                    ),
                   ),
-                  Flexible(flex: 1, child: Placeholder()),
+                  Flexible(flex: 2, child: Container()),
                 ],
               ),
             ),
-            Flexible(flex: 1, child: Placeholder()),
+            Flexible(flex: 1, child: Container()),
           ],
         )
         /*Row(children: <Widget>[
