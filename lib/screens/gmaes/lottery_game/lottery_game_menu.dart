@@ -1,7 +1,7 @@
 import 'dart:async';
 
-import 'package:cognitive_training/models/userinfo_provider.dart';
-import 'package:cognitive_training/screens/gmaes/lottery_game/lottery_game.dart';
+import 'package:cognitive_training/models/user_info_provider.dart';
+import 'package:cognitive_training/screens/gmaes/lottery_game/lottery_game_scene.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
@@ -21,6 +21,7 @@ class _LotteryGameMenu extends State<LotteryGameMenu>
 
   @override
   void initState() {
+    super.initState();
     _controller = AnimationController(
       duration: const Duration(seconds: 2),
       vsync: this,
@@ -29,7 +30,6 @@ class _LotteryGameMenu extends State<LotteryGameMenu>
       DeviceOrientation.landscapeRight,
       DeviceOrientation.landscapeLeft,
     ]);
-    super.initState();
   }
 
   @override
@@ -45,10 +45,10 @@ class _LotteryGameMenu extends State<LotteryGameMenu>
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    SystemChrome.setPreferredOrientations([
-      DeviceOrientation.landscapeRight,
-      DeviceOrientation.landscapeLeft,
-    ]);
+    // SystemChrome.setPreferredOrientations([
+    //   DeviceOrientation.landscapeRight,
+    //   DeviceOrientation.landscapeLeft,
+    // ]);
     _controller.reset();
     _controller.dispose();
     _controller =
@@ -97,6 +97,7 @@ class _LotteryGameMenu extends State<LotteryGameMenu>
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
+                    Flexible(flex: 1, child: Container()),
                     Flexible(
                       flex: 3,
                       child: Container(
@@ -114,7 +115,7 @@ class _LotteryGameMenu extends State<LotteryGameMenu>
                       ),
                     ),
                     Flexible(
-                      flex: 1,
+                      flex: 2,
                       child: Container(),
                     ),
                     Flexible(
@@ -177,10 +178,11 @@ class _LotteryGameMenu extends State<LotteryGameMenu>
                               Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                      builder: (context) => LotteryGame(
-                                          startLevel: 0,
-                                          startDigit: 2,
-                                          isTutorial: true)));
+                                      builder: (context) =>
+                                          const LotteryGameScene(
+                                              startLevel: 0,
+                                              startDigit: 2,
+                                              isTutorial: true)));
                               Future.delayed(const Duration(milliseconds: 200),
                                   () {
                                 _controller.reset();

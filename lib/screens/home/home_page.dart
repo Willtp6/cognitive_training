@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:cognitive_training/models/userinfo_provider.dart';
+import 'package:cognitive_training/models/user_checkin_provider.dart';
+import 'package:cognitive_training/models/user_info_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:cognitive_training/firebase/auth.dart';
 import 'package:flutter/services.dart';
@@ -25,18 +26,13 @@ class _HomePageState extends State<HomePage> {
   }
 
   final AuthService _authService = AuthService();
-  bool haveLoginReward = false;
-
-  void checkCheckinStatus() {
-    // do some check
-    // check if continuous login and reward status etc.
-
-    // update the lastupdate time
-  }
+  late UserInfoProvider userInfoProvider;
+  late UserCheckinProvider userCheckinProvider;
 
   @override
   Widget build(BuildContext context) {
-    checkCheckinStatus();
+    userInfoProvider = Provider.of<UserInfoProvider>(context);
+    userCheckinProvider = Provider.of<UserCheckinProvider>(context);
     return Scaffold(
       resizeToAvoidBottomInset: false,
       appBar: AppBar(
@@ -76,61 +72,108 @@ class _HomePageState extends State<HomePage> {
                 ),
               ),
               const SizedBox(height: 40),
+              Selector<UserCheckinProvider, bool>(
+                selector: (context, userCheckinProvider) =>
+                    userCheckinProvider.haveCheckinReward,
+                builder: (context, haveReward, child) {
+                  return ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: haveReward ? Colors.green : Colors.grey,
+                    ),
+                    onPressed: () {
+                      showDialog(
+                          context: context,
+                          builder: (context) => CheckinDialog(
+                                checkin: userCheckinProvider.loginCycle,
+                              )).then((_) {
+                        Logger().i('close');
+                        // ignore: todo
+                        //TODO update reward already get
+                        userInfoProvider.coins +=
+                            userCheckinProvider.calculateReward();
+                        userCheckinProvider.updateRewardRecord();
+                      });
+                    },
+                    child: Text(
+                      '簽到',
+                      style: TextStyle(
+                          fontSize: 40,
+                          color: Colors.white,
+                          fontFamily: 'NotoSansTC_Regular'),
+                    ),
+                  );
+                },
+              ),
+              const SizedBox(height: 40),
+              Consumer<UserCheckinProvider>(
+                  builder: (_, userCheckinProvider, child) {
+                return userCheckinProvider.isReady
+                    ? ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: userCheckinProvider.haveCheckinReward
+                              ? Colors.green
+                              : Colors.grey,
+                        ),
+                        onPressed: () {
+                          showDialog(
+                                  context: context,
+                                  builder: (context) => AccumulatePlayDialog())
+                              .then((_) {});
+                        },
+                        child: const Text(
+                          '連續遊玩',
+                          style: TextStyle(fontSize: 40, color: Colors.white),
+                        ),
+                      )
+                    : const CircularProgressIndicator();
+              }),
+              const SizedBox(height: 40),
               ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blueGrey,
-                ),
                 onPressed: () {
-                  showDialog(
-                      context: context,
-                      builder: (context) => const CheckinDialog());
+                  userInfoProvider.coins += 100;
                 },
                 child: const Text(
-                  'check in',
+                  '++',
                   style: TextStyle(fontSize: 40, color: Colors.white),
                 ),
               ),
-              const SizedBox(
-                height: 40,
-              ),
+              const SizedBox(height: 40),
               Consumer<UserInfoProvider>(
                 builder: (context, userInfoProvider, child) {
-                  Logger().d(userInfoProvider.fileFunctionNormally);
                   return userInfoProvider.fileFunctionNormally
                       ? Column(
                           children: [
                             Text(
-                              "Coins you have: ${userInfoProvider.coins}",
+                              "持有硬幣: ${userInfoProvider.coins}",
                               style: const TextStyle(
                                   color: Colors.black, fontSize: 40),
-                            ),
-                            const SizedBox(height: 40),
-                            ElevatedButton(
-                              onPressed: () {
-                                setState(() {});
-                              },
-                              child: Text(
-                                "${userInfoProvider.lastLoginTime}",
-                                style: const TextStyle(
-                                    color: Colors.black, fontSize: 40),
-                              ),
-                            ),
-                            const SizedBox(height: 40),
-                            ElevatedButton(
-                              onPressed: () {
-                                setState(() {});
-                              },
-                              child: Text(
-                                "${userInfoProvider.loginCycle}",
-                                style: const TextStyle(
-                                    color: Colors.black, fontSize: 40),
-                              ),
                             ),
                           ],
                         )
                       : const CircularProgressIndicator();
                 },
               ),
+              const SizedBox(
+                height: 40,
+              ),
+              Consumer<UserCheckinProvider>(
+                builder: (context, userCheckinProvider, child) {
+                  return Column(
+                    children: [
+                      Text(
+                        'Test: ${userCheckinProvider.test}',
+                        style:
+                            const TextStyle(color: Colors.black, fontSize: 40),
+                      ),
+                    ],
+                  );
+                },
+              ),
+              ElevatedButton(
+                  onPressed: () {
+                    userCheckinProvider.test++;
+                  },
+                  child: const Text('++test')),
               Text(DateTime.now().toString()),
             ],
           ),
@@ -217,11 +260,13 @@ class _HomePageState extends State<HomePage> {
   }
 }
 
-class CheckinDialog extends StatelessWidget {
-  const CheckinDialog({super.key});
+class AccumulatePlayDialog extends StatelessWidget {
+  late UserCheckinProvider userCheckinProvider;
+  AccumulatePlayDialog({super.key});
 
   @override
   Widget build(BuildContext context) {
+    userCheckinProvider = Provider.of<UserCheckinProvider>(context);
     final width = MediaQuery.of(context).size.width;
     final seperateSize = width * 0.05;
     final iconSize = width * 0.13;
@@ -234,11 +279,81 @@ class CheckinDialog extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text('連 續 登 入',
+            Container(
+              decoration: BoxDecoration(
+                  border: Border.all(color: Colors.black),
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(10)),
+              padding: const EdgeInsets.symmetric(horizontal: 10),
+              child: Text(
+                '累 積 遊 玩',
                 style: TextStyle(
                     fontSize: fontSize * 2,
                     color: Colors.blue,
-                    fontWeight: FontWeight.bold)),
+                    fontFamily: 'NotoSansTC_Regular'),
+              ),
+            ),
+            SizedBox(height: seperateSize),
+            Column(
+              children: [
+                // list of accumulate reward
+                Container()
+              ],
+            ),
+            SizedBox(height: seperateSize),
+            ElevatedButton(
+                style:
+                    ElevatedButton.styleFrom(backgroundColor: Colors.lightBlue),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                child: Text(
+                  '關 閉',
+                  style: TextStyle(
+                      color: Colors.black,
+                      fontSize: fontSize,
+                      fontFamily: 'NotoSansTC_Bold'),
+                )),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class CheckinDialog extends StatelessWidget {
+  final List<bool> checkin;
+  const CheckinDialog({super.key, required this.checkin});
+
+  @override
+  Widget build(BuildContext context) {
+    final width = MediaQuery.of(context).size.width;
+    final seperateSize = width * 0.05;
+    final iconSize = width * 0.13;
+    final fontSize = width * 0.05;
+
+    return Dialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      backgroundColor: Colors.brown[100],
+      child: Container(
+        padding: EdgeInsets.all(seperateSize),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              decoration: BoxDecoration(
+                  border: Border.all(color: Colors.black),
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(10)),
+              padding: const EdgeInsets.symmetric(horizontal: 10),
+              child: Text(
+                '連 續 登 入',
+                style: TextStyle(
+                    fontSize: fontSize * 2,
+                    color: Colors.blue,
+                    fontFamily: 'NotoSansTC_Regular'),
+              ),
+            ),
             SizedBox(height: seperateSize),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -246,9 +361,9 @@ class CheckinDialog extends StatelessWidget {
                 for (int i = 1; i <= 4; i++) ...[
                   Container(
                     decoration: BoxDecoration(
-                        border: Border.all(color: Colors.black),
+                        border: Border.all(color: Colors.black, width: 1.5),
                         borderRadius: BorderRadius.circular(10),
-                        color: Colors.orange),
+                        color: Colors.orange[100]),
                     child: Column(
                       children: [
                         Stack(
@@ -256,17 +371,22 @@ class CheckinDialog extends StatelessWidget {
                             Icon(
                               Icons.attach_money_rounded,
                               size: iconSize,
-                              color: Colors.yellow,
+                              color: Colors.orange,
                             ),
-                            const Opacity(
-                              opacity: 0.5,
-                              child: Icon(Icons.check),
+                            Opacity(
+                              opacity: checkin[i - 1] ? 1 : 0,
+                              child: Icon(
+                                Icons.check,
+                                size: iconSize,
+                              ),
                             ),
                           ],
                         ),
                         Text(
                           '+${i}00',
-                          style: TextStyle(fontSize: fontSize),
+                          style: TextStyle(
+                              fontSize: fontSize,
+                              fontFamily: 'NotoSansTC_Regular'),
                         ),
                       ],
                     ),
@@ -294,9 +414,12 @@ class CheckinDialog extends StatelessWidget {
                               size: iconSize,
                               color: Colors.yellow,
                             ),
-                            const Opacity(
-                              opacity: 0.5,
-                              child: Icon(Icons.check),
+                            Opacity(
+                              opacity: checkin[i - 1] ? 1 : 0,
+                              child: Icon(
+                                Icons.check,
+                                size: iconSize,
+                              ),
                             ),
                           ],
                         ),
@@ -313,12 +436,17 @@ class CheckinDialog extends StatelessWidget {
             ),
             SizedBox(height: seperateSize),
             ElevatedButton(
+                style:
+                    ElevatedButton.styleFrom(backgroundColor: Colors.lightBlue),
                 onPressed: () {
                   Navigator.of(context).pop();
                 },
                 child: Text(
-                  '關閉',
-                  style: TextStyle(fontSize: fontSize),
+                  '關 閉',
+                  style: TextStyle(
+                      color: Colors.black,
+                      fontSize: fontSize,
+                      fontFamily: 'NotoSansTC_Bold'),
                 )),
           ],
         ),

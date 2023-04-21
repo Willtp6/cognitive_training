@@ -27,7 +27,7 @@ class _LoginPageState extends State<LoginPage> {
             appBar: AppBar(
               backgroundColor: Colors.blue[400],
               elevation: 0.0,
-              title: const Text('Login'),
+              title: const Text('登入'),
             ),
             body: Container(
               padding:
@@ -39,14 +39,10 @@ class _LoginPageState extends State<LoginPage> {
                     const SizedBox(height: 60.0),
                     TextFormField(
                       maxLength: 20,
-                      decoration:
-                          inputDecoration.copyWith(hintText: 'Input Id'),
-                      validator: (val) =>
-                          val!.isEmpty ? 'Enter your user Id' : null,
+                      decoration: inputDecoration.copyWith(hintText: '輸入 Id'),
+                      validator: (val) => val!.isEmpty ? '不可為空' : null,
                       onChanged: (val) {
-                        setState(() {
-                          userId = val;
-                        });
+                        userId = val;
                       },
                     ),
                     const SizedBox(height: 30.0),
@@ -62,14 +58,38 @@ class _LoginPageState extends State<LoginPage> {
                                 await _auth.loginOrCreateAccountWithId(userId);
                             if (result == null) {
                               setState(() {
-                                error = 'Login failed';
+                                error = '登入失敗';
                                 isLoading = false;
                               });
                             }
                           }
                         },
                         child: const Text(
-                          'register',
+                          '創建並登入',
+                          style: TextStyle(fontSize: 20),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 30.0),
+                    SizedBox(
+                      height: 50.0,
+                      width: 150.0,
+                      child: ElevatedButton(
+                        style: buttonDecoration,
+                        onPressed: () async {
+                          if (_formKey.currentState!.validate()) {
+                            isLoading = true;
+                            dynamic result = await _auth.login(userId);
+                            if (result == null) {
+                              setState(() {
+                                error = '登入失敗';
+                                isLoading = false;
+                              });
+                            }
+                          }
+                        },
+                        child: const Text(
+                          '登入',
                           style: TextStyle(fontSize: 20),
                         ),
                       ),

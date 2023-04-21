@@ -1,22 +1,21 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-class UserinfoDatabaseService {
+class UserDatabaseService {
   final String docId;
-  UserinfoDatabaseService({required this.docId});
+  final String userName;
+  UserDatabaseService({required this.docId, required this.userName});
 
   // to record the user info such as coins held by each user
   final CollectionReference userInfoCollection =
       FirebaseFirestore.instance.collection('user_basic_info');
+  final CollectionReference userCheckinCollection =
+      FirebaseFirestore.instance.collection('user_checkin_info');
 
-  Future createUserInfo() async {
-    return await userInfoCollection.doc(docId).set({
+  createUserInfo() async {
+    await userInfoCollection.doc(docId).set({
       'coins': 1200,
       'registerTime': DateTime.now(),
-      'lastLoginTime': DateTime.now(),
-      'lastUpdateTime': DateTime.now(),
       'continuousLoginDays': 0,
-      'loginCycle': [true, false, false, false, false, false, false],
-      'loginRewardRecord': [false, false, false, false, false, false, false],
       'lotteryGameDatabase': {
         'level': 0,
         'digit': 2,
@@ -27,9 +26,17 @@ class UserinfoDatabaseService {
         'doneTutorial': false,
       },
     });
+    await userCheckinCollection.doc(docId).set({
+      'lastLoginTime': DateTime.now(),
+      'loginCycle': List.generate(7, (index) => false),
+      'loginRewardCycle': List.generate(7, (index) => false),
+      'weeklyRewardCycle': List.generate(4, (index) => false),
+      'cycleStartDay': DateTime.now(),
+      'accumulatePlayTime': List.generate(7, (index) => 0),
+    });
   }
 
-  Stream<QuerySnapshot> get uerInfo {
-    return userInfoCollection.snapshots();
-  }
+  // Stream<QuerySnapshot> get uerInfo {
+  //   return userInfoCollection.snapshots();
+  // }
 }
