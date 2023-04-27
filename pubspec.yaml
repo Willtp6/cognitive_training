@@ -81,6 +81,7 @@ flutter:
     - assets/poker_game_sound/
     - assets/poker_game_card/
     - assets/global/
+    - assets/login_reward/
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware

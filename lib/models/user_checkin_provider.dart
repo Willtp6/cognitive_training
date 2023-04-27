@@ -139,6 +139,7 @@ class UserCheckinProvider extends ChangeNotifier {
 
     // set the cycle login day to true then check if have reward to get
     _loginCycle[difference.remainder(7)] = true;
+    loginCycle = _loginCycle;
     for (int i = 0; i < 7; i++) {
       if (_loginCycle[i] && !loginRewardCycle[i]) {
         haveCheckinReward = true;

@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cognitive_training/models/user_checkin_provider.dart';
 import 'package:cognitive_training/models/user_info_provider.dart';
@@ -19,10 +21,10 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
-    SystemChrome.setPreferredOrientations([
-      DeviceOrientation.portraitUp,
-      DeviceOrientation.portraitDown,
-    ]);
+    // SystemChrome.setPreferredOrientations([
+    //   DeviceOrientation.landscapeLeft,
+    //   DeviceOrientation.landscapeRight,
+    // ]);
   }
 
   final AuthService _authService = AuthService();
@@ -94,8 +96,8 @@ class _HomePageState extends State<HomePage> {
                         userCheckinProvider.updateRewardRecord();
                       });
                     },
-                    child: Text(
-                      '簽到',
+                    child: const Text(
+                      '簽到獎勵',
                       style: TextStyle(
                           fontSize: 40,
                           color: Colors.white,
@@ -121,12 +123,22 @@ class _HomePageState extends State<HomePage> {
                               .then((_) {});
                         },
                         child: const Text(
-                          '連續遊玩',
-                          style: TextStyle(fontSize: 40, color: Colors.white),
+                          '連續遊玩獎勵',
+                          style: TextStyle(
+                              fontSize: 40,
+                              color: Colors.white,
+                              fontFamily: 'NotoSansTC_Regular'),
                         ),
                       )
                     : const CircularProgressIndicator();
               }),
+              const SizedBox(height: 40),
+              IconButton(
+                onPressed: () {
+                  GoRouter.of(context).push('/home/reward');
+                },
+                icon: const Icon(Icons.calendar_today_outlined),
+              ),
               const SizedBox(height: 40),
               ElevatedButton(
                 onPressed: () {
@@ -134,7 +146,7 @@ class _HomePageState extends State<HomePage> {
                 },
                 child: const Text(
                   '++',
-                  style: TextStyle(fontSize: 40, color: Colors.white),
+                  style: TextStyle(fontSize: 40),
                 ),
               ),
               const SizedBox(height: 40),
@@ -260,62 +272,55 @@ class _HomePageState extends State<HomePage> {
   }
 }
 
-class AccumulatePlayDialog extends StatelessWidget {
-  late UserCheckinProvider userCheckinProvider;
-  AccumulatePlayDialog({super.key});
+class TestWidget extends StatefulWidget {
+  const TestWidget({super.key});
+
+  @override
+  State<TestWidget> createState() => _TestWidgetState();
+}
+
+class _TestWidgetState extends State<TestWidget> {
+  @override
+  void initState() {
+    super.initState();
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.landscapeRight,
+      DeviceOrientation.landscapeLeft,
+    ]);
+  }
+
+  @override
+  void dispose() {
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.portraitDown,
+    ]);
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    userCheckinProvider = Provider.of<UserCheckinProvider>(context);
-    final width = MediaQuery.of(context).size.width;
-    final seperateSize = width * 0.05;
-    final iconSize = width * 0.13;
-    final fontSize = width * 0.05;
-    return Dialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      backgroundColor: Colors.brown[100],
+    return Hero(
+      tag: 'test',
       child: Container(
-        padding: EdgeInsets.all(seperateSize),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              decoration: BoxDecoration(
-                  border: Border.all(color: Colors.black),
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(10)),
-              padding: const EdgeInsets.symmetric(horizontal: 10),
-              child: Text(
-                '累 積 遊 玩',
-                style: TextStyle(
-                    fontSize: fontSize * 2,
-                    color: Colors.blue,
-                    fontFamily: 'NotoSansTC_Regular'),
-              ),
-            ),
-            SizedBox(height: seperateSize),
-            Column(
-              children: [
-                // list of accumulate reward
-                Container()
-              ],
-            ),
-            SizedBox(height: seperateSize),
-            ElevatedButton(
-                style:
-                    ElevatedButton.styleFrom(backgroundColor: Colors.lightBlue),
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-                child: Text(
-                  '關 閉',
-                  style: TextStyle(
-                      color: Colors.black,
-                      fontSize: fontSize,
-                      fontFamily: 'NotoSansTC_Bold'),
-                )),
-          ],
+        decoration: const BoxDecoration(
+          image: DecorationImage(
+              image: AssetImage('assets/login_reward/reward_background.png'),
+              fit: BoxFit.fill),
         ),
+      ),
+    );
+  }
+}
+
+class AccumulatePlayDialog extends StatelessWidget {
+  const AccumulatePlayDialog({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Dialog(
+      child: Stack(
+        children: [Image.asset('assets/login_reward/reward_background.png')],
       ),
     );
   }
@@ -327,7 +332,7 @@ class CheckinDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final width = MediaQuery.of(context).size.width;
+    final width = MediaQuery.of(context).size.height;
     final seperateSize = width * 0.05;
     final iconSize = width * 0.13;
     final fontSize = width * 0.05;
@@ -382,12 +387,11 @@ class CheckinDialog extends StatelessWidget {
                             ),
                           ],
                         ),
-                        Text(
-                          '+${i}00',
-                          style: TextStyle(
+                        Text('+${i}00',
+                            style: TextStyle(
                               fontSize: fontSize,
-                              fontFamily: 'NotoSansTC_Regular'),
-                        ),
+                              fontFamily: 'NotoSansTC_Regular',
+                            )),
                       ],
                     ),
                   ),

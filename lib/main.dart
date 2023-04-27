@@ -5,6 +5,7 @@ import 'package:cognitive_training/screens/gmaes/lottery_game/lottery_game_scene
 import 'package:cognitive_training/screens/gmaes/lottery_game/lottery_game_menu.dart';
 import 'package:cognitive_training/screens/gmaes/poker_game/poker_game.dart';
 import 'package:cognitive_training/screens/gmaes/poker_game/poker_game_menu.dart';
+import 'package:cognitive_training/screens/home/reward_page.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
@@ -47,6 +48,10 @@ class MyApp extends StatelessWidget {
             path: 'home',
             builder: (context, state) => const HomePage(),
             routes: [
+              GoRoute(
+                path: 'reward',
+                builder: (context, state) => const RewardPage(),
+              ),
               GoRoute(
                 path: 'lottery_game_menu',
                 builder: (context, state) => const LotteryGameMenu(),
