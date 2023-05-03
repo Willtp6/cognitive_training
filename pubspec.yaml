@@ -49,6 +49,8 @@ dependencies:
   go_router: ^6.5.0
   auto_size_text: ^3.0.0
   flutter_animate: ^4.1.1+1
+  dotted_border: ^2.0.0+3
+  tuple: ^2.0.1
 
 dev_dependencies:
   flutter_test:
@@ -82,6 +84,7 @@ flutter:
     - assets/poker_game_card/
     - assets/global/
     - assets/login_reward/
+    - assets/login_page/
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware
@@ -107,23 +110,41 @@ flutter:
   #         weight: 700
   #
   fonts:
-    - family: NotoSansTC_Black
+    # - family: NotoSansTC_Black
+    #   fonts:
+    #     - asset: assets/Noto_Sans_TC/NotoSansTc-Black.otf
+    # - family: NotoSansTC_Bold
+    #   fonts:
+    #     - asset: assets/Noto_Sans_TC/NotoSansTc-Bold.otf
+    # - family: NotoSansTC_Light
+    #   fonts:
+    #     - asset: assets/Noto_Sans_TC/NotoSansTc-Light.otf
+    # - family: NotoSansTC_Medium
+    #   fonts:
+    #     - asset: assets/Noto_Sans_TC/NotoSansTc-Medium.otf
+    # - family: NotoSansTC_Regular
+    #   fonts:
+    #     - asset: assets/Noto_Sans_TC/NotoSansTc-Regular.otf
+    # - family: NotoSansTC_Thin
+    #   fonts:
+    #     - asset: assets/Noto_Sans_TC/NotoSansTc-Thin.otf
+    - family: GSR_B
       fonts:
-        - asset: assets/Noto_Sans_TC/NotoSansTc-Black.otf
-    - family: NotoSansTC_Bold
+        - asset: assets/ttc/GenSenRounded-B.ttc
+    - family: GSR_EL
       fonts:
-        - asset: assets/Noto_Sans_TC/NotoSansTc-Bold.otf
-    - family: NotoSansTC_Light
+        - asset: assets/ttc/GenSenRounded-EL.ttc
+    - family: GSR_H
       fonts:
-        - asset: assets/Noto_Sans_TC/NotoSansTc-Light.otf
-    - family: NotoSansTC_Medium
+        - asset: assets/ttc/GenSenRounded-H.ttc
+    - family: GSR_L
       fonts:
-        - asset: assets/Noto_Sans_TC/NotoSansTc-Medium.otf
-    - family: NotoSansTC_Regular
+        - asset: assets/ttc/GenSenRounded-L.ttc
+    - family: GSR_M
       fonts:
-        - asset: assets/Noto_Sans_TC/NotoSansTc-Regular.otf
-    - family: NotoSansTC_Thin
+        - asset: assets/ttc/GenSenRounded-M.ttc
+    - family: GSR_R
       fonts:
-        - asset: assets/Noto_Sans_TC/NotoSansTc-Thin.otf
+        - asset: assets/ttc/GenSenRounded-R.ttc
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/custom-fonts/#from-packages

@@ -310,167 +310,163 @@ class _LotteryGameSceneState extends State<LotteryGameScene>
       builder: (buildContext, boxConstraints) {
         double lotteryHeight = boxConstraints.maxHeight * 20 / 28;
         double lotteryWidth = boxConstraints.maxWidth * 7 / 9;
-        return game.gameLevel < 2
-            ? Row(
-                children: [
-                  Flexible(flex: 1, child: Container()),
-                  Flexible(
-                    flex: 7,
-                    child: Column(
-                      children: [
-                        Flexible(flex: 2, child: Container()),
-                        Expanded(
-                          flex: 4,
-                          child: Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Stack(children: [
-                                Container(
-                                  decoration: BoxDecoration(
-                                    border: Border.all(color: Colors.red),
-                                    color: Colors.white,
-                                  ),
-                                ),
-                                Center(child: LayoutBuilder(
-                                    builder: (buildContext, boxConstraints) {
-                                  return AutoSizeText(
-                                    '彩 券 單',
-                                    style: TextStyle(
-                                        color: Colors.red,
-                                        fontFamily: 'NotoSansTC_Bold',
-                                        fontSize: boxConstraints.maxHeight),
-                                  );
-                                }))
-                              ])),
-                        ),
-                        Expanded(
-                            flex: 20,
-                            child: Padding(
-                                padding: EdgeInsets.symmetric(
-                                    vertical: 0.2 * lotteryHeight / 8,
-                                    horizontal: 0.2 * lotteryWidth / 8),
-                                child: GridView.count(
-                                    shrinkWrap: true,
-                                    physics:
-                                        const NeverScrollableScrollPhysics(),
-                                    crossAxisCount: 7,
-                                    padding: EdgeInsets.zero,
-                                    crossAxisSpacing: 0.2 * lotteryWidth / 8,
-                                    mainAxisSpacing: 0.2 * lotteryHeight / 8,
-                                    childAspectRatio: (lotteryWidth * 0.8) /
-                                        (lotteryHeight * 0.8),
-                                    children: [
-                                      for (int i = 1; i <= 49; i++) ...[
-                                        Container(
-                                            decoration: BoxDecoration(
-                                              border:
-                                                  Border.all(color: Colors.red),
-                                              color: game.isChosen[i]
-                                                  ? Colors.yellow
-                                                  : Colors.white,
-                                            ),
-                                            child: Center(
-                                                child: GestureDetector(
-                                                    onTap: () {
-                                                      logger.d('$i');
-                                                      setState(() {
-                                                        if (game.numOfChosen ==
-                                                                game
-                                                                    .numberOfDigits &&
-                                                            game.isChosen[i] ==
-                                                                false) {
-                                                          game.isPaused = true;
-                                                          //show that need to cancel one of them first
-                                                          _exceedLimitAlertDialog()
-                                                              .then((_) =>
-                                                                  game.isPaused =
-                                                                      false);
-                                                        } else {
-                                                          game.isChosen[i] =
-                                                              !game.isChosen[i];
-                                                          if (game
-                                                              .isChosen[i]) {
-                                                            game.numOfChosen++;
-                                                          } else {
-                                                            game.numOfChosen--;
-                                                          }
-                                                        }
-                                                      });
-                                                    },
-                                                    child: Text("$i",
-                                                        style: const TextStyle(
-                                                            fontStyle: FontStyle
-                                                                .italic,
-                                                            fontFamily:
-                                                                'NotoSansTC_Bold')))))
-                                      ]
-                                    ]))),
-                        Flexible(flex: 2, child: Container()),
-                      ],
+        if (game.gameLevel < 2) {
+          return Row(
+            children: [
+              Flexible(flex: 1, child: Container()),
+              Flexible(
+                flex: 7,
+                child: Column(
+                  children: [
+                    Flexible(flex: 2, child: Container()),
+                    Expanded(
+                      flex: 4,
+                      child: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Stack(children: [
+                            Container(
+                              decoration: BoxDecoration(
+                                border: Border.all(color: Colors.red),
+                                color: Colors.white,
+                              ),
+                            ),
+                            Center(child: LayoutBuilder(
+                                builder: (buildContext, boxConstraints) {
+                              return AutoSizeText(
+                                '彩 券 單',
+                                style: TextStyle(
+                                    color: Colors.red,
+                                    fontFamily: 'NotoSansTC_Bold',
+                                    fontSize: boxConstraints.maxHeight),
+                              );
+                            }))
+                          ])),
                     ),
-                  ),
-                  Flexible(flex: 1, child: Container()),
-                ],
-              )
-            : Row(
-                children: <Widget>[
-                  Expanded(
-                      flex: 5,
-                      child: Column(children: <Widget>[
-                        Expanded(flex: 1, child: Container()),
-                        Expanded(
-                            flex: 9,
+                    Expanded(
+                        flex: 20,
+                        child: Padding(
+                            padding: EdgeInsets.symmetric(
+                                vertical: 0.2 * lotteryHeight / 8,
+                                horizontal: 0.2 * lotteryWidth / 8),
                             child: GridView.count(
-                                crossAxisCount: 3,
-                                padding: const EdgeInsets.all(20),
-                                crossAxisSpacing: 25,
-                                mainAxisSpacing: 5,
-                                childAspectRatio: 1,
+                                shrinkWrap: true,
+                                physics: const NeverScrollableScrollPhysics(),
+                                crossAxisCount: 7,
+                                padding: EdgeInsets.zero,
+                                crossAxisSpacing: 0.2 * lotteryWidth / 8,
+                                mainAxisSpacing: 0.2 * lotteryHeight / 8,
+                                childAspectRatio: (lotteryWidth * 0.8) /
+                                    (lotteryHeight * 0.8),
                                 children: [
-                                  for (int i = 0;
-                                      i < game.numberOfDigits;
-                                      i++) ...[
-                                    TextFormField(
-                                        maxLength: 1,
-                                        textAlign: TextAlign.center,
-                                        style: const TextStyle(fontSize: 30),
-                                        decoration:
-                                            inputNumberDecoration.copyWith(
-                                                hintText: '',
-                                                contentPadding:
-                                                    const EdgeInsets.all(5)),
-                                        keyboardType: TextInputType.number,
-                                        validator: (val) =>
-                                            val!.isEmpty ? '輸入數字' : null,
-                                        textInputAction:
-                                            i == game.numberOfDigits - 1
-                                                ? TextInputAction.next
-                                                : TextInputAction.done,
-                                        onChanged: (val) {
-                                          game.userArray[i] =
-                                              val.isEmpty ? -1 : int.parse(val);
-                                        })
+                                  for (int i = 1; i <= 49; i++) ...[
+                                    InkWell(
+                                      onTap: () {
+                                        logger.d('$i');
+                                        _playPathSound('$i.mp3');
+                                        setState(() {
+                                          if (game.numOfChosen ==
+                                                  game.numberOfDigits &&
+                                              game.isChosen[i] == false) {
+                                            game.isPaused = true;
+                                            //show that need to cancel one of them first
+                                            _exceedLimitAlertDialog().then(
+                                                (_) => game.isPaused = false);
+                                          } else {
+                                            game.isChosen[i] =
+                                                !game.isChosen[i];
+                                            if (game.isChosen[i]) {
+                                              game.numOfChosen++;
+                                            } else {
+                                              game.numOfChosen--;
+                                            }
+                                          }
+                                        });
+                                      },
+                                      child: Container(
+                                        decoration: BoxDecoration(
+                                          border: Border.all(color: Colors.red),
+                                          color: game.isChosen[i]
+                                              ? Colors.yellow
+                                              : Colors.white,
+                                        ),
+                                        child: Center(
+                                          child: Text(
+                                            "$i",
+                                            style: const TextStyle(
+                                                fontStyle: FontStyle.italic,
+                                                fontFamily: 'GSR_R'),
+                                          ),
+                                        ),
+                                      ),
+                                    )
                                   ]
-                                ]))
-                      ])),
-                  Expanded(
-                      flex: 2,
-                      child: ClipRRect(
-                          borderRadius: BorderRadius.circular(30.0),
-                          child: ElevatedButton(
-                            onPressed: () {
-                              if (formKey.currentState!.validate()) {
-                                game.end = DateTime.now();
-                                //judge the result
-                                game.getResult();
-                                setState(() {
-                                  game.changeCurrentImage();
-                                });
-                              }
-                            },
-                            child: const Text('決定好了'),
-                          )))
-                ],
-              );
+                                ]))),
+                    Flexible(flex: 2, child: Container()),
+                  ],
+                ),
+              ),
+              Flexible(flex: 1, child: Container()),
+            ],
+          );
+        } else {
+          return Row(
+            children: <Widget>[
+              Expanded(
+                  flex: 5,
+                  child: Column(children: <Widget>[
+                    Expanded(flex: 1, child: Container()),
+                    Expanded(
+                        flex: 9,
+                        child: GridView.count(
+                            crossAxisCount: 3,
+                            padding: const EdgeInsets.all(20),
+                            crossAxisSpacing: 25,
+                            mainAxisSpacing: 5,
+                            childAspectRatio: 1,
+                            children: [
+                              for (int i = 0; i < game.numberOfDigits; i++) ...[
+                                TextFormField(
+                                    maxLength: 1,
+                                    textAlign: TextAlign.center,
+                                    style: const TextStyle(fontSize: 30),
+                                    decoration: inputNumberDecoration.copyWith(
+                                        hintText: '',
+                                        contentPadding:
+                                            const EdgeInsets.all(5)),
+                                    keyboardType: TextInputType.number,
+                                    validator: (val) =>
+                                        val!.isEmpty ? '輸入數字' : null,
+                                    textInputAction:
+                                        i == game.numberOfDigits - 1
+                                            ? TextInputAction.next
+                                            : TextInputAction.done,
+                                    onChanged: (val) {
+                                      game.userArray[i] =
+                                          val.isEmpty ? -1 : int.parse(val);
+                                    })
+                              ]
+                            ]))
+                  ])),
+              Expanded(
+                  flex: 2,
+                  child: ClipRRect(
+                      borderRadius: BorderRadius.circular(30.0),
+                      child: ElevatedButton(
+                        onPressed: () {
+                          if (formKey.currentState!.validate()) {
+                            game.end = DateTime.now();
+                            //judge the result
+                            game.getResult();
+                            setState(() {
+                              game.changeCurrentImage();
+                            });
+                          }
+                        },
+                        child: const Text('決定好了'),
+                      )))
+            ],
+          );
+        }
       },
     );
   }

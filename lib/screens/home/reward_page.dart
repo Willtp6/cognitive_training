@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:logger/logger.dart';
 
 class RewardPage extends StatefulWidget {
@@ -23,10 +24,10 @@ class _RewardPageState extends State<RewardPage> {
 
   @override
   void dispose() {
-    SystemChrome.setPreferredOrientations([
-      DeviceOrientation.portraitUp,
-      DeviceOrientation.portraitDown,
-    ]);
+    // SystemChrome.setPreferredOrientations([
+    //   DeviceOrientation.portraitUp,
+    //   DeviceOrientation.portraitDown,
+    // ]);
     super.dispose();
   }
 
@@ -67,7 +68,9 @@ class CheckinReward extends StatefulWidget {
   State<CheckinReward> createState() => CheckinRewardState();
 }
 
-class CheckinRewardState extends State<CheckinReward> {
+class CheckinRewardState extends State<CheckinReward>
+    with SingleTickerProviderStateMixin {
+  late AnimationController controller;
   final String title = 'assets/login_reward/reward_title.png';
   final List<String> dayString = [
     'assets/login_reward/day1.png',
@@ -87,8 +90,28 @@ class CheckinRewardState extends State<CheckinReward> {
     'assets/login_reward/600.png',
     'assets/login_reward/700.png',
   ];
+  late Animation animation;
+  @override
+  void initState() {
+    super.initState();
+    // controller = AnimationController(
+    //   duration: const Duration(seconds: 2),
+    //   vsync: this,
+    // );
+  }
+
+  @override
+  void dispose() {
+    //controller.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
+    // animation = Tween(
+    //   begin: 0.0,
+    //   end: 1.0,
+    // ).animate(controller);
     return LayoutBuilder(
         builder: (BuildContext buildContext, BoxConstraints constraints) {
       return Column(
@@ -106,7 +129,9 @@ class CheckinRewardState extends State<CheckinReward> {
             flex: 5,
             child: Row(
               children: [
-                for (int i = 0; i < numString.length; i++) rewardImage(i),
+                for (int i = 0; i < numString.length; i++) ...[
+                  rewardImage(i),
+                ]
               ],
             ),
           )
@@ -116,6 +141,7 @@ class CheckinRewardState extends State<CheckinReward> {
   }
 
   Widget rewardImage(int day) {
+    //controller.repeat(reverse: true);
     return Expanded(
       child: Column(
         children: [
@@ -125,29 +151,51 @@ class CheckinRewardState extends State<CheckinReward> {
                 (BuildContext buildContext, BoxConstraints constraints) {
               double minValue =
                   min(constraints.maxHeight, constraints.maxWidth);
-              return Center(
-                child: Stack(
-                  children: [
-                    Image.asset(
-                      'assets/login_reward/calendar_without_tap.png',
-                      fit: BoxFit.contain,
-                    ),
-                    SizedBox(
-                      height: minValue,
-                      width: minValue,
-                      child: Padding(
-                        padding: EdgeInsets.only(
-                          top: minValue * 0.4,
-                          bottom: minValue * 0.1,
-                        ),
-                        child: Image.asset(
-                          'assets/login_reward/coin_without_tap.png',
-                          fit: BoxFit.contain,
-                        ),
-                        //child: Placeholder(),
+              return GestureDetector(
+                onTap: () {
+                  Logger().i(day);
+                },
+                child: Center(
+                  child: Stack(
+                    children: [
+                      Image.asset(
+                        'assets/login_reward/calendar_without_tap.png',
+                        fit: BoxFit.contain,
                       ),
-                    ),
-                  ],
+                      SizedBox(
+                        height: minValue,
+                        width: minValue,
+                        child: Padding(
+                          padding: EdgeInsets.only(
+                            top: minValue * 0.4,
+                            bottom: minValue * 0.1,
+                          ),
+                          child: Image.asset(
+                            'assets/login_reward/coin_without_tap.png',
+                            fit: BoxFit.contain,
+                          ),
+                          //child: Placeholder(),
+                        ),
+                      ),
+                      /*
+                      AnimatedBuilder(
+                        animation: animation,
+                        builder: (context, child) {
+                          return Opacity(
+                            opacity: animation.value,
+                            child: SizedBox(
+                              height: minValue,
+                              width: minValue,
+                              child: Image.asset(
+                                'assets/login_reward/Mystery gift_click.png',
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                      */
+                    ],
+                  ),
                 ),
               );
             }),

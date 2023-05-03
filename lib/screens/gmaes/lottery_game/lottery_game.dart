@@ -142,8 +142,6 @@ class LotteryGame {
       gameReward = coinReward[2];
     }
     correctRate != 0.0 ? playerWin = true : playerWin = false;
-    print(correctRate);
-    print(playerWin);
   }
 
   void changeDigitByResult() {

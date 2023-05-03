@@ -1,6 +1,7 @@
 import 'package:cognitive_training/firebase/userinfo_database.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cognitive_training/models/user_model.dart';
+import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 
 class AuthService {
@@ -55,10 +56,10 @@ class AuthService {
       UserCredential result = await _auth.signInWithEmailAndPassword(
           email: email, password: passwd);
       return result.user?.uid;
-    } on FirebaseAuthException catch (_) {
-      logger.i('account doesn\'t exists');
-    } catch (e) {
-      logger.w(e);
+    } on FirebaseAuthException catch (authError) {
+      return authError;
+    } catch (error) {
+      return error;
     }
   }
 

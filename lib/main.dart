@@ -120,17 +120,11 @@ class MyApp extends StatelessWidget {
           initialData: null,
         ),
         ChangeNotifierProvider.value(value: UserInfoProvider()),
-        // ChangeNotifierProxyProvider<UserInfoProvider, UserCheckinProvider>(
-        //     create: (_) =>
-        //         UserCheckinProvider(),
-        //     update: (_, userinfoProvider, userCheckinProvider) {
-        //       userCheckinProvider!.coin = userinfoProvider.coins;
-        //       return userCheckinProvider;
-        //     })
         ChangeNotifierProvider.value(value: UserCheckinProvider()),
       ],
       child: MaterialApp.router(
         debugShowCheckedModeBanner: false,
+        theme: ThemeData(fontFamily: 'GSR_R'),
         routerConfig: router,
       ),
     );

@@ -21,10 +21,10 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
-    // SystemChrome.setPreferredOrientations([
-    //   DeviceOrientation.landscapeLeft,
-    //   DeviceOrientation.landscapeRight,
-    // ]);
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.landscapeLeft,
+      DeviceOrientation.landscapeRight,
+    ]);
   }
 
   final AuthService _authService = AuthService();
@@ -57,7 +57,8 @@ class _HomePageState extends State<HomePage> {
                 },
                 child: const Text(
                   'Lottery game',
-                  style: TextStyle(fontSize: 40, color: Colors.white),
+                  style: TextStyle(
+                      fontSize: 40, color: Colors.white, fontFamily: 'GSR_B'),
                 ),
               ),
               const SizedBox(height: 40),
@@ -73,6 +74,7 @@ class _HomePageState extends State<HomePage> {
                   style: TextStyle(fontSize: 40, color: Colors.white),
                 ),
               ),
+              /*
               const SizedBox(height: 40),
               Selector<UserCheckinProvider, bool>(
                 selector: (context, userCheckinProvider) =>
@@ -100,8 +102,7 @@ class _HomePageState extends State<HomePage> {
                       '簽到獎勵',
                       style: TextStyle(
                           fontSize: 40,
-                          color: Colors.white,
-                          fontFamily: 'NotoSansTC_Regular'),
+                          color: Colors.white,),
                     ),
                   );
                 },
@@ -126,19 +127,28 @@ class _HomePageState extends State<HomePage> {
                           '連續遊玩獎勵',
                           style: TextStyle(
                               fontSize: 40,
-                              color: Colors.white,
-                              fontFamily: 'NotoSansTC_Regular'),
+                              color: Colors.white,),
                         ),
                       )
                     : const CircularProgressIndicator();
               }),
+              */
               const SizedBox(height: 40),
-              IconButton(
-                onPressed: () {
-                  GoRouter.of(context).push('/home/reward');
-                },
-                icon: const Icon(Icons.calendar_today_outlined),
-              ),
+              Consumer2<UserInfoProvider, UserCheckinProvider>(
+                  builder: (context, infoProvider, checkinProvider, child) {
+                return IconButton(
+                  onPressed: () {
+                    GoRouter.of(context).push('/home/reward');
+                  },
+                  icon: Icon(
+                    Icons.calendar_today_outlined,
+                    color: checkinProvider.haveCheckinReward ||
+                            checkinProvider.haveAccumulatePlayReward
+                        ? Colors.amber
+                        : Colors.black,
+                  ),
+                );
+              }),
               const SizedBox(height: 40),
               ElevatedButton(
                 onPressed: () {
@@ -182,11 +192,11 @@ class _HomePageState extends State<HomePage> {
                 },
               ),
               ElevatedButton(
-                  onPressed: () {
-                    userCheckinProvider.test++;
-                  },
-                  child: const Text('++test')),
-              Text(DateTime.now().toString()),
+                onPressed: () {
+                  userCheckinProvider.test++;
+                },
+                child: const Text('++test'),
+              ),
             ],
           ),
         ),
@@ -215,14 +225,20 @@ class _HomePageState extends State<HomePage> {
             // ),
             ListTile(
               leading: const Icon(Icons.person),
-              title: const Text('Logout'),
+              title: const Text(
+                '登出',
+                style: TextStyle(fontFamily: 'GSR_B', fontSize: 40),
+              ),
               onTap: () async {
                 _showAlertDialog(context);
               },
             ),
             ListTile(
               leading: const Icon(Icons.settings),
-              title: const Text('Settings'),
+              title: const Text(
+                '登出',
+                style: TextStyle(fontFamily: 'GSR_R', fontSize: 40),
+              ),
               onTap: () {
                 Navigator.of(context).pop();
               },
@@ -272,7 +288,7 @@ class _HomePageState extends State<HomePage> {
   }
 }
 
-class TestWidget extends StatefulWidget {
+/*class TestWidget extends StatefulWidget {
   const TestWidget({super.key});
 
   @override
@@ -355,8 +371,7 @@ class CheckinDialog extends StatelessWidget {
                 '連 續 登 入',
                 style: TextStyle(
                     fontSize: fontSize * 2,
-                    color: Colors.blue,
-                    fontFamily: 'NotoSansTC_Regular'),
+                    color: Colors.blue,),
               ),
             ),
             SizedBox(height: seperateSize),
@@ -390,7 +405,6 @@ class CheckinDialog extends StatelessWidget {
                         Text('+${i}00',
                             style: TextStyle(
                               fontSize: fontSize,
-                              fontFamily: 'NotoSansTC_Regular',
                             )),
                       ],
                     ),
@@ -449,8 +463,7 @@ class CheckinDialog extends StatelessWidget {
                   '關 閉',
                   style: TextStyle(
                       color: Colors.black,
-                      fontSize: fontSize,
-                      fontFamily: 'NotoSansTC_Bold'),
+                      fontSize: fontSize,),
                 )),
           ],
         ),
@@ -458,3 +471,4 @@ class CheckinDialog extends StatelessWidget {
     );
   }
 }
+*/

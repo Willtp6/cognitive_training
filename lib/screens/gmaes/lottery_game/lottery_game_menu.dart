@@ -26,29 +26,17 @@ class _LotteryGameMenu extends State<LotteryGameMenu>
       duration: const Duration(seconds: 2),
       vsync: this,
     );
-    SystemChrome.setPreferredOrientations([
-      DeviceOrientation.landscapeRight,
-      DeviceOrientation.landscapeLeft,
-    ]);
   }
 
   @override
   void dispose() {
     _controller.dispose();
-    SystemChrome.setPreferredOrientations([
-      DeviceOrientation.portraitUp,
-      DeviceOrientation.portraitDown,
-    ]);
     super.dispose();
   }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    // SystemChrome.setPreferredOrientations([
-    //   DeviceOrientation.landscapeRight,
-    //   DeviceOrientation.landscapeLeft,
-    // ]);
     _controller.reset();
     _controller.dispose();
     _controller =
