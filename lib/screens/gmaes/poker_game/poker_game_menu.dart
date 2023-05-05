@@ -27,20 +27,12 @@ class _PokerGameMenu extends State<PokerGameMenu>
       duration: const Duration(seconds: 1),
       vsync: this,
     );
-    SystemChrome.setPreferredOrientations([
-      DeviceOrientation.landscapeRight,
-      DeviceOrientation.landscapeLeft,
-    ]);
     super.initState();
   }
 
   @override
   void dispose() {
     _controller.dispose();
-    SystemChrome.setPreferredOrientations([
-      DeviceOrientation.portraitUp,
-      DeviceOrientation.portraitDown,
-    ]);
     super.dispose();
   }
 

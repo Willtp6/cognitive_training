@@ -133,7 +133,7 @@ class _LoginPageState extends State<LoginPage> {
                   alignment: Alignment.bottomRight,
                   child: Container(
                     height: height * 0.4,
-                    width: width * 0.2,
+                    width: width * 0.25,
                     decoration: const BoxDecoration(
                       image: DecorationImage(
                         image: AssetImage(
@@ -146,14 +146,15 @@ class _LoginPageState extends State<LoginPage> {
                   ),
                 ),
               ),
+              // chat bubble
               AnimatedOpacity(
                 opacity: isTutorial ? 1 : 0,
                 duration: const Duration(milliseconds: 500),
                 child: Align(
                   alignment: const Alignment(1, -0.9),
                   child: Container(
-                    height: width * 0.3,
-                    width: width * 0.3,
+                    height: height * 0.65,
+                    width: height * 0.65,
                     decoration: const BoxDecoration(
                       image: DecorationImage(
                         image: AssetImage(
@@ -209,6 +210,7 @@ class _LoginPageState extends State<LoginPage> {
                   ),
                 ),
               ),
+              // arrow image in tutorial mode
               if (isTutorial && tutorialProgress >= 3)
                 Align(
                   alignment: Alignment(positionXY[tutorialProgress - 3].item1,
@@ -219,8 +221,9 @@ class _LoginPageState extends State<LoginPage> {
                       child: Image.asset(
                           'assets/login_page/tutorial_right_arrow.png')),
                 ),
+              // loading animation
               if (isLoading)
-                SpinKitCircle(
+                const SpinKitCircle(
                   color: Colors.blue,
                   duration: Duration(milliseconds: 1500),
                 )
@@ -408,7 +411,7 @@ class _LoginPageState extends State<LoginPage> {
             flex: 3,
             child: GestureDetector(
               onTap: () async {
-                if (_formKey.currentState!.validate()) {
+                if (!isTutorial && _formKey.currentState!.validate()) {
                   setState(() {
                     isLoading = true;
                   });

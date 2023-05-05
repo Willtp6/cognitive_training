@@ -83,6 +83,7 @@ flutter:
     - assets/poker_game_sound/
     - assets/poker_game_card/
     - assets/global/
+    - assets/home_page/
     - assets/login_reward/
     - assets/login_page/
 

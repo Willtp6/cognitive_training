@@ -1,5 +1,5 @@
 import 'dart:math';
-
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cognitive_training/models/user_checkin_provider.dart';
 import 'package:cognitive_training/models/user_info_provider.dart';
@@ -27,9 +27,43 @@ class _HomePageState extends State<HomePage> {
     ]);
   }
 
+  @override
+  void dispose() {
+    super.dispose();
+  }
+
   final AuthService _authService = AuthService();
   late UserInfoProvider userInfoProvider;
   late UserCheckinProvider userCheckinProvider;
+  bool expanded = false;
+  List<bool> isChosen = [false, false, false, false];
+  List<double> xPositions = [-0.9, -0.3, 0.3, 0.9];
+  int chosenGame = 0;
+  List<String> gameImagePaths = [
+    'assets/home_page/choosing_game_lottery.png',
+    'assets/home_page/choosing_game_fishing.png',
+    'assets/home_page/choosing_game_poker.png',
+    'assets/home_page/choosing_game_route.png',
+  ];
+  List<String> gameName = [
+    '樂透彩券',
+    '釣魚',
+    '撲克牌',
+    '路線規劃',
+  ];
+  List<String> gameDescription = [
+    '想贏得樂透獎金嗎?那就來猜一猜號碼吧!',
+    '想贏得樂透獎金嗎?那就來猜一猜號碼吧!',
+    '想贏得樂透獎金嗎?那就來猜一猜號碼吧!',
+    '想贏得樂透獎金嗎?那就來猜一猜號碼吧!',
+  ];
+
+  List<String> gameRoutes = [
+    '/home/lottery_game_menu',
+    '/home/fishing_game_menu',
+    '/home/poker_game_menu',
+    '/home/route_game_menu',
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -37,13 +71,19 @@ class _HomePageState extends State<HomePage> {
     userCheckinProvider = Provider.of<UserCheckinProvider>(context);
     return Scaffold(
       resizeToAvoidBottomInset: false,
-      appBar: AppBar(
-        title: const Text('home page'),
-        backgroundColor: Colors.blue[400],
-        elevation: 0.0,
-      ),
-      body: Center(
-        child: SingleChildScrollView(
+      // appBar: AppBar(
+      //   title: const Text('home page'),
+      //   backgroundColor: Colors.blue[400],
+      //   elevation: 0.0,
+      // ),
+      body: Container(
+        decoration: const BoxDecoration(
+          image: DecorationImage(
+            image: AssetImage('assets/global/login_background_1.jpeg'),
+            fit: BoxFit.fitWidth,
+          ),
+        ),
+        /*child: SingleChildScrollView(
           scrollDirection: Axis.vertical,
           child: Column(
             children: <Widget>[
@@ -74,65 +114,6 @@ class _HomePageState extends State<HomePage> {
                   style: TextStyle(fontSize: 40, color: Colors.white),
                 ),
               ),
-              /*
-              const SizedBox(height: 40),
-              Selector<UserCheckinProvider, bool>(
-                selector: (context, userCheckinProvider) =>
-                    userCheckinProvider.haveCheckinReward,
-                builder: (context, haveReward, child) {
-                  return ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: haveReward ? Colors.green : Colors.grey,
-                    ),
-                    onPressed: () {
-                      showDialog(
-                          context: context,
-                          builder: (context) => CheckinDialog(
-                                checkin: userCheckinProvider.loginCycle,
-                              )).then((_) {
-                        Logger().i('close');
-                        // ignore: todo
-                        //TODO update reward already get
-                        userInfoProvider.coins +=
-                            userCheckinProvider.calculateReward();
-                        userCheckinProvider.updateRewardRecord();
-                      });
-                    },
-                    child: const Text(
-                      '簽到獎勵',
-                      style: TextStyle(
-                          fontSize: 40,
-                          color: Colors.white,),
-                    ),
-                  );
-                },
-              ),
-              const SizedBox(height: 40),
-              Consumer<UserCheckinProvider>(
-                  builder: (_, userCheckinProvider, child) {
-                return userCheckinProvider.isReady
-                    ? ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: userCheckinProvider.haveCheckinReward
-                              ? Colors.green
-                              : Colors.grey,
-                        ),
-                        onPressed: () {
-                          showDialog(
-                                  context: context,
-                                  builder: (context) => AccumulatePlayDialog())
-                              .then((_) {});
-                        },
-                        child: const Text(
-                          '連續遊玩獎勵',
-                          style: TextStyle(
-                              fontSize: 40,
-                              color: Colors.white,),
-                        ),
-                      )
-                    : const CircularProgressIndicator();
-              }),
-              */
               const SizedBox(height: 40),
               Consumer2<UserInfoProvider, UserCheckinProvider>(
                   builder: (context, infoProvider, checkinProvider, child) {
@@ -149,7 +130,7 @@ class _HomePageState extends State<HomePage> {
                   ),
                 );
               }),
-              const SizedBox(height: 40),
+              /*const SizedBox(height: 40),
               ElevatedButton(
                 onPressed: () {
                   userInfoProvider.coins += 100;
@@ -196,9 +177,99 @@ class _HomePageState extends State<HomePage> {
                   userCheckinProvider.test++;
                 },
                 child: const Text('++test'),
-              ),
+              ),*/
             ],
           ),
+        ),*/
+        child: Stack(
+          children: [
+            Align(
+              alignment: const Alignment(0.0, -0.9),
+              child: FractionallySizedBox(
+                heightFactor: 0.15,
+                child: Image.asset('assets/home_page/choosing_game_title.png'),
+              ),
+            ),
+            for (int i = 0; i < 4; i++) ...[
+              // if (!isChosen[i]) ...[
+              //   getGameImage(i),
+              // ],
+              if (i != chosenGame) ...[
+                getGameImage(i),
+              ],
+            ],
+            AnimatedAlign(
+              key: const ValueKey(1123),
+              alignment: isChosen.contains(true)
+                  ? const Alignment(0.8, -0.3)
+                  : const Alignment(3.0, -0.3),
+              duration: const Duration(milliseconds: 300),
+              child: FractionallySizedBox(
+                widthFactor: 0.5,
+                heightFactor: 0.7,
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Colors.deepPurple[100],
+                    borderRadius: BorderRadius.circular(30),
+                  ),
+                  child: FractionallySizedBox(
+                    alignment: Alignment.bottomCenter,
+                    widthFactor: 0.8,
+                    heightFactor: 0.8,
+                    child: AutoSizeText(
+                      gameDescription[
+                          isChosen.contains(true) ? isChosen.indexOf(true) : 0],
+                      maxLines: 3,
+                      style: const TextStyle(
+                        fontFamily: 'GSR_B',
+                        fontSize: 100,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            AnimatedAlign(
+              key: const ValueKey(225),
+              alignment: isChosen.contains(true)
+                  ? const Alignment(0.5, 0.95)
+                  : const Alignment(0.5, 3.0),
+              duration: const Duration(milliseconds: 300),
+              child: FractionallySizedBox(
+                widthFactor: 0.2,
+                heightFactor: 0.15,
+                child: GestureDetector(
+                  onTap: () {
+                    Logger().i('tap');
+                    GoRouter.of(context)
+                        .push(gameRoutes[isChosen.indexOf(true)]);
+                  },
+                  child: Stack(
+                    children: [
+                      Center(
+                          child:
+                              Image.asset('assets/home_page/start_button.png')),
+                      const Center(
+                        child: FractionallySizedBox(
+                          heightFactor: 0.7,
+                          widthFactor: 0.7,
+                          child: FittedBox(
+                            child: Text('開始遊戲',
+                                style: TextStyle(
+                                    fontFamily: 'GSR_B', fontSize: 100)),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            // if (isChosen.contains(true)) ...[
+            //   getGameImage(isChosen.indexOf(true)),
+            // ],
+            getGameImage(chosenGame)
+          ],
         ),
       ),
       drawer: Drawer(
@@ -244,6 +315,84 @@ class _HomePageState extends State<HomePage> {
               },
             )
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget getGameImage(int gameIndex) {
+    return AnimatedAlign(
+      key: ValueKey(gameIndex),
+      alignment: isChosen[gameIndex]
+          ? const Alignment(-0.9, 0.0)
+          : Alignment(xPositions[gameIndex], 0.2),
+      duration: const Duration(milliseconds: 300),
+      child: AnimatedFractionallySizedBox(
+        heightFactor: isChosen[gameIndex] ? 0.9 : 0.5,
+        widthFactor: isChosen[gameIndex] ? 0.4 : 0.2,
+        duration: const Duration(milliseconds: 300),
+        child: Center(
+          child: AspectRatio(
+            aspectRatio: 939 / 1054,
+            child: LayoutBuilder(
+              builder: (BuildContext context, BoxConstraints constraints) {
+                return SizedBox(
+                  width: constraints.maxWidth,
+                  height: constraints.maxWidth / 939 * 1054,
+                  child: GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        if (isChosen.contains(true)) {
+                          if (isChosen.indexOf(true) == gameIndex) {
+                            isChosen[gameIndex] = !isChosen[gameIndex];
+                          }
+                        } else {
+                          isChosen[gameIndex] = !isChosen[gameIndex];
+                          chosenGame = gameIndex;
+                        }
+                      });
+                      //GoRouter.of(context).push('/home/lottery_game_menu');
+                    },
+                    child: Stack(
+                      children: [
+                        Center(
+                          child: Image.asset(
+                              'assets/home_page/choosing_game_banner.png'),
+                        ),
+                        Align(
+                          alignment: const Alignment(0.0, -0.8),
+                          child: FractionallySizedBox(
+                            heightFactor: 0.3,
+                            widthFactor: 0.9,
+                            child: LayoutBuilder(builder: (BuildContext context,
+                                BoxConstraints constraints) {
+                              return Center(
+                                child: Text(
+                                  gameName[gameIndex],
+                                  style: TextStyle(
+                                      fontSize: constraints.maxWidth / 4.5),
+                                ),
+                              );
+                            }),
+                          ),
+                        ),
+                        Align(
+                          alignment: const Alignment(0.0, 0.7),
+                          child: FractionallySizedBox(
+                            widthFactor: 0.89,
+                            child: Image.asset(
+                              gameImagePaths[gameIndex],
+                              fit: BoxFit.fitWidth,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
         ),
       ),
     );
