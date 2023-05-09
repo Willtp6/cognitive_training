@@ -5,7 +5,6 @@ class UserDatabaseService {
   final String userName;
   UserDatabaseService({required this.docId, required this.userName});
 
-  // to record the user info such as coins held by each user
   final CollectionReference userInfoCollection =
       FirebaseFirestore.instance.collection('user_basic_info');
   final CollectionReference userCheckinCollection =
@@ -14,8 +13,8 @@ class UserDatabaseService {
   createUserInfo() async {
     await userInfoCollection.doc(docId).set({
       'coins': 1200,
+      'userName': userName,
       'registerTime': DateTime.now(),
-      'continuousLoginDays': 0,
       'lotteryGameDatabase': {
         'level': 0,
         'digit': 2,
@@ -35,8 +34,4 @@ class UserDatabaseService {
       'accumulatePlayTime': List.generate(7, (index) => 0),
     });
   }
-
-  // Stream<QuerySnapshot> get uerInfo {
-  //   return userInfoCollection.snapshots();
-  // }
 }

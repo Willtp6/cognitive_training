@@ -4,8 +4,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:go_router/go_router.dart';
 import 'package:logger/logger.dart';
-import 'package:tuple/tuple.dart';
-import '../../shared/loading.dart';
 import '../../shared/design_type.dart';
 import 'package:dotted_border/dotted_border.dart';
 
@@ -33,11 +31,13 @@ class _LoginPageState extends State<LoginPage> {
     '',
   ];
   String userId = '';
+  String userName = '';
   String error = '';
-  List<Tuple2<double, double>> positionXY = [
-    const Tuple2(-0.65, 0.1),
-    const Tuple2(-0.65, 0.45),
-    const Tuple2(-0.3, 0.8),
+
+  List<Alignment> positionXY = [
+    const Alignment(-0.65, 0.1),
+    const Alignment(-0.65, 0.45),
+    const Alignment(-0.3, 0.8),
   ];
 
   @override
@@ -126,6 +126,7 @@ class _LoginPageState extends State<LoginPage> {
                   ),
                 ),
               ),
+              // tutorial doctor
               AnimatedOpacity(
                 opacity: isTutorial ? 1 : 0,
                 duration: const Duration(milliseconds: 500),
@@ -213,13 +214,13 @@ class _LoginPageState extends State<LoginPage> {
               // arrow image in tutorial mode
               if (isTutorial && tutorialProgress >= 3)
                 Align(
-                  alignment: Alignment(positionXY[tutorialProgress - 3].item1,
-                      positionXY[tutorialProgress - 3].item2),
+                  alignment: positionXY[tutorialProgress - 3],
                   child: SizedBox(
-                      width: width * 0.1,
-                      height: width * 0.1,
-                      child: Image.asset(
-                          'assets/login_page/tutorial_right_arrow.png')),
+                    width: width * 0.1,
+                    height: width * 0.1,
+                    child: Image.asset(
+                        'assets/login_page/tutorial_right_arrow.png'),
+                  ),
                 ),
               // loading animation
               if (isLoading)
@@ -395,9 +396,10 @@ class _LoginPageState extends State<LoginPage> {
                           contentPadding:
                               const EdgeInsets.symmetric(horizontal: 8.0),
                         ),
+                        keyboardType: TextInputType.text,
                         validator: (val) => val!.isEmpty ? '不可為空' : null,
                         onChanged: (val) {
-                          userId = val;
+                          userName = val;
                         },
                       ),
                     ),
@@ -411,24 +413,31 @@ class _LoginPageState extends State<LoginPage> {
             flex: 3,
             child: GestureDetector(
               onTap: () async {
+                FocusManager.instance.primaryFocus?.unfocus();
                 if (!isTutorial && _formKey.currentState!.validate()) {
                   setState(() {
                     isLoading = true;
                   });
-                  dynamic result = await _auth.login(userId);
-                  String errorMessage;
-                  if (result.code == 'user-not-found') {
-                    errorMessage = '帳號不存在';
-                  } else if (result.code == 'network-request-failed') {
-                    errorMessage = '網路錯誤';
-                  } else {
-                    errorMessage = '未知錯誤';
+                  //dynamic result = await _auth.login(userId);
+                  dynamic result =
+                      await _auth.loginOrCreateAccountWithId(userId, userName);
+
+                  if (result.runtimeType != String) {
+                    String errorMessage;
+                    if (result.code == 'user-not-found') {
+                      errorMessage = '帳號不存在';
+                    } else if (result.code == 'wrong-password') {
+                      errorMessage = '姓名錯誤';
+                    } else if (result.code == 'network-request-failed') {
+                      errorMessage = '網路錯誤';
+                    } else {
+                      errorMessage = '未知錯誤';
+                    }
+                    setState(() {
+                      isLoading = false;
+                    });
+                    _showAlertDialog(errorMessage);
                   }
-                  setState(() {
-                    error = '登入失敗';
-                    isLoading = false;
-                  });
-                  _showAlertDialog(errorMessage);
                 }
               },
               child: DottedBorder(
@@ -484,8 +493,8 @@ class _LoginPageState extends State<LoginPage> {
           // this part can put multiple messages
           content: SingleChildScrollView(
             child: ListBody(
-              children: const <Widget>[
-                Center(child: Text('帳號似乎不存在')),
+              children: <Widget>[
+                Center(child: Text(errorMessage)),
               ],
             ),
           ),

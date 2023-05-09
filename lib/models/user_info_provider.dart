@@ -8,6 +8,7 @@ class UserInfoProvider with ChangeNotifier {
   User? _user;
   bool _fileFunctionNormally = false;
   int _coins = 0;
+  String _userName = '';
   late DateTime _registerTime;
   late LotteryGameDatabase _lotteryGameDatabase;
   late PokerGameDatabase _pokerGameDatabase;
@@ -34,6 +35,7 @@ class UserInfoProvider with ChangeNotifier {
       if (doc.exists) {
         _fileFunctionNormally = true;
         _coins = doc.data()!['coins'];
+        _userName = doc.data()!['userName'];
         _registerTime = doc.data()!['registerTime'].toDate();
         _lotteryGameDatabase = LotteryGameDatabase(
           currentLevel: doc.data()!['lotteryGameDatabase']['level'],
@@ -55,6 +57,7 @@ class UserInfoProvider with ChangeNotifier {
   User? get usr => _user;
   bool get fileFunctionNormally => _fileFunctionNormally;
   DateTime get registerTime => _registerTime;
+  String get userName => _userName;
 
   int get coins => _coins;
   set coins(int value) {

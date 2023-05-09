@@ -8,13 +8,13 @@ class UserCheckinProvider extends ChangeNotifier {
   int _test = 0;
   int currentWeek = 0;
   bool _isReady = false;
-  late DateTime _cycleStartDay;
-  late DateTime _lastLoginTime;
+  DateTime _cycleStartDay = DateTime.now();
+  DateTime _lastLoginTime = DateTime.now();
   //late DateTime _lastUpdateTime;
-  late List<bool> _loginCycle;
-  late List<bool> _loginRewardCycle;
-  late List<bool> _weeklyRewardCycle;
-  late List<int> _accumulatePlayTime;
+  List<bool> _loginCycle = [];
+  List<bool> _loginRewardCycle = [];
+  List<bool> _weeklyRewardCycle = [];
+  List<int> _accumulatePlayTime = [];
   bool _haveCheckinReward = false;
   bool _haveAccumulatePlayReward = false;
 
@@ -172,5 +172,16 @@ class UserCheckinProvider extends ChangeNotifier {
     loginRewardCycle = _loginCycle;
     haveCheckinReward = false;
     notifyListeners();
+  }
+
+  int updateRewardStatus(int index) {
+    int reward = 0;
+    if (_loginCycle[index] && !_loginRewardCycle[index]) {
+      dynamic tmp = _loginRewardCycle;
+      tmp[index] = true;
+      loginRewardCycle = tmp;
+      reward = (index + 1) * 100;
+    }
+    return reward;
   }
 }

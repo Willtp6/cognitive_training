@@ -3,6 +3,7 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cognitive_training/models/user_checkin_provider.dart';
 import 'package:cognitive_training/models/user_info_provider.dart';
+import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/material.dart';
 import 'package:cognitive_training/firebase/auth.dart';
 import 'package:flutter/services.dart';
@@ -36,9 +37,11 @@ class _HomePageState extends State<HomePage> {
   late UserInfoProvider userInfoProvider;
   late UserCheckinProvider userCheckinProvider;
   bool expanded = false;
+
   List<bool> isChosen = [false, false, false, false];
   List<double> xPositions = [-0.9, -0.3, 0.3, 0.9];
-  int chosenGame = 0;
+  int? chosenGame = 0;
+  String chosenLanguage = '中文';
   List<String> gameImagePaths = [
     'assets/home_page/choosing_game_lottery.png',
     'assets/home_page/choosing_game_fishing.png',
@@ -53,249 +56,98 @@ class _HomePageState extends State<HomePage> {
   ];
   List<String> gameDescription = [
     '想贏得樂透獎金嗎?那就來猜一猜號碼吧!',
-    '想贏得樂透獎金嗎?那就來猜一猜號碼吧!',
-    '想贏得樂透獎金嗎?那就來猜一猜號碼吧!',
-    '想贏得樂透獎金嗎?那就來猜一猜號碼吧!',
+    '遊戲暫未開放',
+    '遊戲暫未開放',
+    '遊戲暫未開放',
   ];
-
   List<String> gameRoutes = [
     '/home/lottery_game_menu',
     '/home/fishing_game_menu',
     '/home/poker_game_menu',
     '/home/route_game_menu',
   ];
+  bool isTutorial = false;
+  int tutorialProgress = 0;
+  List<String> tutorialMessage = [
+    '我是小幫手，現在要選擇想玩的遊戲!',
+    '點選想玩的遊戲，會出現遊戲的介紹及訓練內容',
+    '最後按下開始遊戲，就可以開始囉!',
+  ];
+  List<String> arrowPath = [
+    'assets/home_page/tutorial_left_arrow.png',
+    'assets/home_page/tutorial_right_arrow.png',
+  ];
+  List<Alignment> arrowAlignment = [
+    const Alignment(-0.4, 0.0),
+    const Alignment(0.0, 1.0)
+  ];
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   @override
   Widget build(BuildContext context) {
+    final height = MediaQuery.of(context).size.height;
+    final width = MediaQuery.of(context).size.width;
     userInfoProvider = Provider.of<UserInfoProvider>(context);
     userCheckinProvider = Provider.of<UserCheckinProvider>(context);
     return Scaffold(
+      key: _scaffoldKey,
       resizeToAvoidBottomInset: false,
-      // appBar: AppBar(
-      //   title: const Text('home page'),
-      //   backgroundColor: Colors.blue[400],
-      //   elevation: 0.0,
-      // ),
-      body: Container(
-        decoration: const BoxDecoration(
-          image: DecorationImage(
-            image: AssetImage('assets/global/login_background_1.jpeg'),
-            fit: BoxFit.fitWidth,
-          ),
-        ),
-        /*child: SingleChildScrollView(
-          scrollDirection: Axis.vertical,
-          child: Column(
-            children: <Widget>[
-              const SizedBox(height: 40),
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blueGrey,
-                ),
-                onPressed: () {
-                  GoRouter.of(context).push('/home/lottery_game_menu');
-                },
-                child: const Text(
-                  'Lottery game',
-                  style: TextStyle(
-                      fontSize: 40, color: Colors.white, fontFamily: 'GSR_B'),
-                ),
-              ),
-              const SizedBox(height: 40),
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blueGrey,
-                ),
-                onPressed: () {
-                  GoRouter.of(context).push('/home/poker_game_menu');
-                },
-                child: const Text(
-                  'Poker game',
-                  style: TextStyle(fontSize: 40, color: Colors.white),
-                ),
-              ),
-              const SizedBox(height: 40),
-              Consumer2<UserInfoProvider, UserCheckinProvider>(
-                  builder: (context, infoProvider, checkinProvider, child) {
-                return IconButton(
-                  onPressed: () {
-                    GoRouter.of(context).push('/home/reward');
-                  },
-                  icon: Icon(
-                    Icons.calendar_today_outlined,
-                    color: checkinProvider.haveCheckinReward ||
-                            checkinProvider.haveAccumulatePlayReward
-                        ? Colors.amber
-                        : Colors.black,
-                  ),
-                );
-              }),
-              /*const SizedBox(height: 40),
-              ElevatedButton(
-                onPressed: () {
-                  userInfoProvider.coins += 100;
-                },
-                child: const Text(
-                  '++',
-                  style: TextStyle(fontSize: 40),
-                ),
-              ),
-              const SizedBox(height: 40),
-              Consumer<UserInfoProvider>(
-                builder: (context, userInfoProvider, child) {
-                  return userInfoProvider.fileFunctionNormally
-                      ? Column(
-                          children: [
-                            Text(
-                              "持有硬幣: ${userInfoProvider.coins}",
-                              style: const TextStyle(
-                                  color: Colors.black, fontSize: 40),
-                            ),
-                          ],
-                        )
-                      : const CircularProgressIndicator();
-                },
-              ),
-              const SizedBox(
-                height: 40,
-              ),
-              Consumer<UserCheckinProvider>(
-                builder: (context, userCheckinProvider, child) {
-                  return Column(
-                    children: [
-                      Text(
-                        'Test: ${userCheckinProvider.test}',
-                        style:
-                            const TextStyle(color: Colors.black, fontSize: 40),
-                      ),
-                    ],
-                  );
-                },
-              ),
-              ElevatedButton(
-                onPressed: () {
-                  userCheckinProvider.test++;
-                },
-                child: const Text('++test'),
-              ),*/
-            ],
-          ),
-        ),*/
-        child: Stack(
-          children: [
-            Align(
-              alignment: const Alignment(0.0, -0.9),
-              child: FractionallySizedBox(
-                heightFactor: 0.15,
-                child: Image.asset('assets/home_page/choosing_game_title.png'),
-              ),
-            ),
-            for (int i = 0; i < 4; i++) ...[
-              // if (!isChosen[i]) ...[
-              //   getGameImage(i),
-              // ],
-              if (i != chosenGame) ...[
-                getGameImage(i),
-              ],
-            ],
-            AnimatedAlign(
-              key: const ValueKey(1123),
-              alignment: isChosen.contains(true)
-                  ? const Alignment(0.8, -0.3)
-                  : const Alignment(3.0, -0.3),
-              duration: const Duration(milliseconds: 300),
-              child: FractionallySizedBox(
-                widthFactor: 0.5,
-                heightFactor: 0.7,
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: Colors.deepPurple[100],
-                    borderRadius: BorderRadius.circular(30),
-                  ),
-                  child: FractionallySizedBox(
-                    alignment: Alignment.bottomCenter,
-                    widthFactor: 0.8,
-                    heightFactor: 0.8,
-                    child: AutoSizeText(
-                      gameDescription[
-                          isChosen.contains(true) ? isChosen.indexOf(true) : 0],
-                      maxLines: 3,
-                      style: const TextStyle(
-                        fontFamily: 'GSR_B',
-                        fontSize: 100,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-            AnimatedAlign(
-              key: const ValueKey(225),
-              alignment: isChosen.contains(true)
-                  ? const Alignment(0.5, 0.95)
-                  : const Alignment(0.5, 3.0),
-              duration: const Duration(milliseconds: 300),
-              child: FractionallySizedBox(
-                widthFactor: 0.2,
-                heightFactor: 0.15,
-                child: GestureDetector(
-                  onTap: () {
-                    Logger().i('tap');
-                    GoRouter.of(context)
-                        .push(gameRoutes[isChosen.indexOf(true)]);
-                  },
-                  child: Stack(
-                    children: [
-                      Center(
-                          child:
-                              Image.asset('assets/home_page/start_button.png')),
-                      const Center(
-                        child: FractionallySizedBox(
-                          heightFactor: 0.7,
-                          widthFactor: 0.7,
-                          child: FittedBox(
-                            child: Text('開始遊戲',
-                                style: TextStyle(
-                                    fontFamily: 'GSR_B', fontSize: 100)),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-            // if (isChosen.contains(true)) ...[
-            //   getGameImage(isChosen.indexOf(true)),
-            // ],
-            getGameImage(chosenGame)
-          ],
-        ),
-      ),
       drawer: Drawer(
         child: ListView(
           // Important: Remove any padding from the ListView.
           padding: EdgeInsets.zero,
           children: [
-            const DrawerHeader(
-              decoration: BoxDecoration(
+            DrawerHeader(
+              decoration: const BoxDecoration(
                 color: Colors.blue,
               ),
-              child: Text('Drawer Header'),
+              margin: const EdgeInsets.only(bottom: 50),
+              child: Consumer<UserInfoProvider>(
+                  builder: ((context, provider, child) {
+                return Column(
+                  children: [
+                    Expanded(
+                      flex: 4,
+                      child: AutoSizeText(
+                        provider.userName,
+                        style: const TextStyle(
+                          fontFamily: "GSR_B",
+                          fontSize: 100,
+                        ),
+                      ),
+                    ),
+                    Expanded(flex: 1, child: Container()),
+                    Expanded(
+                      flex: 5,
+                      child: Row(
+                        children: [
+                          Image.asset(
+                            'assets/global/coin_without_tap.png',
+                            fit: BoxFit.contain,
+                          ),
+                          Expanded(
+                            child: AutoSizeText(
+                              '${provider.coins}\$',
+                              textAlign: TextAlign.right,
+                              style: const TextStyle(
+                                  fontFamily: 'GSR_B',
+                                  color: Colors.white,
+                                  fontSize: 100),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                );
+              })),
             ),
-            // Padding(
-            //   padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
-            //   child: Consumer<UserInfoProvider>(
-            //     builder: (context, userInfoProvider, child) {
-            //       return Text(
-            //         "Coins you have: ${userInfoProvider.coins}",
-            //         style: const TextStyle(color: Colors.pink, fontSize: 20),
-            //       );
-            //     },
-            //   ),
-            // ),
             ListTile(
-              leading: const Icon(Icons.person),
+              leading: const Icon(
+                Icons.exit_to_app,
+                size: 40,
+                color: Colors.black,
+              ),
               title: const Text(
                 '登出',
                 style: TextStyle(fontFamily: 'GSR_B', fontSize: 40),
@@ -305,16 +157,467 @@ class _HomePageState extends State<HomePage> {
               },
             ),
             ListTile(
-              leading: const Icon(Icons.settings),
+              leading: const Icon(
+                Icons.language,
+                size: 40,
+                color: Colors.black,
+              ),
               title: const Text(
-                '登出',
-                style: TextStyle(fontFamily: 'GSR_R', fontSize: 40),
+                '語音',
+                style: TextStyle(fontFamily: 'GSR_B', fontSize: 40),
+              ),
+              trailing: DropdownButton(
+                value: chosenLanguage,
+                items: <String>[
+                  '中文',
+                  '台語',
+                ].map<DropdownMenuItem<String>>((String value) {
+                  return DropdownMenuItem<String>(
+                    value: value,
+                    child: Text(
+                      value,
+                      style: const TextStyle(fontFamily: 'GSR_B', fontSize: 40),
+                    ),
+                  );
+                }).toList(),
+                onChanged: (value) {
+                  setState(() {
+                    chosenLanguage = value!;
+                  });
+                },
               ),
               onTap: () {
                 Navigator.of(context).pop();
               },
             )
           ],
+        ),
+      ),
+      body: Container(
+        decoration: const BoxDecoration(
+          image: DecorationImage(
+            image: AssetImage('assets/global/login_background_1.jpeg'),
+            fit: BoxFit.fitWidth,
+            opacity: 0.3,
+          ),
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              flex: 1,
+              child: Container(
+                decoration: const BoxDecoration(
+                  color: Colors.white,
+                ),
+                child: Stack(
+                  children: [
+                    // drawer button
+                    Align(
+                      alignment: Alignment.topCenter,
+                      child: FractionallySizedBox(
+                        heightFactor: 0.2,
+                        child: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: FittedBox(
+                            fit: BoxFit.fitHeight,
+                            child: IconButton(
+                              iconSize: 100,
+                              onPressed: () {
+                                _scaffoldKey.currentState?.openDrawer();
+                              },
+                              icon: const Icon(
+                                Icons.person,
+                                color: Colors.blue,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    // chceckin reward page
+                    Align(
+                      alignment: const Alignment(0.0, -0.6),
+                      child: FractionallySizedBox(
+                        heightFactor: 0.2,
+                        child: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: FittedBox(
+                            fit: BoxFit.fitHeight,
+                            child: Consumer2<UserInfoProvider,
+                                    UserCheckinProvider>(
+                                builder: (context, infoProvider,
+                                    checkinProvider, child) {
+                              return IconButton(
+                                iconSize: 100,
+                                onPressed: () {
+                                  GoRouter.of(context).push('/home/reward');
+                                },
+                                icon: Icon(
+                                  Icons.calendar_today_outlined,
+                                  color: checkinProvider.haveCheckinReward ||
+                                          checkinProvider
+                                              .haveAccumulatePlayReward
+                                      ? Colors.amber
+                                      : Colors.black,
+                                ),
+                              );
+                            }),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            Expanded(
+              flex: 14,
+              child: Stack(
+                children: [
+                  // title
+                  Align(
+                    alignment: const Alignment(0.0, -0.9),
+                    child: FractionallySizedBox(
+                      heightFactor: 0.15,
+                      child: Image.asset(
+                          'assets/home_page/choosing_game_title.png'),
+                    ),
+                  ),
+                  /*
+                  // drawer button
+                  Align(
+                    alignment: Alignment.bottomLeft,
+                    child: FractionallySizedBox(
+                      heightFactor: 0.2,
+                      child: Container(
+                        decoration: const BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: Colors.grey,
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: FittedBox(
+                            fit: BoxFit.fitHeight,
+                            child: IconButton(
+                              iconSize: 100,
+                              onPressed: () {
+                                _scaffoldKey.currentState?.openDrawer();
+                              },
+                              icon: const Icon(
+                                Icons.person,
+                                color: Colors.blue,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  // chceckin reward page
+                  Align(
+                    alignment: const Alignment(-0.8, 1.0),
+                    child: FractionallySizedBox(
+                      heightFactor: 0.2,
+                      child: Container(
+                        decoration: const BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: Colors.grey,
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: FittedBox(
+                            fit: BoxFit.fitHeight,
+                            child: Consumer2<UserInfoProvider,
+                                    UserCheckinProvider>(
+                                builder: (context, infoProvider,
+                                    checkinProvider, child) {
+                              return IconButton(
+                                iconSize: 100,
+                                onPressed: () {
+                                  GoRouter.of(context).push('/home/reward');
+                                },
+                                icon: Icon(
+                                  Icons.calendar_today_outlined,
+                                  color: checkinProvider.haveCheckinReward ||
+                                          checkinProvider
+                                              .haveAccumulatePlayReward
+                                      ? Colors.amber
+                                      : Colors.black,
+                                ),
+                              );
+                            }),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  */
+                  //tutorial button
+                  AnimatedOpacity(
+                    opacity: isTutorial ? 0 : 1,
+                    duration: const Duration(milliseconds: 500),
+                    child: Align(
+                      alignment: const Alignment(1.0, -0.8),
+                      child: Padding(
+                        padding: EdgeInsets.only(right: width * 0.05),
+                        child: GestureDetector(
+                          onTap: () {
+                            setState(() {
+                              isChosen = List.generate(4, (index) => false);
+                              chosenGame = null;
+                              isTutorial = true;
+                            });
+                          },
+                          child: SizedBox(
+                            width: width * 0.15,
+                            height: width * 0.15 * 236 / 578,
+                            child: Image.asset(
+                                'assets/login_page/tutorial_button.png'),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  for (int i = 0; i < 4; i++) ...[
+                    if (i != chosenGame) ...[
+                      getGameImage(i),
+                    ],
+                  ],
+                  if (isTutorial) ...[
+                    Container(
+                      color: Colors.white.withOpacity(0.7),
+                    ),
+                  ],
+                  AnimatedAlign(
+                    key: const ValueKey('description'),
+                    alignment: isChosen.contains(true)
+                        ? const Alignment(0.85, -0.4)
+                        : const Alignment(4.0, -0.4),
+                    duration: const Duration(milliseconds: 300),
+                    child: FractionallySizedBox(
+                      widthFactor: 0.55,
+                      heightFactor: 0.65,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.95),
+                          border: Border.all(color: Colors.black, width: 5),
+                          borderRadius: BorderRadius.circular(30),
+                        ),
+                        child: FractionallySizedBox(
+                          alignment: Alignment.center,
+                          widthFactor: 0.6,
+                          heightFactor: 0.6,
+                          child: AutoSizeText(
+                            chosenGame != null
+                                ? gameDescription[chosenGame!]
+                                : '',
+                            maxLines: 3,
+                            style: const TextStyle(
+                              fontFamily: 'GSR_B',
+                              fontSize: 50,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  AnimatedAlign(
+                    key: const ValueKey('start_button'),
+                    alignment: isChosen.contains(true)
+                        ? const Alignment(0.5, 0.9)
+                        : const Alignment(0.5, 3.0),
+                    duration: const Duration(milliseconds: 300),
+                    child: FractionallySizedBox(
+                      widthFactor: 0.2,
+                      heightFactor: 0.2,
+                      child: DottedBorder(
+                        color: tutorialProgress == 2
+                            ? Colors.red
+                            : Colors.white.withOpacity(0),
+                        borderType: BorderType.RRect,
+                        radius: const Radius.circular(10),
+                        strokeWidth: 2,
+                        dashPattern: const [8, 4],
+                        padding: const EdgeInsets.all(1),
+                        strokeCap: StrokeCap.round,
+                        child: GestureDetector(
+                          onTap: () {
+                            if (!isTutorial) {
+                              String route = gameRoutes[isChosen.indexOf(true)];
+                              GoRouter.of(context).push(route);
+                            }
+                          },
+                          child: Stack(
+                            children: [
+                              Center(
+                                child: Image.asset(
+                                    'assets/global/continue_button.png'),
+                              ),
+                              const Center(
+                                child: FractionallySizedBox(
+                                  heightFactor: 0.7,
+                                  widthFactor: 0.6,
+                                  child: FittedBox(
+                                    child: Text(
+                                      '開始遊戲',
+                                      style: TextStyle(
+                                        fontFamily: 'GSR_B',
+                                        fontSize: 100,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  if (chosenGame != null) getGameImage(chosenGame!),
+                  // tutorial doctor
+                  IgnorePointer(
+                    child: AnimatedOpacity(
+                      opacity: isTutorial ? 1 : 0,
+                      duration: const Duration(milliseconds: 500),
+                      child: Align(
+                        alignment: tutorialProgress < 2
+                            ? Alignment.bottomRight
+                            : Alignment.bottomLeft,
+                        child: Container(
+                          height: height * 0.4,
+                          width: width * 0.25,
+                          decoration: const BoxDecoration(
+                            image: DecorationImage(
+                              image: AssetImage(
+                                'assets/login_page/tutorial_doctors.png',
+                              ),
+                              fit: BoxFit.contain,
+                              alignment: Alignment.bottomCenter,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  // chat bubble
+                  IgnorePointer(
+                    child: AnimatedOpacity(
+                      opacity: isTutorial ? 1 : 0,
+                      duration: const Duration(milliseconds: 500),
+                      child: Align(
+                        alignment: tutorialProgress < 2
+                            ? const Alignment(1, -0.9)
+                            : const Alignment(-1, -0.9),
+                        child: Container(
+                          height: height * 0.65,
+                          width: height * 0.65,
+                          decoration: const BoxDecoration(
+                            image: DecorationImage(
+                              image: AssetImage(
+                                'assets/login_page/tutorial_chat_bubble.png',
+                              ),
+                              fit: BoxFit.contain,
+                            ),
+                          ),
+                          child: Align(
+                            alignment: const Alignment(0, -0.2),
+                            child: FractionallySizedBox(
+                              heightFactor: 0.4,
+                              widthFactor: 0.6,
+                              child: Align(
+                                alignment: Alignment.center,
+                                child: AutoSizeText(
+                                  tutorialMessage[tutorialProgress],
+                                  maxLines: 4,
+                                  softWrap: true,
+                                  style: const TextStyle(
+                                    fontSize: 100,
+                                    fontFamily: 'GSR_R',
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  if (isTutorial && tutorialProgress >= 1)
+                    Align(
+                      alignment: arrowAlignment[tutorialProgress - 1],
+                      child: FractionallySizedBox(
+                        heightFactor: 0.3,
+                        child: Image.asset(arrowPath[tutorialProgress - 1]),
+                      ),
+                    ),
+                  //continue button
+                  IgnorePointer(
+                    ignoring: !isTutorial,
+                    child: getContinueButton(),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  AnimatedOpacity getContinueButton() {
+    return AnimatedOpacity(
+      opacity: isTutorial ? 1 : 0,
+      duration: const Duration(milliseconds: 500),
+      child: Align(
+        alignment: tutorialProgress < 2
+            ? const Alignment(0.5, 0.9)
+            : const Alignment(-0.5, 0.9),
+        child: FractionallySizedBox(
+          widthFactor: 0.2,
+          heightFactor: 0.2,
+          child: GestureDetector(
+            onTap: () {
+              setState(() {
+                if (tutorialProgress < 2) {
+                  tutorialProgress++;
+                  if (tutorialProgress == 1) {
+                    chosenGame = 0;
+                  } else if (tutorialProgress == 2) {
+                    isChosen[0] = true;
+                  }
+                } else {
+                  Future.delayed(const Duration(milliseconds: 500), () {
+                    tutorialProgress = 0;
+                  });
+                  isChosen = List.generate(4, (index) => false);
+                  isTutorial = false;
+                }
+              });
+            },
+            child: Stack(
+              children: [
+                Center(
+                  child: Image.asset('assets/global/continue_button.png'),
+                ),
+                const Center(
+                  child: FractionallySizedBox(
+                    heightFactor: 0.7,
+                    widthFactor: 0.6,
+                    child: FittedBox(
+                      child: Text(
+                        '點我繼續',
+                        style: TextStyle(
+                          fontFamily: 'GSR_B',
+                          fontSize: 100,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
       ),
     );
@@ -324,7 +627,7 @@ class _HomePageState extends State<HomePage> {
     return AnimatedAlign(
       key: ValueKey(gameIndex),
       alignment: isChosen[gameIndex]
-          ? const Alignment(-0.9, 0.0)
+          ? const Alignment(-0.95, 0.0)
           : Alignment(xPositions[gameIndex], 0.2),
       duration: const Duration(milliseconds: 300),
       child: AnimatedFractionallySizedBox(
@@ -334,63 +637,76 @@ class _HomePageState extends State<HomePage> {
         child: Center(
           child: AspectRatio(
             aspectRatio: 939 / 1054,
-            child: LayoutBuilder(
-              builder: (BuildContext context, BoxConstraints constraints) {
-                return SizedBox(
-                  width: constraints.maxWidth,
-                  height: constraints.maxWidth / 939 * 1054,
-                  child: GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        if (isChosen.contains(true)) {
-                          if (isChosen.indexOf(true) == gameIndex) {
-                            isChosen[gameIndex] = !isChosen[gameIndex];
-                          }
-                        } else {
-                          isChosen[gameIndex] = !isChosen[gameIndex];
-                          chosenGame = gameIndex;
+            child: DottedBorder(
+              color: tutorialProgress == 1 && gameIndex == chosenGame
+                  ? Colors.red
+                  : Colors.white.withOpacity(0),
+              borderType: BorderType.RRect,
+              radius: const Radius.circular(10),
+              strokeWidth: 2,
+              dashPattern: const [8, 4],
+              padding: const EdgeInsets.all(10),
+              strokeCap: StrokeCap.round,
+              child: LayoutBuilder(
+                builder: (BuildContext context, BoxConstraints constraints) {
+                  return SizedBox(
+                    width: constraints.maxWidth,
+                    height: constraints.maxWidth / 939 * 1054,
+                    child: GestureDetector(
+                      onTap: () {
+                        if (!isTutorial) {
+                          setState(() {
+                            if (isChosen.contains(true)) {
+                              if (isChosen.indexOf(true) == gameIndex) {
+                                isChosen[gameIndex] = false;
+                              }
+                            } else {
+                              isChosen[gameIndex] = !isChosen[gameIndex];
+                              chosenGame = gameIndex;
+                            }
+                          });
                         }
-                      });
-                      //GoRouter.of(context).push('/home/lottery_game_menu');
-                    },
-                    child: Stack(
-                      children: [
-                        Center(
-                          child: Image.asset(
-                              'assets/home_page/choosing_game_banner.png'),
-                        ),
-                        Align(
-                          alignment: const Alignment(0.0, -0.8),
-                          child: FractionallySizedBox(
-                            heightFactor: 0.3,
-                            widthFactor: 0.9,
-                            child: LayoutBuilder(builder: (BuildContext context,
-                                BoxConstraints constraints) {
-                              return Center(
-                                child: Text(
-                                  gameName[gameIndex],
-                                  style: TextStyle(
-                                      fontSize: constraints.maxWidth / 4.5),
-                                ),
-                              );
-                            }),
-                          ),
-                        ),
-                        Align(
-                          alignment: const Alignment(0.0, 0.7),
-                          child: FractionallySizedBox(
-                            widthFactor: 0.89,
+                      },
+                      child: Stack(
+                        children: [
+                          Center(
                             child: Image.asset(
-                              gameImagePaths[gameIndex],
-                              fit: BoxFit.fitWidth,
+                                'assets/home_page/choosing_game_banner.png'),
+                          ),
+                          Align(
+                            alignment: const Alignment(0.0, -0.8),
+                            child: FractionallySizedBox(
+                              heightFactor: 0.3,
+                              widthFactor: 0.9,
+                              child: LayoutBuilder(builder:
+                                  (BuildContext context,
+                                      BoxConstraints constraints) {
+                                return Center(
+                                  child: Text(
+                                    gameName[gameIndex],
+                                    style: TextStyle(
+                                        fontSize: constraints.maxWidth / 4.5),
+                                  ),
+                                );
+                              }),
                             ),
                           ),
-                        ),
-                      ],
+                          Align(
+                            alignment: const Alignment(0.0, 0.7),
+                            child: FractionallySizedBox(
+                              widthFactor: 0.885,
+                              child: Image.asset(
+                                gameImagePaths[gameIndex],
+                                fit: BoxFit.fitWidth,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                );
-              },
+                  );
+                },
+              ),
             ),
           ),
         ),
@@ -404,24 +720,39 @@ class _HomePageState extends State<HomePage> {
       barrierDismissible: false, // user must tap button!
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Logout ?'),
+          title: const Center(
+            child: Text(
+              '登出帳號',
+              style: TextStyle(fontFamily: 'GSR_R', fontSize: 40),
+            ),
+          ),
           // this part can put multiple messages
           content: SingleChildScrollView(
             child: ListBody(
               children: const <Widget>[
-                Text('Once you log out you\'ll need to login again'),
+                Text(
+                  '確定要登出嗎?\n登出後需要重新登入',
+                  style: TextStyle(fontFamily: 'GSR_R', fontSize: 40),
+                ),
               ],
             ),
           ),
+          actionsAlignment: MainAxisAlignment.center,
           actions: <Widget>[
             TextButton(
-              child: const Text('No'),
+              child: const Text(
+                '否',
+                style: TextStyle(fontFamily: 'GSR_R', fontSize: 40),
+              ),
               onPressed: () {
                 GoRouter.of(context).pop();
               },
             ),
             TextButton(
-              child: const Text('Yes'),
+              child: const Text(
+                '是',
+                style: TextStyle(fontFamily: 'GSR_R', fontSize: 40),
+              ),
               onPressed: () async {
                 await _authService.signOut();
                 if (context.mounted) {
@@ -436,188 +767,3 @@ class _HomePageState extends State<HomePage> {
     );
   }
 }
-
-/*class TestWidget extends StatefulWidget {
-  const TestWidget({super.key});
-
-  @override
-  State<TestWidget> createState() => _TestWidgetState();
-}
-
-class _TestWidgetState extends State<TestWidget> {
-  @override
-  void initState() {
-    super.initState();
-    SystemChrome.setPreferredOrientations([
-      DeviceOrientation.landscapeRight,
-      DeviceOrientation.landscapeLeft,
-    ]);
-  }
-
-  @override
-  void dispose() {
-    SystemChrome.setPreferredOrientations([
-      DeviceOrientation.portraitUp,
-      DeviceOrientation.portraitDown,
-    ]);
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Hero(
-      tag: 'test',
-      child: Container(
-        decoration: const BoxDecoration(
-          image: DecorationImage(
-              image: AssetImage('assets/login_reward/reward_background.png'),
-              fit: BoxFit.fill),
-        ),
-      ),
-    );
-  }
-}
-
-class AccumulatePlayDialog extends StatelessWidget {
-  const AccumulatePlayDialog({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Dialog(
-      child: Stack(
-        children: [Image.asset('assets/login_reward/reward_background.png')],
-      ),
-    );
-  }
-}
-
-class CheckinDialog extends StatelessWidget {
-  final List<bool> checkin;
-  const CheckinDialog({super.key, required this.checkin});
-
-  @override
-  Widget build(BuildContext context) {
-    final width = MediaQuery.of(context).size.height;
-    final seperateSize = width * 0.05;
-    final iconSize = width * 0.13;
-    final fontSize = width * 0.05;
-
-    return Dialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      backgroundColor: Colors.brown[100],
-      child: Container(
-        padding: EdgeInsets.all(seperateSize),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              decoration: BoxDecoration(
-                  border: Border.all(color: Colors.black),
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(10)),
-              padding: const EdgeInsets.symmetric(horizontal: 10),
-              child: Text(
-                '連 續 登 入',
-                style: TextStyle(
-                    fontSize: fontSize * 2,
-                    color: Colors.blue,),
-              ),
-            ),
-            SizedBox(height: seperateSize),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                for (int i = 1; i <= 4; i++) ...[
-                  Container(
-                    decoration: BoxDecoration(
-                        border: Border.all(color: Colors.black, width: 1.5),
-                        borderRadius: BorderRadius.circular(10),
-                        color: Colors.orange[100]),
-                    child: Column(
-                      children: [
-                        Stack(
-                          children: [
-                            Icon(
-                              Icons.attach_money_rounded,
-                              size: iconSize,
-                              color: Colors.orange,
-                            ),
-                            Opacity(
-                              opacity: checkin[i - 1] ? 1 : 0,
-                              child: Icon(
-                                Icons.check,
-                                size: iconSize,
-                              ),
-                            ),
-                          ],
-                        ),
-                        Text('+${i}00',
-                            style: TextStyle(
-                              fontSize: fontSize,
-                            )),
-                      ],
-                    ),
-                  ),
-                  if (i != 4) SizedBox(width: seperateSize),
-                ],
-              ],
-            ),
-            SizedBox(height: seperateSize),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                for (int i = 5; i <= 7; i++) ...[
-                  Container(
-                    decoration: BoxDecoration(
-                        border: Border.all(color: Colors.black),
-                        borderRadius: BorderRadius.circular(10),
-                        color: Colors.orange),
-                    child: Column(
-                      children: [
-                        Stack(
-                          children: [
-                            Icon(
-                              Icons.attach_money_rounded,
-                              size: iconSize,
-                              color: Colors.yellow,
-                            ),
-                            Opacity(
-                              opacity: checkin[i - 1] ? 1 : 0,
-                              child: Icon(
-                                Icons.check,
-                                size: iconSize,
-                              ),
-                            ),
-                          ],
-                        ),
-                        Text(
-                          '+${i}00',
-                          style: TextStyle(fontSize: fontSize),
-                        ),
-                      ],
-                    ),
-                  ),
-                  if (i != 7) SizedBox(width: seperateSize),
-                ],
-              ],
-            ),
-            SizedBox(height: seperateSize),
-            ElevatedButton(
-                style:
-                    ElevatedButton.styleFrom(backgroundColor: Colors.lightBlue),
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-                child: Text(
-                  '關 閉',
-                  style: TextStyle(
-                      color: Colors.black,
-                      fontSize: fontSize,),
-                )),
-          ],
-        ),
-      ),
-    );
-  }
-}
-*/

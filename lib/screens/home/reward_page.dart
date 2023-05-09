@@ -1,9 +1,13 @@
 import 'dart:math';
 
+import 'package:cognitive_training/models/user_checkin_provider.dart';
+import 'package:cognitive_training/models/user_info_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:go_router/go_router.dart';
 import 'package:logger/logger.dart';
+import 'package:provider/provider.dart';
 
 class RewardPage extends StatefulWidget {
   const RewardPage({super.key});
@@ -16,46 +20,72 @@ class _RewardPageState extends State<RewardPage> {
   @override
   void initState() {
     super.initState();
-    SystemChrome.setPreferredOrientations([
-      DeviceOrientation.landscapeRight,
-      DeviceOrientation.landscapeLeft,
-    ]);
   }
 
   @override
   void dispose() {
-    // SystemChrome.setPreferredOrientations([
-    //   DeviceOrientation.portraitUp,
-    //   DeviceOrientation.portraitDown,
-    // ]);
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.brown[100],
-        image: const DecorationImage(
-          image: AssetImage('assets/login_reward/reward_background.png'),
-          fit: BoxFit.fill,
+    return Scaffold(
+      body: Container(
+        decoration: BoxDecoration(
+          color: Colors.lightBlue[100],
+          image: const DecorationImage(
+            image: AssetImage('assets/login_reward/reward_background.png'),
+            fit: BoxFit.fill,
+          ),
         ),
-      ),
-      child: Row(
-        children: [
-          Flexible(flex: 1, child: Container()),
-          Flexible(
-              flex: 5,
-              child: Column(
-                children: [
-                  Flexible(flex: 1, child: Container()),
-                  const Flexible(flex: 4, child: CheckinReward()),
-                  const Flexible(flex: 4, child: BonusReward()),
-                  Flexible(flex: 1, child: Container()),
-                ],
-              )),
-          Flexible(flex: 1, child: Container()),
-        ],
+        child: Stack(children: [
+          Row(
+            children: [
+              Flexible(flex: 1, child: Container()),
+              Flexible(
+                flex: 5,
+                child: Column(
+                  children: [
+                    Flexible(flex: 1, child: Container()),
+                    const Flexible(flex: 8, child: CheckinReward()),
+                    Expanded(
+                      flex: 1,
+                      child: Container(),
+                    ),
+                    const Flexible(flex: 8, child: BonusReward()),
+                    Flexible(flex: 1, child: Container()),
+                  ],
+                ),
+              ),
+              Expanded(flex: 1, child: Container()),
+            ],
+          ),
+          Align(
+            alignment: Alignment.topRight,
+            child: FractionallySizedBox(
+              heightFactor: 0.25,
+              widthFactor: 0.1,
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: FittedBox(
+                  fit: BoxFit.contain,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      GoRouter.of(context).pop();
+                    },
+                    style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.red,
+                        shape: const CircleBorder()),
+                    child: const Icon(
+                      Icons.cancel,
+                      size: 100,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ]),
       ),
     );
   }
@@ -68,9 +98,7 @@ class CheckinReward extends StatefulWidget {
   State<CheckinReward> createState() => CheckinRewardState();
 }
 
-class CheckinRewardState extends State<CheckinReward>
-    with SingleTickerProviderStateMixin {
-  late AnimationController controller;
+class CheckinRewardState extends State<CheckinReward> {
   final String title = 'assets/login_reward/reward_title.png';
   final List<String> dayString = [
     'assets/login_reward/day1.png',
@@ -90,28 +118,18 @@ class CheckinRewardState extends State<CheckinReward>
     'assets/login_reward/600.png',
     'assets/login_reward/700.png',
   ];
-  late Animation animation;
+  late UserInfoProvider infoProvider;
+  late UserCheckinProvider checkinProvider;
   @override
   void initState() {
     super.initState();
-    // controller = AnimationController(
-    //   duration: const Duration(seconds: 2),
-    //   vsync: this,
-    // );
-  }
-
-  @override
-  void dispose() {
-    //controller.dispose();
-    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    // animation = Tween(
-    //   begin: 0.0,
-    //   end: 1.0,
-    // ).animate(controller);
+    infoProvider = UserInfoProvider();
+    checkinProvider = UserCheckinProvider();
+
     return LayoutBuilder(
         builder: (BuildContext buildContext, BoxConstraints constraints) {
       return Column(
@@ -120,28 +138,38 @@ class CheckinRewardState extends State<CheckinReward>
           Expanded(
             flex: 2,
             child: Center(
-                child: Padding(
-              padding: EdgeInsets.only(top: constraints.maxHeight * 0.1),
               child: Image.asset(title, scale: 3),
-            )),
+            ),
           ),
           Expanded(
             flex: 5,
-            child: Row(
-              children: [
-                for (int i = 0; i < numString.length; i++) ...[
-                  rewardImage(i),
-                ]
-              ],
-            ),
-          )
+            child: Consumer<UserCheckinProvider>(
+                builder: (context, provider, child) {
+              dynamic loginCycle = provider.loginCycle;
+              dynamic rewardCycle = provider.loginRewardCycle;
+              return Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  for (int i = 0; i < numString.length; i++) ...[
+                    if (loginCycle[i] && rewardCycle[i]) ...[
+                      rewardImage(i, rewardTaken: true),
+                    ] else if (loginCycle[i] && !rewardCycle[i]) ...[
+                      rewardImage(i, haveReward: true),
+                    ] else ...[
+                      rewardImage(i),
+                    ]
+                  ]
+                ],
+              );
+            }),
+          ),
         ],
       );
     });
   }
 
-  Widget rewardImage(int day) {
-    //controller.repeat(reverse: true);
+  Widget rewardImage(int day,
+      {bool haveReward = false, bool rewardTaken = false}) {
     return Expanded(
       child: Column(
         children: [
@@ -153,14 +181,21 @@ class CheckinRewardState extends State<CheckinReward>
                   min(constraints.maxHeight, constraints.maxWidth);
               return GestureDetector(
                 onTap: () {
-                  Logger().i(day);
+                  if (haveReward) {
+                    Logger().i(day);
+                    infoProvider.coins +=
+                        checkinProvider.updateRewardStatus(day);
+                  }
                 },
                 child: Center(
                   child: Stack(
                     children: [
-                      Image.asset(
-                        'assets/login_reward/calendar_without_tap.png',
-                        fit: BoxFit.contain,
+                      Opacity(
+                        opacity: haveReward ? 1 : 0.7,
+                        child: Image.asset(
+                          'assets/login_reward/calendar_without_tap.png',
+                          fit: BoxFit.contain,
+                        ),
                       ),
                       SizedBox(
                         height: minValue,
@@ -170,30 +205,23 @@ class CheckinRewardState extends State<CheckinReward>
                             top: minValue * 0.4,
                             bottom: minValue * 0.1,
                           ),
-                          child: Image.asset(
-                            'assets/login_reward/coin_without_tap.png',
-                            fit: BoxFit.contain,
+                          child: Opacity(
+                            opacity: haveReward ? 1 : 0.3,
+                            child: Image.asset(
+                              'assets/login_reward/coin_without_tap.png',
+                              fit: BoxFit.contain,
+                            ),
                           ),
                           //child: Placeholder(),
                         ),
                       ),
-                      /*
-                      AnimatedBuilder(
-                        animation: animation,
-                        builder: (context, child) {
-                          return Opacity(
-                            opacity: animation.value,
-                            child: SizedBox(
-                              height: minValue,
-                              width: minValue,
-                              child: Image.asset(
-                                'assets/login_reward/Mystery gift_click.png',
-                              ),
-                            ),
-                          );
-                        },
-                      ),
-                      */
+                      if (rewardTaken)
+                        Center(
+                            child: Transform.rotate(
+                          angle: pi / 6,
+                          child: Image.asset(
+                              'assets/login_reward/received seal.png'),
+                        ))
                     ],
                   ),
                 ),
@@ -247,76 +275,80 @@ class _BonusRewardState extends State<BonusReward> {
                   fit: BoxFit.fill,
                 ),
               ),
-              child: Column(
-                children: [
-                  Expanded(
-                    flex: 1,
-                    child: Image.asset('assets/login_reward/bonus_reward.png'),
-                  ),
-                  Expanded(
-                      flex: 2,
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: Column(
-                              children: [
-                                Expanded(
-                                  flex: 2,
-                                  child: Image.asset(
-                                    'assets/login_reward/bonus_reward_badge.png',
-                                    fit: BoxFit.contain,
-                                  ),
-                                ),
-                                Expanded(
-                                    flex: 1,
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Column(
+                  children: [
+                    Expanded(
+                      flex: 1,
+                      child:
+                          Image.asset('assets/login_reward/bonus_reward.png'),
+                    ),
+                    Expanded(
+                        flex: 2,
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Column(
+                                children: [
+                                  Expanded(
+                                    flex: 2,
                                     child: Image.asset(
-                                      'assets/login_reward/30_straight_minutes.png',
+                                      'assets/login_reward/bonus_reward_badge.png',
                                       fit: BoxFit.contain,
-                                    )),
-                              ],
-                            ),
-                          ),
-                          Expanded(
-                            child: Column(
-                              children: [
-                                Expanded(
-                                  flex: 2,
-                                  child: Image.asset(
-                                    'assets/login_reward/bonus_reward_badge.png',
-                                    fit: BoxFit.contain,
+                                    ),
                                   ),
-                                ),
-                                Expanded(
-                                    flex: 1,
-                                    child: Image.asset(
-                                      'assets/login_reward/3_times_in_week.png',
-                                      fit: BoxFit.contain,
-                                    )),
-                              ],
+                                  Expanded(
+                                      flex: 1,
+                                      child: Image.asset(
+                                        'assets/login_reward/30_straight_minutes.png',
+                                        fit: BoxFit.contain,
+                                      )),
+                                ],
+                              ),
                             ),
-                          ),
-                          Expanded(
-                            child: Column(
-                              children: [
-                                Expanded(
-                                  flex: 2,
-                                  child: Image.asset(
-                                    'assets/login_reward/bonus_reward_badge.png',
-                                    fit: BoxFit.contain,
+                            Expanded(
+                              child: Column(
+                                children: [
+                                  Expanded(
+                                    flex: 2,
+                                    child: Image.asset(
+                                      'assets/login_reward/bonus_reward_badge.png',
+                                      fit: BoxFit.contain,
+                                    ),
                                   ),
-                                ),
-                                Expanded(
-                                    flex: 1,
-                                    child: Image.asset(
-                                      'assets/login_reward/30_mins_3_times.png',
-                                      fit: BoxFit.contain,
-                                    )),
-                              ],
+                                  Expanded(
+                                      flex: 1,
+                                      child: Image.asset(
+                                        'assets/login_reward/3_times_in_week.png',
+                                        fit: BoxFit.contain,
+                                      )),
+                                ],
+                              ),
                             ),
-                          ),
-                        ],
-                      )),
-                ],
+                            Expanded(
+                              child: Column(
+                                children: [
+                                  Expanded(
+                                    flex: 2,
+                                    child: Image.asset(
+                                      'assets/login_reward/bonus_reward_badge.png',
+                                      fit: BoxFit.contain,
+                                    ),
+                                  ),
+                                  Expanded(
+                                      flex: 1,
+                                      child: Image.asset(
+                                        'assets/login_reward/30_mins_3_times.png',
+                                        fit: BoxFit.contain,
+                                      )),
+                                ],
+                              ),
+                            ),
+                          ],
+                        )),
+                  ],
+                ),
               )),
         ),
         Expanded(
@@ -327,11 +359,11 @@ class _BonusRewardState extends State<BonusReward> {
             child: Column(
               children: [
                 Expanded(
-                  flex: 1,
+                  flex: 3,
                   child: Image.asset('assets/login_reward/Mystery_gift.png'),
                 ),
                 Expanded(
-                  flex: 1,
+                  flex: 2,
                   child:
                       Image.asset('assets/login_reward/Mystery_gift_title.png'),
                 ),

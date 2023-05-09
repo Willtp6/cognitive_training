@@ -23,29 +23,33 @@ class AuthService {
   // code in here have some loophole because the gmail account is not really exists
   // thus if any user want to reset their passwd or identify their account will fail
   // although this app doesn't provide these kind of function
-  // but if there's any one  want to add new functions should becareful
-  Future loginOrCreateAccountWithId(String uid) async {
+  // but if there's any one want to add new functions should be careful
+  Future loginOrCreateAccountWithId(String uid, String userName) async {
     String email = "$uid@gmail.com";
-    String passwd = uid.padLeft(6, '0');
+    //String passwd = uid.padLeft(6, '0');
+    String passwd = userName.padLeft(6, '0');
+    Logger().i(passwd);
     try {
       UserCredential result = await _auth.signInWithEmailAndPassword(
           email: email, password: passwd);
-      //return _userFromFirebaseUser(user);
       return result.user?.uid;
     } on FirebaseAuthException catch (authError) {
-      //throw CustomAuthException(authError.code, authError.message!);
       if (authError.code == 'user-not-found') {
         UserCredential result = await _auth.createUserWithEmailAndPassword(
             email: email, password: passwd);
         // create new user info database
-        await UserDatabaseService(docId: result.user!.uid, userName: uid)
+        dynamic re = await UserDatabaseService(
+                docId: result.user!.uid, userName: userName)
             .createUserInfo();
-        // return _userFromFirebaseUser(user);
-        return result.user!.uid;
+        Logger().i(re);
+        Logger().i(re.runtimeType);
+        return result.user?.uid;
+      } else {
+        Logger().w(authError.code);
+        return authError;
       }
-    } catch (e) {
-      //throw CustomException(errorMessage: "Unknown Error");
-      logger.v(e.toString());
+    } catch (error) {
+      return error;
     }
   }
 
