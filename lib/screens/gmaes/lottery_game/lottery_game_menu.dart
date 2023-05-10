@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:cognitive_training/models/user_info_provider.dart';
 import 'package:cognitive_training/screens/gmaes/lottery_game/lottery_game_scene.dart';
 import 'package:flutter/material.dart';
@@ -38,165 +39,268 @@ class _LotteryGameMenu extends State<LotteryGameMenu>
   void didChangeDependencies() {
     super.didChangeDependencies();
     _controller.reset();
-    _controller.dispose();
-    _controller =
-        AnimationController(duration: const Duration(seconds: 2), vsync: this);
+    // _controller.dispose();
+    // _controller =
+    //     AnimationController(duration: const Duration(seconds: 2), vsync: this);
   }
 
   @override
   Widget build(BuildContext context) {
     var userInfoProvider = context.watch<UserInfoProvider>();
-    return Stack(
-      children: [
-        ScaleTransition(
-          scale: Tween(begin: 1.0, end: 1.5)
-              .chain(CurveTween(curve: const Interval(0.7, 1.0)))
-              .animate(_controller),
-          child: ScaleTransition(
-            scale: Tween(begin: 1.0, end: 1.6)
-                .chain(CurveTween(curve: const Interval(0.0, 0.7)))
+    return Scaffold(
+      body: Stack(
+        children: [
+          ScaleTransition(
+            scale: Tween(begin: 1.0, end: 1.5)
+                .chain(CurveTween(curve: const Interval(0.7, 1.0)))
                 .animate(_controller),
-            child: SlideTransition(
-              position: Tween(
-                      begin: const Offset(0, 0), end: const Offset(-0.13, 0.11))
+            child: ScaleTransition(
+              scale: Tween(begin: 1.0, end: 1.6)
                   .chain(CurveTween(curve: const Interval(0.0, 0.7)))
                   .animate(_controller),
-              child: Container(
-                decoration: const BoxDecoration(
-                  image: DecorationImage(
-                    image: AssetImage(
-                        'assets/lottery_game_scene/Temple1_withoutWord.png'),
-                    fit: BoxFit.fill,
+              child: SlideTransition(
+                position: Tween(
+                        begin: const Offset(0, 0),
+                        end: const Offset(-0.13, 0.11))
+                    .chain(CurveTween(curve: const Interval(0.0, 0.7)))
+                    .animate(_controller),
+                child: Container(
+                  decoration: const BoxDecoration(
+                    image: DecorationImage(
+                      image: AssetImage(
+                          'assets/lottery_game_scene/Temple1_withoutWord.png'),
+                      fit: BoxFit.fill,
+                    ),
                   ),
                 ),
               ),
             ),
           ),
-        ),
-        FadeTransition(
-          opacity: Tween(begin: 1.0, end: 0.0)
-              .chain(CurveTween(curve: const Interval(0.0, 0.7)))
-              .animate(_controller),
-          child: Consumer<UserInfoProvider>(
-            builder: (context, userInfoProvider, child) {
-              return Container(
-                alignment: Alignment.center,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.center,
+          FadeTransition(
+            opacity: Tween(begin: 1.0, end: 0.0)
+                .chain(CurveTween(curve: const Interval(0.0, 0.7)))
+                .animate(_controller),
+            child: Consumer<UserInfoProvider>(
+              builder: (context, userInfoProvider, child) {
+                return Stack(
                   children: [
-                    Flexible(flex: 1, child: Container()),
-                    Flexible(
-                      flex: 3,
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(15.0),
-                        ),
-                        child: const Text(
-                          'Game Label',
-                          style: TextStyle(
-                            color: Colors.black,
-                            decoration: TextDecoration.none,
+                    Align(
+                      alignment: const Alignment(0.0, -0.7),
+                      child: FractionallySizedBox(
+                        heightFactor: 0.2,
+                        widthFactor: 0.4,
+                        child: FittedBox(
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              border: Border.all(color: Colors.grey, width: 8),
+                              borderRadius: BorderRadius.circular(50.0),
+                            ),
+                            child: const Center(
+                              child: Padding(
+                                padding: EdgeInsets.all(20.0),
+                                child: AutoSizeText(
+                                  '樂 透 彩 券',
+                                  style: TextStyle(
+                                    fontFamily: "GSR_B",
+                                    fontSize: 100,
+                                    color: Colors.black,
+                                    decoration: TextDecoration.none,
+                                  ),
+                                ),
+                              ),
+                            ),
                           ),
                         ),
                       ),
                     ),
-                    Flexible(
-                      flex: 2,
-                      child: Container(),
-                    ),
-                    Flexible(
-                      flex: 1,
-                      child: ElevatedButton(
-                        onPressed: () {
-                          _controller.reset();
-                          _controller.forward();
-                          _controller.addListener(() {
-                            if (_controller.isCompleted) {
-                              GoRouter.of(context).push(
-                                  '/home/lottery_game_menu/lottery_game?startLevel=0&startDigit=2&isTutorial=false');
-                              Future.delayed(const Duration(milliseconds: 200),
-                                  () {
+                    Align(
+                      alignment: const Alignment(-0.2, 0.45),
+                      child: FractionallySizedBox(
+                        heightFactor: 0.15,
+                        widthFactor: 0.2,
+                        child: GestureDetector(
+                          onTap: () {
+                            _controller.forward();
+                            _controller.addListener(() {
+                              if (_controller.isCompleted) {
                                 _controller.reset();
-                              });
-                            }
-                          });
-                        },
-                        child: const Text('開始新遊戲'),
+                                final isTutorial = userInfoProvider
+                                        .lotteryGameDatabase.doneTutorial
+                                    ? false
+                                    : true;
+                                GoRouter.of(context).goNamed(
+                                  'lottery_game',
+                                  queryParams: {
+                                    'isTutorial': isTutorial.toString(),
+                                  },
+                                );
+                              }
+                            });
+                          },
+                          child: Stack(
+                            children: [
+                              Center(
+                                child: Image.asset(
+                                  'assets/global/continue_button.png',
+                                  fit: BoxFit.fill,
+                                ),
+                              ),
+                              const Center(
+                                child: FractionallySizedBox(
+                                  heightFactor: 0.5,
+                                  widthFactor: 0.6,
+                                  child: Center(
+                                    child: AutoSizeText(
+                                      '新遊戲',
+                                      style: TextStyle(
+                                        fontSize: 100,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
                       ),
                     ),
-                    Flexible(
-                      flex: 1,
-                      child: ElevatedButton(
-                        onPressed: () {
-                          _controller.reset();
-                          _controller.forward();
-                          _controller.addListener(() {
-                            if (_controller.isCompleted) {
-                              final level = userInfoProvider
-                                  .lotteryGameDatabase.currentLevel;
-                              final digit = userInfoProvider
-                                  .lotteryGameDatabase.currentDigit;
-                              final isTutorial = userInfoProvider
-                                      .lotteryGameDatabase.doneTutorial
-                                  ? false
-                                  : true;
-                              GoRouter.of(context).push(
-                                  '/home/lottery_game_menu/lottery_game?startLevel=$level&startDigit=$digit&isTutorial=$isTutorial');
-                              Logger().d('called');
-                              Future.delayed(const Duration(milliseconds: 200),
-                                  () {
+                    Align(
+                      alignment: const Alignment(0.2, 0.45),
+                      child: FractionallySizedBox(
+                        heightFactor: 0.15,
+                        widthFactor: 0.2,
+                        child: GestureDetector(
+                          onTap: () {
+                            _controller.forward();
+                            _controller.addListener(() {
+                              if (_controller.isCompleted) {
                                 _controller.reset();
-                              });
-                            }
-                          });
-                        },
-                        child: const Text('繼續遊戲'),
+                                final level = userInfoProvider
+                                    .lotteryGameDatabase.currentLevel;
+                                final digit = userInfoProvider
+                                    .lotteryGameDatabase.currentDigit;
+                                final isTutorial = userInfoProvider
+                                        .lotteryGameDatabase.doneTutorial
+                                    ? false
+                                    : true;
+                                GoRouter.of(context).goNamed(
+                                  'lottery_game',
+                                  queryParams: {
+                                    'startLevel': level.toString(),
+                                    'startDigit': digit.toString(),
+                                    'isTutorial': isTutorial.toString(),
+                                  },
+                                );
+                              }
+                            });
+                          },
+                          child: Stack(
+                            children: [
+                              Center(
+                                  child: Image.asset(
+                                      'assets/global/continue_button.png')),
+                              const Center(
+                                child: FractionallySizedBox(
+                                  heightFactor: 0.5,
+                                  widthFactor: 0.6,
+                                  child: Center(
+                                    child: AutoSizeText(
+                                      '繼續遊戲',
+                                      style: TextStyle(
+                                        fontSize: 100,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
                       ),
                     ),
-                    Flexible(
-                      flex: 1,
-                      child: ElevatedButton(
-                        onPressed: () {
-                          _controller.reset();
-                          _controller.forward();
-                          _controller.addListener(() {
-                            if (_controller.isCompleted) {
-                              Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                      builder: (context) =>
-                                          const LotteryGameScene(
-                                              startLevel: 0,
-                                              startDigit: 2,
-                                              isTutorial: true)));
-                              Future.delayed(const Duration(milliseconds: 200),
-                                  () {
+                    Align(
+                      alignment: const Alignment(-0.2, 0.8),
+                      child: FractionallySizedBox(
+                        heightFactor: 0.15,
+                        widthFactor: 0.2,
+                        child: GestureDetector(
+                          onTap: () {
+                            _controller.forward();
+                            _controller.addListener(() {
+                              if (_controller.isCompleted) {
                                 _controller.reset();
-                              });
-                            }
-                          });
-                        },
-                        child: const Text('教學模式'),
+                                GoRouter.of(context).goNamed(
+                                  'lottery_game',
+                                  queryParams: {'isTutorial': 'true'},
+                                );
+                              }
+                            });
+                          },
+                          child: Stack(
+                            children: [
+                              Center(
+                                  child: Image.asset(
+                                      'assets/global/continue_button.png')),
+                              const Center(
+                                child: FractionallySizedBox(
+                                  heightFactor: 0.5,
+                                  widthFactor: 0.6,
+                                  child: Center(
+                                    child: AutoSizeText(
+                                      '教學模式',
+                                      style: TextStyle(
+                                        fontSize: 100,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
                       ),
                     ),
-                    Flexible(
-                      flex: 1,
-                      child: ElevatedButton(
-                        onPressed: () {
-                          GoRouter.of(context).pop();
-                        },
-                        child: const Text('返回'),
+                    Align(
+                      alignment: const Alignment(0.2, 0.8),
+                      child: FractionallySizedBox(
+                        heightFactor: 0.15,
+                        widthFactor: 0.2,
+                        child: GestureDetector(
+                          onTap: () {
+                            GoRouter.of(context).pop();
+                          },
+                          child: Stack(
+                            children: [
+                              Center(
+                                  child: Image.asset(
+                                      'assets/global/continue_button.png')),
+                              const Center(
+                                child: FractionallySizedBox(
+                                  heightFactor: 0.5,
+                                  widthFactor: 0.6,
+                                  child: Center(
+                                    child: AutoSizeText(
+                                      '返回',
+                                      style: TextStyle(
+                                        fontSize: 100,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
                       ),
                     ),
                   ],
-                ),
-              );
-            },
+                );
+              },
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }

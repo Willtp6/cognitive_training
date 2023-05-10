@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cognitive_training/models/user_checkin_provider.dart';
 import 'package:cognitive_training/models/user_info_provider.dart';
 import 'package:flutter/material.dart';
@@ -127,8 +128,8 @@ class CheckinRewardState extends State<CheckinReward> {
 
   @override
   Widget build(BuildContext context) {
-    infoProvider = UserInfoProvider();
-    checkinProvider = UserCheckinProvider();
+    infoProvider = Provider.of<UserInfoProvider>(context);
+    checkinProvider = Provider.of<UserCheckinProvider>(context);
 
     return LayoutBuilder(
         builder: (BuildContext buildContext, BoxConstraints constraints) {
@@ -145,15 +146,17 @@ class CheckinRewardState extends State<CheckinReward> {
             flex: 5,
             child: Consumer<UserCheckinProvider>(
                 builder: (context, provider, child) {
-              dynamic loginCycle = provider.loginCycle;
-              dynamic rewardCycle = provider.loginRewardCycle;
+              Logger().i(provider.loginCycle);
+              Logger().i(provider.loginRewardCycle);
               return Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   for (int i = 0; i < numString.length; i++) ...[
-                    if (loginCycle[i] && rewardCycle[i]) ...[
+                    if (provider.loginCycle[i] &&
+                        provider.loginRewardCycle[i]) ...[
                       rewardImage(i, rewardTaken: true),
-                    ] else if (loginCycle[i] && !rewardCycle[i]) ...[
+                    ] else if (provider.loginCycle[i] &&
+                        !provider.loginRewardCycle[i]) ...[
                       rewardImage(i, haveReward: true),
                     ] else ...[
                       rewardImage(i),
@@ -171,62 +174,64 @@ class CheckinRewardState extends State<CheckinReward> {
   Widget rewardImage(int day,
       {bool haveReward = false, bool rewardTaken = false}) {
     return Expanded(
+      key: ValueKey(day),
       child: Column(
         children: [
           Expanded(
             flex: 12,
-            child: LayoutBuilder(builder:
-                (BuildContext buildContext, BoxConstraints constraints) {
-              double minValue =
-                  min(constraints.maxHeight, constraints.maxWidth);
-              return GestureDetector(
-                onTap: () {
-                  if (haveReward) {
-                    Logger().i(day);
-                    infoProvider.coins +=
-                        checkinProvider.updateRewardStatus(day);
-                  }
-                },
-                child: Center(
-                  child: Stack(
-                    children: [
-                      Opacity(
-                        opacity: haveReward ? 1 : 0.7,
-                        child: Image.asset(
-                          'assets/login_reward/calendar_without_tap.png',
-                          fit: BoxFit.contain,
-                        ),
-                      ),
-                      SizedBox(
-                        height: minValue,
-                        width: minValue,
-                        child: Padding(
-                          padding: EdgeInsets.only(
-                            top: minValue * 0.4,
-                            bottom: minValue * 0.1,
-                          ),
-                          child: Opacity(
-                            opacity: haveReward ? 1 : 0.3,
-                            child: Image.asset(
-                              'assets/login_reward/coin_without_tap.png',
-                              fit: BoxFit.contain,
-                            ),
-                          ),
-                          //child: Placeholder(),
-                        ),
-                      ),
-                      if (rewardTaken)
-                        Center(
-                            child: Transform.rotate(
-                          angle: pi / 6,
+            child: LayoutBuilder(
+              builder: (BuildContext buildContext, BoxConstraints constraints) {
+                double minValue =
+                    min(constraints.maxHeight, constraints.maxWidth);
+                return GestureDetector(
+                  onTap: () {
+                    if (haveReward) {
+                      Logger().i(day);
+                      infoProvider.coins +=
+                          checkinProvider.updateRewardStatus(day);
+                    }
+                  },
+                  child: Center(
+                    child: Stack(
+                      children: [
+                        Opacity(
+                          opacity: haveReward ? 1 : 0.7,
                           child: Image.asset(
-                              'assets/login_reward/received seal.png'),
-                        ))
-                    ],
+                            'assets/login_reward/calendar_without_tap.png',
+                            fit: BoxFit.contain,
+                          ),
+                        ),
+                        SizedBox(
+                          height: minValue,
+                          width: minValue,
+                          child: Padding(
+                            padding: EdgeInsets.only(
+                              top: minValue * 0.4,
+                              bottom: minValue * 0.1,
+                            ),
+                            child: Opacity(
+                              opacity: haveReward ? 1 : 0.3,
+                              child: Image.asset(
+                                'assets/login_reward/coin_without_tap.png',
+                                fit: BoxFit.contain,
+                              ),
+                            ),
+                            //child: Placeholder(),
+                          ),
+                        ),
+                        if (rewardTaken)
+                          Center(
+                              child: Transform.rotate(
+                            angle: pi / 6,
+                            child: Image.asset(
+                                'assets/login_reward/received seal.png'),
+                          ))
+                      ],
+                    ),
                   ),
-                ),
-              );
-            }),
+                );
+              },
+            ),
           ),
           Expanded(
             flex: 3,

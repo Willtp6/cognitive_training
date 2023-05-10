@@ -1,4 +1,6 @@
 import 'package:cognitive_training/firebase/userinfo_database.dart';
+import 'package:cognitive_training/models/user_checkin_provider.dart';
+import 'package:cognitive_training/models/user_info_provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cognitive_training/models/user_model.dart';
 import 'package:flutter/material.dart';
@@ -8,6 +10,8 @@ class AuthService {
   // create an Auth instance
   final FirebaseAuth _auth = FirebaseAuth.instance;
   var logger = Logger();
+  final UserInfoProvider userInfoProvider = UserInfoProvider();
+  final UserCheckinProvider userCheckinProvider = UserCheckinProvider();
 
   // // create user obj on FirebaseUser
   // LocalUser? _userFromFirebaseUser(User? user) {
@@ -28,22 +32,25 @@ class AuthService {
     String email = "$uid@gmail.com";
     //String passwd = uid.padLeft(6, '0');
     String passwd = userName.padLeft(6, '0');
-    Logger().i(passwd);
     try {
       UserCredential result = await _auth.signInWithEmailAndPassword(
           email: email, password: passwd);
       return result.user?.uid;
     } on FirebaseAuthException catch (authError) {
       if (authError.code == 'user-not-found') {
-        UserCredential result = await _auth.createUserWithEmailAndPassword(
-            email: email, password: passwd);
-        // create new user info database
-        dynamic re = await UserDatabaseService(
-                docId: result.user!.uid, userName: userName)
-            .createUserInfo();
-        Logger().i(re);
-        Logger().i(re.runtimeType);
-        return result.user?.uid;
+        try {
+          UserCredential result = await _auth.createUserWithEmailAndPassword(
+              email: email, password: passwd);
+          result.user?.updateDisplayName(userName);
+          // create new user info database
+          await UserDatabaseService(docId: result.user!.uid, userName: userName)
+              .createUserInfo();
+          userInfoProvider.updateUserData(result.user);
+          userCheckinProvider.updateData(result.user);
+          return result.user?.uid;
+        } catch (error) {
+          return error;
+        }
       } else {
         Logger().w(authError.code);
         return authError;

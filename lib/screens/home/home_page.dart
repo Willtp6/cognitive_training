@@ -201,363 +201,291 @@ class _HomePageState extends State<HomePage> {
             opacity: 0.3,
           ),
         ),
-        child: Row(
+        child: Stack(
           children: [
-            Expanded(
-              flex: 1,
-              child: Container(
-                decoration: const BoxDecoration(
-                  color: Colors.white,
-                ),
-                child: Stack(
-                  children: [
-                    // drawer button
-                    Align(
-                      alignment: Alignment.topCenter,
-                      child: FractionallySizedBox(
-                        heightFactor: 0.2,
-                        child: Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: FittedBox(
-                            fit: BoxFit.fitHeight,
-                            child: IconButton(
-                              iconSize: 100,
-                              onPressed: () {
-                                _scaffoldKey.currentState?.openDrawer();
-                              },
-                              icon: const Icon(
-                                Icons.person,
-                                color: Colors.blue,
+            Align(
+              alignment: const Alignment(-0.9, -0.9),
+              child: FractionallySizedBox(
+                heightFactor: 0.15,
+                widthFactor: 0.15,
+                child: Container(
+                  decoration: const BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.all(
+                      Radius.circular(10),
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Center(
+                          child: Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: FittedBox(
+                              fit: BoxFit.fitHeight,
+                              child: IconButton(
+                                iconSize: 100,
+                                onPressed: () {
+                                  _scaffoldKey.currentState?.openDrawer();
+                                },
+                                icon: const Icon(
+                                  Icons.person,
+                                  color: Colors.blue,
+                                ),
                               ),
                             ),
                           ),
                         ),
                       ),
-                    ),
-                    // chceckin reward page
-                    Align(
-                      alignment: const Alignment(0.0, -0.6),
-                      child: FractionallySizedBox(
-                        heightFactor: 0.2,
-                        child: Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: FittedBox(
-                            fit: BoxFit.fitHeight,
-                            child: Consumer2<UserInfoProvider,
-                                    UserCheckinProvider>(
-                                builder: (context, infoProvider,
-                                    checkinProvider, child) {
-                              return IconButton(
-                                iconSize: 100,
-                                onPressed: () {
-                                  GoRouter.of(context).push('/home/reward');
-                                },
-                                icon: Icon(
-                                  Icons.calendar_today_outlined,
-                                  color: checkinProvider.haveCheckinReward ||
-                                          checkinProvider
-                                              .haveAccumulatePlayReward
-                                      ? Colors.amber
-                                      : Colors.black,
-                                ),
-                              );
-                            }),
+                      // chceckin reward page
+                      Expanded(
+                        child: Center(
+                          child: Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: FittedBox(
+                              fit: BoxFit.fitHeight,
+                              child: Consumer2<UserInfoProvider,
+                                      UserCheckinProvider>(
+                                  builder: (context, infoProvider,
+                                      checkinProvider, child) {
+                                return IconButton(
+                                  iconSize: 100,
+                                  onPressed: () {
+                                    GoRouter.of(context).push('/home/reward');
+                                  },
+                                  icon: Icon(
+                                    Icons.calendar_today_outlined,
+                                    color: checkinProvider.haveCheckinReward ||
+                                            checkinProvider
+                                                .haveAccumulatePlayReward
+                                        ? Colors.amber
+                                        : Colors.black,
+                                  ),
+                                );
+                              }),
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),
-            Expanded(
-              flex: 14,
-              child: Stack(
-                children: [
-                  // title
-                  Align(
-                    alignment: const Alignment(0.0, -0.9),
-                    child: FractionallySizedBox(
-                      heightFactor: 0.15,
-                      child: Image.asset(
-                          'assets/home_page/choosing_game_title.png'),
-                    ),
-                  ),
-                  /*
-                  // drawer button
-                  Align(
-                    alignment: Alignment.bottomLeft,
-                    child: FractionallySizedBox(
-                      heightFactor: 0.2,
-                      child: Container(
-                        decoration: const BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: Colors.grey,
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: FittedBox(
-                            fit: BoxFit.fitHeight,
-                            child: IconButton(
-                              iconSize: 100,
-                              onPressed: () {
-                                _scaffoldKey.currentState?.openDrawer();
-                              },
-                              icon: const Icon(
-                                Icons.person,
-                                color: Colors.blue,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                  // chceckin reward page
-                  Align(
-                    alignment: const Alignment(-0.8, 1.0),
-                    child: FractionallySizedBox(
-                      heightFactor: 0.2,
-                      child: Container(
-                        decoration: const BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: Colors.grey,
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: FittedBox(
-                            fit: BoxFit.fitHeight,
-                            child: Consumer2<UserInfoProvider,
-                                    UserCheckinProvider>(
-                                builder: (context, infoProvider,
-                                    checkinProvider, child) {
-                              return IconButton(
-                                iconSize: 100,
-                                onPressed: () {
-                                  GoRouter.of(context).push('/home/reward');
-                                },
-                                icon: Icon(
-                                  Icons.calendar_today_outlined,
-                                  color: checkinProvider.haveCheckinReward ||
-                                          checkinProvider
-                                              .haveAccumulatePlayReward
-                                      ? Colors.amber
-                                      : Colors.black,
-                                ),
-                              );
-                            }),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                  */
-                  //tutorial button
-                  AnimatedOpacity(
-                    opacity: isTutorial ? 0 : 1,
-                    duration: const Duration(milliseconds: 500),
-                    child: Align(
-                      alignment: const Alignment(1.0, -0.8),
-                      child: Padding(
-                        padding: EdgeInsets.only(right: width * 0.05),
-                        child: GestureDetector(
-                          onTap: () {
-                            setState(() {
-                              isChosen = List.generate(4, (index) => false);
-                              chosenGame = null;
-                              isTutorial = true;
-                            });
-                          },
-                          child: SizedBox(
-                            width: width * 0.15,
-                            height: width * 0.15 * 236 / 578,
-                            child: Image.asset(
-                                'assets/login_page/tutorial_button.png'),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                  for (int i = 0; i < 4; i++) ...[
-                    if (i != chosenGame) ...[
-                      getGameImage(i),
-                    ],
-                  ],
-                  if (isTutorial) ...[
-                    Container(
-                      color: Colors.white.withOpacity(0.7),
-                    ),
-                  ],
-                  AnimatedAlign(
-                    key: const ValueKey('description'),
-                    alignment: isChosen.contains(true)
-                        ? const Alignment(0.85, -0.4)
-                        : const Alignment(4.0, -0.4),
-                    duration: const Duration(milliseconds: 300),
-                    child: FractionallySizedBox(
-                      widthFactor: 0.55,
-                      heightFactor: 0.65,
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.95),
-                          border: Border.all(color: Colors.black, width: 5),
-                          borderRadius: BorderRadius.circular(30),
-                        ),
-                        child: FractionallySizedBox(
-                          alignment: Alignment.center,
-                          widthFactor: 0.6,
-                          heightFactor: 0.6,
-                          child: AutoSizeText(
-                            chosenGame != null
-                                ? gameDescription[chosenGame!]
-                                : '',
-                            maxLines: 3,
-                            style: const TextStyle(
-                              fontFamily: 'GSR_B',
-                              fontSize: 50,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                  AnimatedAlign(
-                    key: const ValueKey('start_button'),
-                    alignment: isChosen.contains(true)
-                        ? const Alignment(0.5, 0.9)
-                        : const Alignment(0.5, 3.0),
-                    duration: const Duration(milliseconds: 300),
-                    child: FractionallySizedBox(
-                      widthFactor: 0.2,
-                      heightFactor: 0.2,
-                      child: DottedBorder(
-                        color: tutorialProgress == 2
-                            ? Colors.red
-                            : Colors.white.withOpacity(0),
-                        borderType: BorderType.RRect,
-                        radius: const Radius.circular(10),
-                        strokeWidth: 2,
-                        dashPattern: const [8, 4],
-                        padding: const EdgeInsets.all(1),
-                        strokeCap: StrokeCap.round,
-                        child: GestureDetector(
-                          onTap: () {
-                            if (!isTutorial) {
-                              String route = gameRoutes[isChosen.indexOf(true)];
-                              GoRouter.of(context).push(route);
-                            }
-                          },
-                          child: Stack(
-                            children: [
-                              Center(
-                                child: Image.asset(
-                                    'assets/global/continue_button.png'),
-                              ),
-                              const Center(
-                                child: FractionallySizedBox(
-                                  heightFactor: 0.7,
-                                  widthFactor: 0.6,
-                                  child: FittedBox(
-                                    child: Text(
-                                      '開始遊戲',
-                                      style: TextStyle(
-                                        fontFamily: 'GSR_B',
-                                        fontSize: 100,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                  if (chosenGame != null) getGameImage(chosenGame!),
-                  // tutorial doctor
-                  IgnorePointer(
-                    child: AnimatedOpacity(
-                      opacity: isTutorial ? 1 : 0,
-                      duration: const Duration(milliseconds: 500),
-                      child: Align(
-                        alignment: tutorialProgress < 2
-                            ? Alignment.bottomRight
-                            : Alignment.bottomLeft,
-                        child: Container(
-                          height: height * 0.4,
-                          width: width * 0.25,
-                          decoration: const BoxDecoration(
-                            image: DecorationImage(
-                              image: AssetImage(
-                                'assets/login_page/tutorial_doctors.png',
-                              ),
-                              fit: BoxFit.contain,
-                              alignment: Alignment.bottomCenter,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                  // chat bubble
-                  IgnorePointer(
-                    child: AnimatedOpacity(
-                      opacity: isTutorial ? 1 : 0,
-                      duration: const Duration(milliseconds: 500),
-                      child: Align(
-                        alignment: tutorialProgress < 2
-                            ? const Alignment(1, -0.9)
-                            : const Alignment(-1, -0.9),
-                        child: Container(
-                          height: height * 0.65,
-                          width: height * 0.65,
-                          decoration: const BoxDecoration(
-                            image: DecorationImage(
-                              image: AssetImage(
-                                'assets/login_page/tutorial_chat_bubble.png',
-                              ),
-                              fit: BoxFit.contain,
-                            ),
-                          ),
-                          child: Align(
-                            alignment: const Alignment(0, -0.2),
-                            child: FractionallySizedBox(
-                              heightFactor: 0.4,
-                              widthFactor: 0.6,
-                              child: Align(
-                                alignment: Alignment.center,
-                                child: AutoSizeText(
-                                  tutorialMessage[tutorialProgress],
-                                  maxLines: 4,
-                                  softWrap: true,
-                                  style: const TextStyle(
-                                    fontSize: 100,
-                                    fontFamily: 'GSR_R',
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                  if (isTutorial && tutorialProgress >= 1)
-                    Align(
-                      alignment: arrowAlignment[tutorialProgress - 1],
-                      child: FractionallySizedBox(
-                        heightFactor: 0.3,
-                        child: Image.asset(arrowPath[tutorialProgress - 1]),
-                      ),
-                    ),
-                  //continue button
-                  IgnorePointer(
-                    ignoring: !isTutorial,
-                    child: getContinueButton(),
-                  ),
-                ],
+            // title
+            Align(
+              alignment: const Alignment(0.0, -0.9),
+              child: FractionallySizedBox(
+                heightFactor: 0.15,
+                widthFactor: 0.5,
+                child: Image.asset(
+                  'assets/home_page/choosing_game_title.png',
+                  fit: BoxFit.contain,
+                ),
               ),
+            ),
+            //tutorial button
+            AnimatedOpacity(
+              opacity: isTutorial ? 0 : 1,
+              duration: const Duration(milliseconds: 500),
+              child: Align(
+                alignment: const Alignment(1.0, -0.85),
+                child: Padding(
+                  padding: EdgeInsets.only(right: width * 0.05),
+                  child: GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        isChosen = List.generate(4, (index) => false);
+                        chosenGame = null;
+                        isTutorial = true;
+                      });
+                    },
+                    child: SizedBox(
+                      width: width * 0.15,
+                      height: width * 0.15 * 236 / 578,
+                      child:
+                          Image.asset('assets/login_page/tutorial_button.png'),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            for (int i = 0; i < 4; i++) ...[
+              if (i != chosenGame) ...[
+                getGameImage(i),
+              ],
+            ],
+            if (isTutorial) ...[
+              Container(
+                color: Colors.white.withOpacity(0.7),
+              ),
+            ],
+            // game description
+            AnimatedAlign(
+              key: const ValueKey('description'),
+              alignment: isChosen.contains(true)
+                  ? const Alignment(0.85, -0.4)
+                  : const Alignment(4.0, -0.4),
+              duration: const Duration(milliseconds: 300),
+              child: FractionallySizedBox(
+                widthFactor: 0.55,
+                heightFactor: 0.65,
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.95),
+                    border: Border.all(color: Colors.black, width: 5),
+                    borderRadius: BorderRadius.circular(30),
+                  ),
+                  child: FractionallySizedBox(
+                    alignment: Alignment.center,
+                    widthFactor: 0.6,
+                    heightFactor: 0.6,
+                    child: AutoSizeText(
+                      chosenGame != null ? gameDescription[chosenGame!] : '',
+                      maxLines: 3,
+                      style: const TextStyle(
+                        fontFamily: 'GSR_B',
+                        fontSize: 50,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            AnimatedAlign(
+              key: const ValueKey('start_button'),
+              alignment: isChosen.contains(true)
+                  ? const Alignment(0.5, 0.9)
+                  : const Alignment(0.5, 3.0),
+              duration: const Duration(milliseconds: 300),
+              child: FractionallySizedBox(
+                widthFactor: 0.2,
+                heightFactor: 0.2,
+                child: DottedBorder(
+                  color: tutorialProgress == 2
+                      ? Colors.red
+                      : Colors.white.withOpacity(0),
+                  borderType: BorderType.RRect,
+                  radius: const Radius.circular(10),
+                  strokeWidth: 2,
+                  dashPattern: const [8, 4],
+                  padding: const EdgeInsets.all(1),
+                  strokeCap: StrokeCap.round,
+                  child: GestureDetector(
+                    onTap: () {
+                      if (!isTutorial) {
+                        String route = gameRoutes[isChosen.indexOf(true)];
+                        GoRouter.of(context).push(route);
+                      }
+                    },
+                    child: Stack(
+                      children: [
+                        Center(
+                          child:
+                              Image.asset('assets/global/continue_button.png'),
+                        ),
+                        const Center(
+                          child: FractionallySizedBox(
+                            heightFactor: 0.7,
+                            widthFactor: 0.6,
+                            child: FittedBox(
+                              child: Text(
+                                '開始遊戲',
+                                style: TextStyle(
+                                  fontFamily: 'GSR_B',
+                                  fontSize: 100,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            if (chosenGame != null) getGameImage(chosenGame!),
+            // tutorial doctor
+            IgnorePointer(
+              child: AnimatedOpacity(
+                opacity: isTutorial ? 1 : 0,
+                duration: const Duration(milliseconds: 500),
+                child: Align(
+                  alignment: tutorialProgress < 2
+                      ? Alignment.bottomRight
+                      : Alignment.bottomLeft,
+                  child: Container(
+                    height: height * 0.4,
+                    width: width * 0.25,
+                    decoration: const BoxDecoration(
+                      image: DecorationImage(
+                        image: AssetImage(
+                          'assets/login_page/tutorial_doctors.png',
+                        ),
+                        fit: BoxFit.contain,
+                        alignment: Alignment.bottomCenter,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            // chat bubble
+            IgnorePointer(
+              child: AnimatedOpacity(
+                opacity: isTutorial ? 1 : 0,
+                duration: const Duration(milliseconds: 500),
+                child: Align(
+                  alignment: tutorialProgress < 2
+                      ? const Alignment(1, -0.9)
+                      : const Alignment(-1, -0.9),
+                  child: Container(
+                    height: height * 0.65,
+                    width: height * 0.65,
+                    decoration: const BoxDecoration(
+                      image: DecorationImage(
+                        image: AssetImage(
+                          'assets/login_page/tutorial_chat_bubble.png',
+                        ),
+                        fit: BoxFit.contain,
+                      ),
+                    ),
+                    child: Align(
+                      alignment: const Alignment(0, -0.2),
+                      child: FractionallySizedBox(
+                        heightFactor: 0.4,
+                        widthFactor: 0.6,
+                        child: Align(
+                          alignment: Alignment.center,
+                          child: AutoSizeText(
+                            tutorialMessage[tutorialProgress],
+                            maxLines: 4,
+                            softWrap: true,
+                            style: const TextStyle(
+                              fontSize: 100,
+                              fontFamily: 'GSR_R',
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            if (isTutorial && tutorialProgress >= 1)
+              Align(
+                alignment: arrowAlignment[tutorialProgress - 1],
+                child: FractionallySizedBox(
+                  heightFactor: 0.3,
+                  child: Image.asset(arrowPath[tutorialProgress - 1]),
+                ),
+              ),
+            //continue button
+            IgnorePointer(
+              ignoring: !isTutorial,
+              child: getContinueButton(),
             ),
           ],
         ),

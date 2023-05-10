@@ -63,7 +63,12 @@ class MyApp extends StatelessWidget {
                         final parameters = state.queryParams;
                         final startLevel = parameters['startLevel'] ?? '0';
                         final startDigit = parameters['startDigit'] ?? '2';
-                        final isTutorial = parameters['isTutorial'] ?? 'true';
+                        final isTutorial = parameters['isTutorial'] ?? 'false';
+                        Logger().i(parameters);
+                        Logger().i(startLevel);
+                        Logger().i(startDigit);
+                        Logger().i(isTutorial);
+
                         return LotteryGameScene(
                           startLevel: int.tryParse(startLevel) ?? 0,
                           startDigit: int.tryParse(startDigit) ?? 2,

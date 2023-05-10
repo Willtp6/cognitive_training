@@ -10,7 +10,7 @@ class UserDatabaseService {
   final CollectionReference userCheckinCollection =
       FirebaseFirestore.instance.collection('user_checkin_info');
 
-  createUserInfo() async {
+  Future<void> createUserInfo() async {
     await userInfoCollection.doc(docId).set({
       'coins': 1200,
       'userName': userName,

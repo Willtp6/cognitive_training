@@ -21,11 +21,12 @@ class LotteryGameScene extends StatefulWidget {
   final int startDigit;
   final bool isTutorial;
 
-  const LotteryGameScene(
-      {super.key,
-      required this.startLevel,
-      required this.startDigit,
-      required this.isTutorial});
+  const LotteryGameScene({
+    super.key,
+    required this.startLevel,
+    required this.startDigit,
+    required this.isTutorial,
+  });
 
   @override
   State<LotteryGameScene> createState() => _LotteryGameSceneState();
@@ -48,9 +49,10 @@ class _LotteryGameSceneState extends State<LotteryGameScene>
     super.initState();
     // create the instance of lottery game
     game = LotteryGame(
-        gameLevel: widget.startLevel,
-        numberOfDigits: widget.startDigit,
-        isTutorial: widget.isTutorial);
+      gameLevel: widget.startLevel,
+      numberOfDigits: widget.startDigit,
+      isTutorial: widget.isTutorial,
+    );
 
     Future.delayed(Duration.zero, () {
       for (var imagePath in game.imagePath) {
@@ -92,6 +94,113 @@ class _LotteryGameSceneState extends State<LotteryGameScene>
     game.currentIndex++;
   }
 
+  List<Alignment> starPosition = [
+    const Alignment(-1.0, -0.4),
+    const Alignment(-0.5, -0.8),
+    const Alignment(0.0, -1.0),
+    const Alignment(0.5, -0.8),
+    const Alignment(1.0, -0.4),
+  ];
+  String starLight = 'assets/lottery_game_scene/star_light.png';
+  String starDark = 'assets/lottery_game_scene/star_dark.png';
+
+  List<AutoSizeText> rules = [
+    const AutoSizeText.rich(
+      softWrap: true,
+      maxLines: 2,
+      TextSpan(
+        children: [
+          TextSpan(
+              text: '請把出現的',
+              style: TextStyle(color: Colors.black, fontSize: 50)),
+          TextSpan(
+              text: '所有數字', style: TextStyle(color: Colors.red, fontSize: 50)),
+          TextSpan(
+              text: '記下來！',
+              style: TextStyle(color: Colors.black, fontSize: 50)),
+        ],
+      ),
+    ),
+    const AutoSizeText.rich(
+      softWrap: true,
+      maxLines: 2,
+      TextSpan(
+        children: [
+          TextSpan(
+              text: '請把「', style: TextStyle(color: Colors.black, fontSize: 50)),
+          TextSpan(
+              text: '聽到', style: TextStyle(color: Colors.red, fontSize: 50)),
+          TextSpan(
+              text: '」的所有數字記下來！',
+              style: TextStyle(color: Colors.black, fontSize: 50)),
+        ],
+      ),
+    ),
+    const AutoSizeText.rich(
+      softWrap: true,
+      maxLines: 2,
+      TextSpan(
+        children: [
+          TextSpan(
+              text: '請「', style: TextStyle(color: Colors.black, fontSize: 50)),
+          TextSpan(
+              text: '按照順序', style: TextStyle(color: Colors.red, fontSize: 50)),
+          TextSpan(
+              text: '」把所有數字記下來！',
+              style: TextStyle(color: Colors.black, fontSize: 50)),
+        ],
+      ),
+    ),
+    const AutoSizeText.rich(
+      softWrap: true,
+      maxLines: 2,
+      TextSpan(
+        children: [
+          TextSpan(
+              text: '請將所有數字由「',
+              style: TextStyle(color: Colors.black, fontSize: 50)),
+          TextSpan(
+              text: '小到大排列', style: TextStyle(color: Colors.red, fontSize: 50)),
+          TextSpan(
+              text: '」記下來！',
+              style: TextStyle(color: Colors.black, fontSize: 50)),
+        ],
+      ),
+    ),
+    const AutoSizeText.rich(
+      softWrap: true,
+      maxLines: 2,
+      TextSpan(
+        children: [
+          TextSpan(
+              text: '請將所有的「',
+              style: TextStyle(color: Colors.black, fontSize: 50)),
+          TextSpan(
+              text: '單數', style: TextStyle(color: Colors.red, fontSize: 50)),
+          TextSpan(
+              text: '」記下來！',
+              style: TextStyle(color: Colors.black, fontSize: 50)),
+        ],
+      ),
+    ),
+    const AutoSizeText.rich(
+      softWrap: true,
+      maxLines: 2,
+      TextSpan(
+        children: [
+          TextSpan(
+              text: '請將所有的「',
+              style: TextStyle(color: Colors.black, fontSize: 50)),
+          TextSpan(
+              text: '雙數', style: TextStyle(color: Colors.red, fontSize: 50)),
+          TextSpan(
+              text: '」記下來！',
+              style: TextStyle(color: Colors.black, fontSize: 50)),
+        ],
+      ),
+    ),
+  ];
+
   void startTimer() {
     mytimer = Timer.periodic(const Duration(seconds: 2), (timer) {
       if (!game.isPaused) _playNumberSound();
@@ -131,7 +240,7 @@ class _LotteryGameSceneState extends State<LotteryGameScene>
         case 3:
           game.end = DateTime.now();
           game.record();
-          Timer(const Duration(seconds: 2), () {
+          Timer(const Duration(seconds: 5), () {
             setState(() {
               game.changeCurrentImage();
             });
@@ -243,8 +352,9 @@ class _LotteryGameSceneState extends State<LotteryGameScene>
                           _showAlertDialog();
                         },
                         style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.pink,
-                            shape: const CircleBorder()),
+                          backgroundColor: Colors.pink,
+                          shape: const CircleBorder(),
+                        ),
                         child: Icon(
                           Icons.cancel,
                           size: boxConstraints.maxWidth * 0.5,
@@ -256,47 +366,76 @@ class _LotteryGameSceneState extends State<LotteryGameScene>
                 //input form
                 Expanded(
                   flex: 5,
-                  child: game.gameProgress == 1
-                      ? ShowNumber(number: game.showNumber)
-                      : game.gameProgress == 2
-                          ? _getForm()
-                          : ShowRules(game: game),
+                  child: Stack(
+                    children: [
+                      ShowNumber(number: game.showNumber),
+                      _getRules(),
+                      if (game.gameProgress == 2) _getForm(),
+                      if (game.gameProgress == 3) ...[
+                        // add animation about spend money
+                        // left part image
+                        // right part -200 text (red)
+                        MoneyAnimation(),
+                        // Align(
+                        //   alignment: const Alignment(0.05, -0.95),
+                        //   child: FractionallySizedBox(
+                        //     widthFactor: 0.15,
+                        //     heightFactor: 0.1,
+                        //     child: Consumer<UserInfoProvider>(
+                        //       builder: (context, value, child) {
+                        //         return AutoSizeText(
+                        //           value.coins.toString(),
+                        //           style: const TextStyle(
+                        //             color: Colors.white,
+                        //             fontSize: 100,
+                        //           ),
+                        //         );
+                        //       },
+                        //     ),
+                        //   ),
+                        // )
+                      ],
+                    ],
+                  ),
                 ),
                 Flexible(
-                  flex: 1,
-                  child: game.gameProgress == 0 || game.gameProgress == 2
-                      ? LayoutBuilder(
-                          builder: (buildContext, boxConstraints) {
-                            return Align(
-                              alignment: Alignment.centerRight,
-                              child: Container(
-                                height: boxConstraints.maxWidth * 0.5,
-                                width: boxConstraints.maxWidth * 0.5,
-                                decoration: BoxDecoration(
-                                  image: const DecorationImage(
-                                    image: AssetImage(
-                                        'assets/global/checkButton.png'),
-                                  ),
-                                  borderRadius: BorderRadius.circular(10),
+                    flex: 1,
+                    child: LayoutBuilder(
+                      builder: (buildContext, boxConstraints) {
+                        return Align(
+                          alignment: Alignment.centerRight,
+                          child: Opacity(
+                            opacity: game.gameProgress == 2 ? 1 : 0,
+                            child: Container(
+                              height: boxConstraints.maxWidth * 0.5,
+                              width: boxConstraints.maxWidth * 0.5,
+                              decoration: BoxDecoration(
+                                image: const DecorationImage(
+                                  image: AssetImage(
+                                      'assets/global/checkButton.png'),
                                 ),
-                                child: GestureDetector(
-                                  onTap: game.disableButton
-                                      ? null
-                                      : () {
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: GestureDetector(
+                                onTap: game.disableButton
+                                    ? null
+                                    : () {
+                                        if (!game.disableButton &&
+                                            (game.gameProgress == 2)) {
                                           if (game.gameProgress == 2) {
                                             game.getResult();
                                           }
                                           setState(() {
                                             game.changeCurrentImage();
                                           });
-                                        },
-                                ),
+                                        }
+                                      },
                               ),
-                            );
-                          },
-                        )
-                      : Container(),
-                ),
+                            ),
+                          ),
+                        );
+                      },
+                    )),
               ],
             ),
           ],
@@ -571,6 +710,97 @@ class _LotteryGameSceneState extends State<LotteryGameScene>
       },
     );
   }
+
+  Widget _getRules() {
+    return AnimatedOpacity(
+      opacity: game.gameProgress == 0 ? 1.0 : 0.0,
+      duration: const Duration(milliseconds: 300),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        children: [
+          Expanded(
+            flex: 4,
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Stack(
+                children: [
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.9),
+                      border: Border.all(
+                        color: Colors.purple,
+                        width: 5,
+                      ),
+                      borderRadius: const BorderRadius.all(
+                        Radius.circular(30),
+                      ),
+                    ),
+                  ),
+                  for (int i = 0; i < 5; i++) ...[
+                    Align(
+                      alignment: starPosition[i],
+                      child: FractionallySizedBox(
+                        widthFactor: 0.2,
+                        heightFactor: 0.4,
+                        child: Transform.rotate(
+                            angle: -pi / 3 + pi * i,
+                            child: Image.asset(
+                                i <= game.gameLevel ? starLight : starDark)),
+                      ),
+                    ),
+                  ],
+                  Align(
+                    alignment: const Alignment(0.0, 0.3),
+                    child: FractionallySizedBox(
+                      widthFactor: 0.6,
+                      heightFactor: 0.3,
+                      child: Center(child: rules[game.gameLevel]),
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Align(
+                      alignment: const Alignment(0.0, 1.0),
+                      child: FractionallySizedBox(
+                        widthFactor: 0.3,
+                        heightFactor: 0.2,
+                        child: GestureDetector(
+                          onTap: () {
+                            Logger().i('tap');
+                            setState(() {
+                              game.changeCurrentImage();
+                            });
+                          },
+                          child: Image.asset(
+                            'assets/lottery_game_scene/start_button.png',
+                          ),
+                        ),
+                      ),
+                    ),
+                  )
+                ],
+              ),
+            ),
+          ),
+          /*Flexible(
+            flex: 1,
+            child: ElevatedButton(
+              onPressed: () {
+                // ignore: todo
+                // TODO add audios
+              },
+              child: const AutoSizeText(
+                '再聽一次',
+                style:
+                    TextStyle(fontSize: 30, fontFamily: 'NotoSansTC_Regular'),
+                maxLines: 1,
+              ),
+            ),
+          ),*/
+        ],
+      ),
+    );
+  }
 }
 
 class ShowNumber extends StatelessWidget {
@@ -613,44 +843,53 @@ class ShowNumber extends StatelessWidget {
   }
 }
 
-class ShowRules extends StatefulWidget {
-  const ShowRules({super.key, required this.game});
-  final LotteryGame game;
+class MoneyAnimation extends StatefulWidget {
+  const MoneyAnimation({super.key});
+
   @override
-  State<ShowRules> createState() => _ShowRulesState();
+  State<MoneyAnimation> createState() => _MoneyAnimationState();
 }
 
-class _ShowRulesState extends State<ShowRules> {
+class _MoneyAnimationState extends State<MoneyAnimation>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller =
+        AnimationController(duration: const Duration(seconds: 2), vsync: this);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
-    return AnimatedOpacity(
-      opacity: widget.game.gameProgress == 0 ? 1.0 : 0.0,
-      duration: const Duration(milliseconds: 500),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: [
-          Container(
-            color: Colors.white.withOpacity(0.7),
-            child: AutoSizeText(
-              widget.game.gameRules[widget.game.gameLevel],
-              style: const TextStyle(
-                  fontSize: 100, fontFamily: 'NotoSansTC_Regular'),
-              maxLines: 3,
+    return Stack(
+      children: [
+        Align(
+          alignment: const Alignment(0.05, -0.95),
+          child: FractionallySizedBox(
+            widthFactor: 0.15,
+            heightFactor: 0.1,
+            child: Consumer<UserInfoProvider>(
+              builder: (context, value, child) {
+                return AutoSizeText(
+                  value.coins.toString(),
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 100,
+                  ),
+                );
+              },
             ),
           ),
-          ElevatedButton(
-            onPressed: () {
-              // ignore: todo
-              // TODO add audios
-            },
-            child: const AutoSizeText(
-              '再聽一次',
-              style: TextStyle(fontSize: 30, fontFamily: 'NotoSansTC_Regular'),
-              maxLines: 1,
-            ),
-          ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }

@@ -11,8 +11,8 @@ class UserCheckinProvider extends ChangeNotifier {
   DateTime _cycleStartDay = DateTime.now();
   DateTime _lastLoginTime = DateTime.now();
   //late DateTime _lastUpdateTime;
-  List<bool> _loginCycle = [];
-  List<bool> _loginRewardCycle = [];
+  List<bool> _loginCycle = List.generate(7, (index) => false);
+  List<bool> _loginRewardCycle = List.generate(7, (index) => false);
   List<bool> _weeklyRewardCycle = [];
   List<int> _accumulatePlayTime = [];
   bool _haveCheckinReward = false;
@@ -29,7 +29,9 @@ class UserCheckinProvider extends ChangeNotifier {
       if (newUser != _user) {
         await updateData(newUser);
         _user = newUser;
-        notifyListeners();
+        Future.delayed(const Duration(milliseconds: 300), () {
+          notifyListeners();
+        });
       }
     });
   }
@@ -131,7 +133,7 @@ class UserCheckinProvider extends ChangeNotifier {
     DateTime startDay =
         DateTime(_cycleStartDay.year, _cycleStartDay.month, _cycleStartDay.day);
     int difference = DateTime.now().difference(startDay).inDays;
-    //Logger().i(difference);
+
     // is difference >= 28 is a new 4 week loop reset startday to now
     if (difference >= 28) cycleStartDay = DateTime.now();
     // if difference >= 7 is a new week
@@ -145,7 +147,7 @@ class UserCheckinProvider extends ChangeNotifier {
         haveCheckinReward = true;
       }
     }
-    if (haveCheckinReward) notifyListeners();
+    notifyListeners();
   }
 
   void isHaveAccumulatePlayReward() {
@@ -167,13 +169,6 @@ class UserCheckinProvider extends ChangeNotifier {
     return reward;
   }
 
-  // to synchronize two list which means reward already taken
-  void updateRewardRecord() {
-    loginRewardCycle = _loginCycle;
-    haveCheckinReward = false;
-    notifyListeners();
-  }
-
   int updateRewardStatus(int index) {
     int reward = 0;
     if (_loginCycle[index] && !_loginRewardCycle[index]) {
@@ -182,6 +177,7 @@ class UserCheckinProvider extends ChangeNotifier {
       loginRewardCycle = tmp;
       reward = (index + 1) * 100;
     }
+    isHaveCheckinReward();
     return reward;
   }
 }
