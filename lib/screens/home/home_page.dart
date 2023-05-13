@@ -85,8 +85,6 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    final height = MediaQuery.of(context).size.height;
-    final width = MediaQuery.of(context).size.width;
     userInfoProvider = Provider.of<UserInfoProvider>(context);
     userCheckinProvider = Provider.of<UserCheckinProvider>(context);
     return Scaffold(
@@ -285,41 +283,14 @@ class _HomePageState extends State<HomePage> {
               ),
             ),
             //tutorial button
-            AnimatedOpacity(
-              opacity: isTutorial ? 0 : 1,
-              duration: const Duration(milliseconds: 500),
-              child: Align(
-                alignment: const Alignment(1.0, -0.85),
-                child: Padding(
-                  padding: EdgeInsets.only(right: width * 0.05),
-                  child: GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        isChosen = List.generate(4, (index) => false);
-                        chosenGame = null;
-                        isTutorial = true;
-                      });
-                    },
-                    child: SizedBox(
-                      width: width * 0.15,
-                      height: width * 0.15 * 236 / 578,
-                      child:
-                          Image.asset('assets/login_page/tutorial_button.png'),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-            for (int i = 0; i < 4; i++) ...[
-              if (i != chosenGame) ...[
-                getGameImage(i),
-              ],
-            ],
-            if (isTutorial) ...[
-              Container(
-                color: Colors.white.withOpacity(0.7),
-              ),
-            ],
+            tutorialButton(),
+            for (int i = 0; i < 4; i++)
+              if (i != chosenGame) getGameImage(i),
+            /* 
+            mask of background layer 2
+            */
+            if (isTutorial) Container(color: Colors.white.withOpacity(0.7)),
+
             // game description
             AnimatedAlign(
               key: const ValueKey('description'),
@@ -352,6 +323,9 @@ class _HomePageState extends State<HomePage> {
                 ),
               ),
             ),
+            /*
+            start game button
+            */
             AnimatedAlign(
               key: const ValueKey('start_button'),
               alignment: isChosen.contains(true)
@@ -406,74 +380,16 @@ class _HomePageState extends State<HomePage> {
               ),
             ),
             if (chosenGame != null) getGameImage(chosenGame!),
-            // tutorial doctor
-            IgnorePointer(
-              child: AnimatedOpacity(
-                opacity: isTutorial ? 1 : 0,
-                duration: const Duration(milliseconds: 500),
-                child: Align(
-                  alignment: tutorialProgress < 2
-                      ? Alignment.bottomRight
-                      : Alignment.bottomLeft,
-                  child: Container(
-                    height: height * 0.4,
-                    width: width * 0.25,
-                    decoration: const BoxDecoration(
-                      image: DecorationImage(
-                        image: AssetImage(
-                          'assets/login_page/tutorial_doctors.png',
-                        ),
-                        fit: BoxFit.contain,
-                        alignment: Alignment.bottomCenter,
-                      ),
-                    ),
-                  ),
-                ),
+            /* 
+            mask of background
+            */
+            if (isTutorial && tutorialProgress == 2) ...[
+              Container(
+                color: Colors.white.withOpacity(0.7),
               ),
-            ),
-            // chat bubble
-            IgnorePointer(
-              child: AnimatedOpacity(
-                opacity: isTutorial ? 1 : 0,
-                duration: const Duration(milliseconds: 500),
-                child: Align(
-                  alignment: tutorialProgress < 2
-                      ? const Alignment(1, -0.9)
-                      : const Alignment(-1, -0.9),
-                  child: Container(
-                    height: height * 0.65,
-                    width: height * 0.65,
-                    decoration: const BoxDecoration(
-                      image: DecorationImage(
-                        image: AssetImage(
-                          'assets/login_page/tutorial_chat_bubble.png',
-                        ),
-                        fit: BoxFit.contain,
-                      ),
-                    ),
-                    child: Align(
-                      alignment: const Alignment(0, -0.2),
-                      child: FractionallySizedBox(
-                        heightFactor: 0.4,
-                        widthFactor: 0.6,
-                        child: Align(
-                          alignment: Alignment.center,
-                          child: AutoSizeText(
-                            tutorialMessage[tutorialProgress],
-                            maxLines: 4,
-                            softWrap: true,
-                            style: const TextStyle(
-                              fontSize: 100,
-                              fontFamily: 'GSR_R',
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ),
+            ],
+            tutorialDoctor(),
+            chatBubble(),
             if (isTutorial && tutorialProgress >= 1)
               Align(
                 alignment: arrowAlignment[tutorialProgress - 1],
@@ -488,6 +404,111 @@ class _HomePageState extends State<HomePage> {
               child: getContinueButton(),
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  AnimatedOpacity tutorialButton() {
+    return AnimatedOpacity(
+      opacity: isTutorial ? 0 : 1,
+      duration: const Duration(milliseconds: 500),
+      child: Align(
+        alignment: const Alignment(0.9, -0.9),
+        child: FractionallySizedBox(
+          heightFactor: 0.15,
+          widthFactor: 0.2,
+          alignment: Alignment.centerRight,
+          child: GestureDetector(
+            onTap: () {
+              setState(() {
+                isChosen = List.generate(4, (index) => false);
+                chosenGame = null;
+                isTutorial = true;
+              });
+            },
+            child: Image.asset('assets/login_page/tutorial_button.png'),
+          ),
+        ),
+      ),
+    );
+  }
+
+  IgnorePointer tutorialDoctor() {
+    return IgnorePointer(
+      child: AnimatedOpacity(
+        opacity: isTutorial ? 1 : 0,
+        duration: const Duration(milliseconds: 500),
+        child: Align(
+          alignment: tutorialProgress < 2
+              ? Alignment.bottomRight
+              : Alignment.bottomLeft,
+          child: FractionallySizedBox(
+            heightFactor: 0.45,
+            child: AspectRatio(
+              aspectRatio: 1,
+              child: Container(
+                decoration: const BoxDecoration(
+                  image: DecorationImage(
+                    image: AssetImage(
+                      'assets/login_page/tutorial_doctors.png',
+                    ),
+                    fit: BoxFit.contain,
+                    alignment: Alignment.bottomCenter,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  IgnorePointer chatBubble() {
+    return IgnorePointer(
+      child: AnimatedOpacity(
+        opacity: isTutorial ? 1 : 0,
+        duration: const Duration(milliseconds: 500),
+        child: Align(
+          alignment: tutorialProgress < 2
+              ? const Alignment(1, -0.9)
+              : const Alignment(-1, -0.9),
+          child: FractionallySizedBox(
+            heightFactor: 0.65,
+            child: AspectRatio(
+              aspectRatio: 1,
+              child: Container(
+                decoration: const BoxDecoration(
+                  image: DecorationImage(
+                    image: AssetImage(
+                      'assets/login_page/tutorial_chat_bubble.png',
+                    ),
+                    fit: BoxFit.contain,
+                  ),
+                ),
+                child: Align(
+                  alignment: const Alignment(0, -0.2),
+                  child: FractionallySizedBox(
+                    heightFactor: 0.4,
+                    widthFactor: 0.6,
+                    child: Align(
+                      alignment: Alignment.center,
+                      child: AutoSizeText(
+                        tutorialMessage[tutorialProgress],
+                        maxLines: 4,
+                        softWrap: true,
+                        style: const TextStyle(
+                          fontSize: 100,
+                          fontFamily: 'GSR_R',
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
         ),
       ),
     );
@@ -528,6 +549,7 @@ class _HomePageState extends State<HomePage> {
                 Center(
                   child: Image.asset('assets/global/continue_button.png'),
                 ),
+                Placeholder(),
                 const Center(
                   child: FractionallySizedBox(
                     heightFactor: 0.7,

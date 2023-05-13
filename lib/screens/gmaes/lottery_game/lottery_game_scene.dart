@@ -375,7 +375,7 @@ class _LotteryGameSceneState extends State<LotteryGameScene>
                         // add animation about spend money
                         // left part image
                         // right part -200 text (red)
-                        MoneyAnimation(),
+                        const MoneyAnimation(),
                         // Align(
                         //   alignment: const Alignment(0.05, -0.95),
                         //   child: FractionallySizedBox(
@@ -398,6 +398,7 @@ class _LotteryGameSceneState extends State<LotteryGameScene>
                     ],
                   ),
                 ),
+                // continue button
                 Flexible(
                     flex: 1,
                     child: LayoutBuilder(
