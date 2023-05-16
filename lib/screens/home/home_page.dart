@@ -1,8 +1,8 @@
-import 'dart:math';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cognitive_training/models/user_checkin_provider.dart';
 import 'package:cognitive_training/models/user_info_provider.dart';
+import 'package:cognitive_training/screens/home/home_tutorial.dart';
 import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/material.dart';
 import 'package:cognitive_training/firebase/auth.dart';
@@ -34,12 +34,12 @@ class _HomePageState extends State<HomePage> {
   }
 
   final AuthService _authService = AuthService();
+  final HomeTutorial _homeTutorial = HomeTutorial();
   late UserInfoProvider userInfoProvider;
   late UserCheckinProvider userCheckinProvider;
-  bool expanded = false;
 
   List<bool> isChosen = [false, false, false, false];
-  List<double> xPositions = [-0.9, -0.3, 0.3, 0.9];
+  List<double> xPositions = [-0.95, -0.3166, 0.3166, 0.95];
   int? chosenGame = 0;
   String chosenLanguage = '中文';
   List<String> gameImagePaths = [
@@ -54,32 +54,24 @@ class _HomePageState extends State<HomePage> {
     '撲克牌',
     '路線規劃',
   ];
-  List<String> gameDescription = [
-    '想贏得樂透獎金嗎?那就來猜一猜號碼吧!',
-    '遊戲暫未開放',
-    '遊戲暫未開放',
-    '遊戲暫未開放',
+  List<String> gameDescriptionString = [
+    '廟裡的神明會給你一組樂透彩券號碼，將號碼記憶下來，去彩券行下注贏取獎金!想成為樂透得主嗎？那就試著記下中獎號碼吧！',
+    '公園散步巧遇朋友，展開一場撲克牌遊戲，想在這場遊戲中勝利，就要選擇適合的牌打出去！一起來挑戰吧！',
+    '到海邊釣魚，水面上漣漪越大，水底下的魚越大。選擇正確的釣竿，一起來釣大魚吧！',
+    '接到家人的電話請求幫忙出門辦事。請用最快的速度完成家人交辦的各項任務，再回到家中！我們出發吧！',
   ];
+  List<String> gameTrainingArea = [
+    '注意力/工作記憶',
+    '執行功能',
+    '注意力',
+    '執行功能',
+  ];
+
   List<String> gameRoutes = [
     '/home/lottery_game_menu',
     '/home/fishing_game_menu',
     '/home/poker_game_menu',
     '/home/route_game_menu',
-  ];
-  bool isTutorial = false;
-  int tutorialProgress = 0;
-  List<String> tutorialMessage = [
-    '我是小幫手，現在要選擇想玩的遊戲!',
-    '點選想玩的遊戲，會出現遊戲的介紹及訓練內容',
-    '最後按下開始遊戲，就可以開始囉!',
-  ];
-  List<String> arrowPath = [
-    'assets/home_page/tutorial_left_arrow.png',
-    'assets/home_page/tutorial_right_arrow.png',
-  ];
-  List<Alignment> arrowAlignment = [
-    const Alignment(-0.4, 0.0),
-    const Alignment(0.0, 1.0)
   ];
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
@@ -201,312 +193,251 @@ class _HomePageState extends State<HomePage> {
         ),
         child: Stack(
           children: [
-            Align(
-              alignment: const Alignment(-0.9, -0.9),
-              child: FractionallySizedBox(
-                heightFactor: 0.15,
-                widthFactor: 0.15,
-                child: Container(
-                  decoration: const BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.all(
-                      Radius.circular(10),
-                    ),
-                  ),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: Center(
-                          child: Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: FittedBox(
-                              fit: BoxFit.fitHeight,
-                              child: IconButton(
-                                iconSize: 100,
-                                onPressed: () {
-                                  _scaffoldKey.currentState?.openDrawer();
-                                },
-                                icon: const Icon(
-                                  Icons.person,
-                                  color: Colors.blue,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                      // chceckin reward page
-                      Expanded(
-                        child: Center(
-                          child: Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: FittedBox(
-                              fit: BoxFit.fitHeight,
-                              child: Consumer2<UserInfoProvider,
-                                      UserCheckinProvider>(
-                                  builder: (context, infoProvider,
-                                      checkinProvider, child) {
-                                return IconButton(
-                                  iconSize: 100,
-                                  onPressed: () {
-                                    GoRouter.of(context).push('/home/reward');
-                                  },
-                                  icon: Icon(
-                                    Icons.calendar_today_outlined,
-                                    color: checkinProvider.haveCheckinReward ||
-                                            checkinProvider
-                                                .haveAccumulatePlayReward
-                                        ? Colors.amber
-                                        : Colors.black,
-                                  ),
-                                );
-                              }),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
+            title(),
+            settingAndCheckinReward(),
+            GestureDetector(
+              onTap: () {
+                setState(() {
+                  isChosen = List.generate(4, (index) => false);
+                  chosenGame = null;
+                  _homeTutorial.isTutorial = true;
+                });
+              },
+              child: _homeTutorial.tutorialButton(),
             ),
-            // title
-            Align(
-              alignment: const Alignment(0.0, -0.9),
-              child: FractionallySizedBox(
-                heightFactor: 0.15,
-                widthFactor: 0.5,
-                child: Image.asset(
-                  'assets/home_page/choosing_game_title.png',
-                  fit: BoxFit.contain,
-                ),
-              ),
-            ),
-            //tutorial button
-            tutorialButton(),
             for (int i = 0; i < 4; i++)
               if (i != chosenGame) getGameImage(i),
-            /* 
-            mask of background layer 2
-            */
-            if (isTutorial) Container(color: Colors.white.withOpacity(0.7)),
 
-            // game description
-            AnimatedAlign(
-              key: const ValueKey('description'),
-              alignment: isChosen.contains(true)
-                  ? const Alignment(0.85, -0.4)
-                  : const Alignment(4.0, -0.4),
-              duration: const Duration(milliseconds: 300),
-              child: FractionallySizedBox(
-                widthFactor: 0.55,
-                heightFactor: 0.65,
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.95),
-                    border: Border.all(color: Colors.black, width: 5),
-                    borderRadius: BorderRadius.circular(30),
-                  ),
-                  child: FractionallySizedBox(
-                    alignment: Alignment.center,
-                    widthFactor: 0.6,
-                    heightFactor: 0.6,
-                    child: AutoSizeText(
-                      chosenGame != null ? gameDescription[chosenGame!] : '',
-                      maxLines: 3,
-                      style: const TextStyle(
-                        fontFamily: 'GSR_B',
-                        fontSize: 50,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-            /*
-            start game button
-            */
-            AnimatedAlign(
-              key: const ValueKey('start_button'),
-              alignment: isChosen.contains(true)
-                  ? const Alignment(0.5, 0.9)
-                  : const Alignment(0.5, 3.0),
-              duration: const Duration(milliseconds: 300),
-              child: FractionallySizedBox(
-                widthFactor: 0.2,
-                heightFactor: 0.2,
-                child: DottedBorder(
-                  color: tutorialProgress == 2
-                      ? Colors.red
-                      : Colors.white.withOpacity(0),
-                  borderType: BorderType.RRect,
-                  radius: const Radius.circular(10),
-                  strokeWidth: 2,
-                  dashPattern: const [8, 4],
-                  padding: const EdgeInsets.all(1),
-                  strokeCap: StrokeCap.round,
-                  child: GestureDetector(
-                    onTap: () {
-                      if (!isTutorial) {
-                        String route = gameRoutes[isChosen.indexOf(true)];
-                        GoRouter.of(context).push(route);
-                      }
-                    },
-                    child: Stack(
-                      children: [
-                        Center(
-                          child:
-                              Image.asset('assets/global/continue_button.png'),
-                        ),
-                        const Center(
-                          child: FractionallySizedBox(
-                            heightFactor: 0.7,
-                            widthFactor: 0.6,
-                            child: FittedBox(
-                              child: Text(
-                                '開始遊戲',
-                                style: TextStyle(
-                                  fontFamily: 'GSR_B',
-                                  fontSize: 100,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ),
+            // mask of background
+            if (_homeTutorial.isTutorial)
+              Container(color: Colors.white.withOpacity(0.7)),
+
+            gameDescription(),
+            startButton(context),
             if (chosenGame != null) getGameImage(chosenGame!),
-            /* 
-            mask of background
-            */
-            if (isTutorial && tutorialProgress == 2) ...[
-              Container(
-                color: Colors.white.withOpacity(0.7),
-              ),
-            ],
-            tutorialDoctor(),
-            chatBubble(),
-            if (isTutorial && tutorialProgress >= 1)
-              Align(
-                alignment: arrowAlignment[tutorialProgress - 1],
-                child: FractionallySizedBox(
-                  heightFactor: 0.3,
-                  child: Image.asset(arrowPath[tutorialProgress - 1]),
-                ),
-              ),
-            //continue button
-            IgnorePointer(
-              ignoring: !isTutorial,
-              child: getContinueButton(),
-            ),
+
+            // mask of background
+            if (_homeTutorial.isTutorial && _homeTutorial.tutorialProgress == 2)
+              Container(color: Colors.white.withOpacity(0.7)),
+
+            _homeTutorial.tutorialDoctor(),
+            _homeTutorial.chatBubble(),
+            if (_homeTutorial.isTutorial && _homeTutorial.tutorialProgress >= 1)
+              _homeTutorial.hintArrow(),
+            continueButton(),
           ],
         ),
       ),
     );
   }
 
-  AnimatedOpacity tutorialButton() {
-    return AnimatedOpacity(
-      opacity: isTutorial ? 0 : 1,
-      duration: const Duration(milliseconds: 500),
-      child: Align(
-        alignment: const Alignment(0.9, -0.9),
-        child: FractionallySizedBox(
-          heightFactor: 0.15,
-          widthFactor: 0.2,
-          alignment: Alignment.centerRight,
-          child: GestureDetector(
-            onTap: () {
-              setState(() {
-                isChosen = List.generate(4, (index) => false);
-                chosenGame = null;
-                isTutorial = true;
-              });
-            },
-            child: Image.asset('assets/login_page/tutorial_button.png'),
-          ),
-        ),
-      ),
-    );
-  }
-
-  IgnorePointer tutorialDoctor() {
-    return IgnorePointer(
-      child: AnimatedOpacity(
-        opacity: isTutorial ? 1 : 0,
-        duration: const Duration(milliseconds: 500),
-        child: Align(
-          alignment: tutorialProgress < 2
-              ? Alignment.bottomRight
-              : Alignment.bottomLeft,
-          child: FractionallySizedBox(
-            heightFactor: 0.45,
-            child: AspectRatio(
-              aspectRatio: 1,
-              child: Container(
-                decoration: const BoxDecoration(
-                  image: DecorationImage(
-                    image: AssetImage(
-                      'assets/login_page/tutorial_doctors.png',
-                    ),
-                    fit: BoxFit.contain,
-                    alignment: Alignment.bottomCenter,
-                  ),
-                ),
-              ),
+  Align settingAndCheckinReward() {
+    return Align(
+      alignment: const Alignment(-0.9, -0.9),
+      child: FractionallySizedBox(
+        heightFactor: 0.15,
+        widthFactor: 0.15,
+        child: Container(
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.all(
+              Radius.circular(10),
             ),
           ),
-        ),
-      ),
-    );
-  }
-
-  IgnorePointer chatBubble() {
-    return IgnorePointer(
-      child: AnimatedOpacity(
-        opacity: isTutorial ? 1 : 0,
-        duration: const Duration(milliseconds: 500),
-        child: Align(
-          alignment: tutorialProgress < 2
-              ? const Alignment(1, -0.9)
-              : const Alignment(-1, -0.9),
-          child: FractionallySizedBox(
-            heightFactor: 0.65,
-            child: AspectRatio(
-              aspectRatio: 1,
-              child: Container(
-                decoration: const BoxDecoration(
-                  image: DecorationImage(
-                    image: AssetImage(
-                      'assets/login_page/tutorial_chat_bubble.png',
-                    ),
-                    fit: BoxFit.contain,
-                  ),
-                ),
-                child: Align(
-                  alignment: const Alignment(0, -0.2),
-                  child: FractionallySizedBox(
-                    heightFactor: 0.4,
-                    widthFactor: 0.6,
-                    child: Align(
-                      alignment: Alignment.center,
-                      child: AutoSizeText(
-                        tutorialMessage[tutorialProgress],
-                        maxLines: 4,
-                        softWrap: true,
-                        style: const TextStyle(
-                          fontSize: 100,
-                          fontFamily: 'GSR_R',
+          child: Row(
+            children: [
+              Expanded(
+                child: Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: FittedBox(
+                      fit: BoxFit.fitHeight,
+                      child: IconButton(
+                        iconSize: 100,
+                        onPressed: () {
+                          _scaffoldKey.currentState?.openDrawer();
+                        },
+                        icon: const Icon(
+                          Icons.person,
+                          color: Colors.blue,
                         ),
                       ),
                     ),
                   ),
                 ),
               ),
+              // chceckin reward page
+              Expanded(
+                child: Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: FittedBox(
+                      fit: BoxFit.fitHeight,
+                      child: Consumer2<UserInfoProvider, UserCheckinProvider>(
+                          builder:
+                              (context, infoProvider, checkinProvider, child) {
+                        return IconButton(
+                          iconSize: 100,
+                          onPressed: () {
+                            GoRouter.of(context).push('/home/reward');
+                          },
+                          icon: Icon(
+                            Icons.calendar_today_outlined,
+                            color: checkinProvider.haveCheckinReward ||
+                                    checkinProvider.haveAccumulatePlayReward
+                                ? Colors.amber
+                                : Colors.black,
+                          ),
+                        );
+                      }),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Align title() {
+    return Align(
+      alignment: const Alignment(0.0, -0.9),
+      child: FractionallySizedBox(
+        heightFactor: 0.15,
+        widthFactor: 0.5,
+        child: Image.asset(
+          'assets/home_page/choosing_game_title.png',
+          fit: BoxFit.contain,
+        ),
+      ),
+    );
+  }
+
+  AnimatedAlign gameDescription() {
+    return AnimatedAlign(
+      key: const ValueKey('description'),
+      alignment: isChosen.contains(true)
+          ? const Alignment(0.85, -0.6)
+          : const Alignment(4.0, -0.6),
+      duration: const Duration(milliseconds: 300),
+      child: FractionallySizedBox(
+        widthFactor: 0.55,
+        heightFactor: 0.7,
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.95),
+            border: Border.all(color: Colors.black, width: 5),
+            borderRadius: BorderRadius.circular(30),
+          ),
+          child: FractionallySizedBox(
+            alignment: Alignment.center,
+            widthFactor: 0.95,
+            heightFactor: 0.9,
+            /*child: AutoSizeText(
+              chosenGame != null ? gameDescriptionString[chosenGame!] : '',
+              maxLines: 3,
+              style: const TextStyle(
+                fontFamily: 'GSR_B',
+                fontSize: 50,
+              ),
+            ),*/
+            child: Column(
+              children: [
+                Expanded(
+                  flex: 2,
+                  child: Align(
+                    alignment: const Alignment(-0.95, 0.0),
+                    child: FractionallySizedBox(
+                      widthFactor: 0.3,
+                      heightFactor: 0.85,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Colors.blue[200],
+                          borderRadius:
+                              const BorderRadius.all(Radius.circular(10)),
+                        ),
+                        child: const FractionallySizedBox(
+                          widthFactor: 0.8,
+                          heightFactor: 0.9,
+                          child: Center(
+                            child: AutoSizeText(
+                              '遊戲介紹',
+                              maxLines: 1,
+                              style: TextStyle(
+                                  fontSize: 100,
+                                  color: Colors.white,
+                                  fontFamily: 'GSR_B'),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                Expanded(
+                  flex: 4,
+                  child: FractionallySizedBox(
+                    widthFactor: 0.8,
+                    heightFactor: 0.9,
+                    child: AutoSizeText(
+                      chosenGame != null
+                          ? gameDescriptionString[chosenGame!]
+                          : '',
+                      style: const TextStyle(
+                          fontSize: 1000,
+                          color: Colors.black,
+                          fontFamily: 'GSR_B'),
+                    ),
+                  ),
+                ),
+                Expanded(
+                  flex: 2,
+                  child: Align(
+                    alignment: const Alignment(-0.95, 0.0),
+                    child: FractionallySizedBox(
+                      widthFactor: 0.3,
+                      heightFactor: 0.85,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Colors.blue[200],
+                          borderRadius:
+                              const BorderRadius.all(Radius.circular(10)),
+                        ),
+                        child: const FractionallySizedBox(
+                          widthFactor: 0.8,
+                          heightFactor: 0.9,
+                          child: Center(
+                            child: AutoSizeText(
+                              '訓練領域',
+                              maxLines: 1,
+                              style: TextStyle(
+                                  fontSize: 100,
+                                  color: Colors.white,
+                                  fontFamily: 'GSR_B'),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                Expanded(
+                  flex: 1,
+                  child: FractionallySizedBox(
+                    widthFactor: 0.8,
+                    heightFactor: 0.9,
+                    child: AutoSizeText(
+                      chosenGame != null ? gameTrainingArea[chosenGame!] : '',
+                      style: const TextStyle(
+                          fontSize: 1000,
+                          color: Colors.black,
+                          fontFamily: 'GSR_B'),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
         ),
@@ -514,49 +445,72 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  AnimatedOpacity getContinueButton() {
-    return AnimatedOpacity(
-      opacity: isTutorial ? 1 : 0,
-      duration: const Duration(milliseconds: 500),
-      child: Align(
-        alignment: tutorialProgress < 2
-            ? const Alignment(0.5, 0.9)
-            : const Alignment(-0.5, 0.9),
-        child: FractionallySizedBox(
-          widthFactor: 0.2,
-          heightFactor: 0.2,
+  IgnorePointer continueButton() {
+    return IgnorePointer(
+      ignoring: !_homeTutorial.isTutorial,
+      child: GestureDetector(
+        onTap: () {
+          setState(() {
+            if (_homeTutorial.tutorialProgress < 2) {
+              _homeTutorial.tutorialProgress++;
+              if (_homeTutorial.tutorialProgress == 1) {
+                chosenGame = 0;
+              } else if (_homeTutorial.tutorialProgress == 2) {
+                isChosen[0] = true;
+              }
+            } else {
+              Future.delayed(const Duration(milliseconds: 500), () {
+                _homeTutorial.tutorialProgress = 0;
+              });
+              isChosen = List.generate(4, (index) => false);
+              _homeTutorial.isTutorial = false;
+            }
+          });
+        },
+        child: _homeTutorial.getContinueButton(),
+      ),
+    );
+  }
+
+  AnimatedAlign startButton(BuildContext context) {
+    return AnimatedAlign(
+      key: const ValueKey('start_button'),
+      alignment: isChosen.contains(true)
+          ? const Alignment(0.5, 0.9)
+          : const Alignment(0.5, 3.0),
+      duration: const Duration(milliseconds: 300),
+      child: FractionallySizedBox(
+        widthFactor: 0.2,
+        heightFactor: 0.2,
+        child: DottedBorder(
+          color: _homeTutorial.tutorialProgress == 2
+              ? Colors.red
+              : Colors.white.withOpacity(0),
+          borderType: BorderType.RRect,
+          radius: const Radius.circular(10),
+          strokeWidth: 2,
+          dashPattern: const [8, 4],
+          padding: const EdgeInsets.all(1),
+          strokeCap: StrokeCap.round,
           child: GestureDetector(
             onTap: () {
-              setState(() {
-                if (tutorialProgress < 2) {
-                  tutorialProgress++;
-                  if (tutorialProgress == 1) {
-                    chosenGame = 0;
-                  } else if (tutorialProgress == 2) {
-                    isChosen[0] = true;
-                  }
-                } else {
-                  Future.delayed(const Duration(milliseconds: 500), () {
-                    tutorialProgress = 0;
-                  });
-                  isChosen = List.generate(4, (index) => false);
-                  isTutorial = false;
-                }
-              });
+              if (!_homeTutorial.isTutorial) {
+                String route = gameRoutes[isChosen.indexOf(true)];
+                GoRouter.of(context).push(route);
+              }
             },
             child: Stack(
               children: [
                 Center(
                   child: Image.asset('assets/global/continue_button.png'),
                 ),
-                Placeholder(),
                 const Center(
                   child: FractionallySizedBox(
                     heightFactor: 0.7,
                     widthFactor: 0.6,
                     child: FittedBox(
                       child: Text(
-                        '點我繼續',
+                        '開始遊戲',
                         style: TextStyle(
                           fontFamily: 'GSR_B',
                           fontSize: 100,
@@ -578,84 +532,68 @@ class _HomePageState extends State<HomePage> {
       key: ValueKey(gameIndex),
       alignment: isChosen[gameIndex]
           ? const Alignment(-0.95, 0.0)
-          : Alignment(xPositions[gameIndex], 0.2),
+          : Alignment(xPositions[gameIndex], 0.4),
       duration: const Duration(milliseconds: 300),
       child: AnimatedFractionallySizedBox(
-        heightFactor: isChosen[gameIndex] ? 0.9 : 0.5,
-        widthFactor: isChosen[gameIndex] ? 0.4 : 0.2,
+        widthFactor: isChosen[gameIndex] ? 0.4 : 0.225,
         duration: const Duration(milliseconds: 300),
-        child: Center(
-          child: AspectRatio(
-            aspectRatio: 939 / 1054,
-            child: DottedBorder(
-              color: tutorialProgress == 1 && gameIndex == chosenGame
-                  ? Colors.red
-                  : Colors.white.withOpacity(0),
-              borderType: BorderType.RRect,
-              radius: const Radius.circular(10),
-              strokeWidth: 2,
-              dashPattern: const [8, 4],
-              padding: const EdgeInsets.all(10),
-              strokeCap: StrokeCap.round,
-              child: LayoutBuilder(
-                builder: (BuildContext context, BoxConstraints constraints) {
-                  return SizedBox(
-                    width: constraints.maxWidth,
-                    height: constraints.maxWidth / 939 * 1054,
-                    child: GestureDetector(
-                      onTap: () {
-                        if (!isTutorial) {
-                          setState(() {
-                            if (isChosen.contains(true)) {
-                              if (isChosen.indexOf(true) == gameIndex) {
-                                isChosen[gameIndex] = false;
-                              }
-                            } else {
-                              isChosen[gameIndex] = !isChosen[gameIndex];
-                              chosenGame = gameIndex;
-                            }
-                          });
-                        }
-                      },
-                      child: Stack(
-                        children: [
-                          Center(
-                            child: Image.asset(
-                                'assets/home_page/choosing_game_banner.png'),
-                          ),
-                          Align(
-                            alignment: const Alignment(0.0, -0.8),
-                            child: FractionallySizedBox(
-                              heightFactor: 0.3,
-                              widthFactor: 0.9,
-                              child: LayoutBuilder(builder:
-                                  (BuildContext context,
-                                      BoxConstraints constraints) {
-                                return Center(
-                                  child: Text(
-                                    gameName[gameIndex],
-                                    style: TextStyle(
-                                        fontSize: constraints.maxWidth / 4.5),
-                                  ),
-                                );
-                              }),
-                            ),
-                          ),
-                          Align(
-                            alignment: const Alignment(0.0, 0.7),
-                            child: FractionallySizedBox(
-                              widthFactor: 0.885,
-                              child: Image.asset(
-                                gameImagePaths[gameIndex],
-                                fit: BoxFit.fitWidth,
-                              ),
-                            ),
-                          ),
-                        ],
+        child: AspectRatio(
+          aspectRatio: 939 / 1054,
+          child: DottedBorder(
+            color:
+                _homeTutorial.tutorialProgress == 1 && gameIndex == chosenGame
+                    ? Colors.red
+                    : Colors.white.withOpacity(0),
+            borderType: BorderType.RRect,
+            radius: const Radius.circular(10),
+            strokeWidth: 2,
+            dashPattern: const [8, 4],
+            padding: const EdgeInsets.all(10),
+            strokeCap: StrokeCap.round,
+            child: GestureDetector(
+              onTap: () {
+                if (!_homeTutorial.isTutorial) {
+                  setState(() {
+                    if (isChosen.contains(true)) {
+                      if (isChosen.indexOf(true) == gameIndex) {
+                        isChosen[gameIndex] = false;
+                      }
+                    } else {
+                      isChosen[gameIndex] = !isChosen[gameIndex];
+                      chosenGame = gameIndex;
+                    }
+                  });
+                }
+              },
+              child: Stack(
+                children: [
+                  Center(
+                    child: Image.asset(
+                        'assets/home_page/choosing_game_banner.png'),
+                  ),
+                  Align(
+                    alignment: const Alignment(0.0, -0.7),
+                    child: FractionallySizedBox(
+                      heightFactor: 0.2,
+                      widthFactor: 0.8,
+                      child: AutoSizeText(
+                        gameName[gameIndex],
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(fontSize: 100),
                       ),
                     ),
-                  );
-                },
+                  ),
+                  Align(
+                    alignment: const Alignment(0.0, 0.7),
+                    child: FractionallySizedBox(
+                      widthFactor: 0.885,
+                      child: Image.asset(
+                        gameImagePaths[gameIndex],
+                        fit: BoxFit.fitWidth,
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
           ),

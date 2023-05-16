@@ -212,32 +212,38 @@ class _LoginPageState extends State<LoginPage> {
                   children: [
                     Expanded(
                       flex: 2,
-                      child: Image.asset(
-                        'assets/login_page/login_id.png',
-                        fit: BoxFit.contain,
+                      child: Center(
+                        child: Image.asset(
+                          'assets/login_page/login_id.png',
+                          fit: BoxFit.contain,
+                        ),
                       ),
                     ),
                     const Expanded(
                       flex: 4,
-                      child: AutoSizeText(
-                        '使用者編號',
-                        maxLines: 1,
-                        style: TextStyle(fontSize: 100),
+                      child: Center(
+                        child: AutoSizeText(
+                          '使用者編號',
+                          maxLines: 1,
+                          style: TextStyle(fontSize: 100),
+                        ),
                       ),
                     ),
                     Expanded(
                       flex: 6,
-                      child: TextFormField(
-                        enabled: !_loginTutorial.isTutorial,
-                        decoration: inputDecoration.copyWith(
-                          hintText: '輸入編號',
-                          contentPadding:
-                              const EdgeInsets.symmetric(horizontal: 8.0),
+                      child: Center(
+                        child: TextFormField(
+                          enabled: !_loginTutorial.isTutorial,
+                          decoration: inputDecoration.copyWith(
+                            hintText: '輸入編號',
+                            contentPadding:
+                                const EdgeInsets.symmetric(horizontal: 8.0),
+                          ),
+                          validator: (val) => val!.isEmpty ? '不可為空' : null,
+                          onChanged: (val) {
+                            userId = val;
+                          },
                         ),
-                        validator: (val) => val!.isEmpty ? '不可為空' : null,
-                        onChanged: (val) {
-                          userId = val;
-                        },
                       ),
                     ),
                   ],

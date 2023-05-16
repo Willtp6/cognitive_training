@@ -28,6 +28,7 @@ class LotteryGame {
     'assets/lottery_game_scene/BuyLotteryTickets.png',
     'assets/lottery_game_scene/BuyLotter.png',
   ];
+
   final String imagePathWin = 'assets/lottery_game_scene/BuyLotter_win.png';
   final String imagePathLose = 'assets/lottery_game_scene/BuyLotter_lose.png';
   final List<String> gameRules = [

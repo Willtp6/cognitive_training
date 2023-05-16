@@ -4,9 +4,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cognitive_training/firebase/record_game.dart';
 import 'package:cognitive_training/models/user_info_provider.dart';
 import 'package:cognitive_training/screens/gmaes/lottery_game/lottery_game.dart';
-import 'package:cognitive_training/screens/gmaes/lottery_game/lottery_game_menu.dart';
-import 'package:cognitive_training/screens/gmaes/poker_game/poker_game_instance.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:audioplayers/audioplayers.dart';
@@ -33,16 +30,18 @@ class LotteryGameScene extends StatefulWidget {
 }
 
 class _LotteryGameSceneState extends State<LotteryGameScene>
-    with SingleTickerProviderStateMixin {
+    with TickerProviderStateMixin {
   Timer? mytimer;
   static final formKey = GlobalKey<FormState>();
 
-  AudioPlayer? player;
+  AudioPlayer player = AudioPlayer();
+  bool isPlaying = false;
 
   late UserInfoProvider userInfoProvider;
   var logger = Logger(printer: PrettyPrinter());
 
   late final LotteryGame game;
+  late AnimationController _controller;
 
   @override
   void initState() {
@@ -52,6 +51,11 @@ class _LotteryGameSceneState extends State<LotteryGameScene>
       gameLevel: widget.startLevel,
       numberOfDigits: widget.startDigit,
       isTutorial: widget.isTutorial,
+    );
+
+    _controller = AnimationController(
+      duration: const Duration(seconds: 2),
+      vsync: this,
     );
 
     Future.delayed(Duration.zero, () {
@@ -65,20 +69,35 @@ class _LotteryGameSceneState extends State<LotteryGameScene>
 
   @override
   void dispose() {
+    _controller.dispose();
     mytimer?.cancel();
-    player?.dispose();
+    player.dispose();
     super.dispose();
   }
 
   void _playPathSound(String path) async {
-    player = AudioPlayer();
-    await player!.play(AssetSource('lottery_game_sound/$path'));
+    await player.play(AssetSource('lottery_game_sound/$path'));
+  }
+
+  void _playInstruction() async {
+    String path = 'instruction_record/chinese/lottery_game/rule_level_1.m4a';
+    isPlaying = true;
+    await player.play(AssetSource(path));
+    Future.delayed(await player.getDuration() ?? const Duration(seconds: 3),
+        () {
+      Future.delayed(const Duration(milliseconds: 100), () {
+        player.release();
+        setState(() {
+          isPlaying = false;
+        });
+      });
+    });
   }
 
   void _playNumberSound() async {
     if (game.currentIndex < game.numberOfDigits) {
-      player = AudioPlayer();
-      await player!.play(AssetSource(
+      //player = AudioPlayer();
+      await player.play(AssetSource(
           'lottery_game_sound/${game.numArray[game.currentIndex].toString()}.mp3'));
       setState(() {
         game.showNumber = game.numArray[game.currentIndex].toString();
@@ -93,113 +112,6 @@ class _LotteryGameSceneState extends State<LotteryGameScene>
     }
     game.currentIndex++;
   }
-
-  List<Alignment> starPosition = [
-    const Alignment(-1.0, -0.4),
-    const Alignment(-0.5, -0.8),
-    const Alignment(0.0, -1.0),
-    const Alignment(0.5, -0.8),
-    const Alignment(1.0, -0.4),
-  ];
-  String starLight = 'assets/lottery_game_scene/star_light.png';
-  String starDark = 'assets/lottery_game_scene/star_dark.png';
-
-  List<AutoSizeText> rules = [
-    const AutoSizeText.rich(
-      softWrap: true,
-      maxLines: 2,
-      TextSpan(
-        children: [
-          TextSpan(
-              text: '請把出現的',
-              style: TextStyle(color: Colors.black, fontSize: 50)),
-          TextSpan(
-              text: '所有數字', style: TextStyle(color: Colors.red, fontSize: 50)),
-          TextSpan(
-              text: '記下來！',
-              style: TextStyle(color: Colors.black, fontSize: 50)),
-        ],
-      ),
-    ),
-    const AutoSizeText.rich(
-      softWrap: true,
-      maxLines: 2,
-      TextSpan(
-        children: [
-          TextSpan(
-              text: '請把「', style: TextStyle(color: Colors.black, fontSize: 50)),
-          TextSpan(
-              text: '聽到', style: TextStyle(color: Colors.red, fontSize: 50)),
-          TextSpan(
-              text: '」的所有數字記下來！',
-              style: TextStyle(color: Colors.black, fontSize: 50)),
-        ],
-      ),
-    ),
-    const AutoSizeText.rich(
-      softWrap: true,
-      maxLines: 2,
-      TextSpan(
-        children: [
-          TextSpan(
-              text: '請「', style: TextStyle(color: Colors.black, fontSize: 50)),
-          TextSpan(
-              text: '按照順序', style: TextStyle(color: Colors.red, fontSize: 50)),
-          TextSpan(
-              text: '」把所有數字記下來！',
-              style: TextStyle(color: Colors.black, fontSize: 50)),
-        ],
-      ),
-    ),
-    const AutoSizeText.rich(
-      softWrap: true,
-      maxLines: 2,
-      TextSpan(
-        children: [
-          TextSpan(
-              text: '請將所有數字由「',
-              style: TextStyle(color: Colors.black, fontSize: 50)),
-          TextSpan(
-              text: '小到大排列', style: TextStyle(color: Colors.red, fontSize: 50)),
-          TextSpan(
-              text: '」記下來！',
-              style: TextStyle(color: Colors.black, fontSize: 50)),
-        ],
-      ),
-    ),
-    const AutoSizeText.rich(
-      softWrap: true,
-      maxLines: 2,
-      TextSpan(
-        children: [
-          TextSpan(
-              text: '請將所有的「',
-              style: TextStyle(color: Colors.black, fontSize: 50)),
-          TextSpan(
-              text: '單數', style: TextStyle(color: Colors.red, fontSize: 50)),
-          TextSpan(
-              text: '」記下來！',
-              style: TextStyle(color: Colors.black, fontSize: 50)),
-        ],
-      ),
-    ),
-    const AutoSizeText.rich(
-      softWrap: true,
-      maxLines: 2,
-      TextSpan(
-        children: [
-          TextSpan(
-              text: '請將所有的「',
-              style: TextStyle(color: Colors.black, fontSize: 50)),
-          TextSpan(
-              text: '雙數', style: TextStyle(color: Colors.red, fontSize: 50)),
-          TextSpan(
-              text: '」記下來！',
-              style: TextStyle(color: Colors.black, fontSize: 50)),
-        ],
-      ),
-    ),
-  ];
 
   void startTimer() {
     mytimer = Timer.periodic(const Duration(seconds: 2), (timer) {
@@ -228,8 +140,7 @@ class _LotteryGameSceneState extends State<LotteryGameScene>
         case 0:
           game.setArrays(1, 49);
           logger.d(game.numArray);
-          // ignore: todo
-          //TODO will add audio to play game rule
+          _playInstruction();
           break;
         case 1:
           startTimer();
@@ -240,22 +151,29 @@ class _LotteryGameSceneState extends State<LotteryGameScene>
         case 3:
           game.end = DateTime.now();
           game.record();
-          Timer(const Duration(seconds: 5), () {
+          Future.delayed(const Duration(milliseconds: 100), () {});
+          Future.delayed(const Duration(seconds: 2, milliseconds: 500), () {
             setState(() {
               game.changeCurrentImage();
+              _controller.reset();
+            });
+          });
+          _controller.forward();
+          Future.delayed(const Duration(seconds: 1, milliseconds: 300), () {
+            setState(() {
+              userInfoProvider.coins -= 200;
             });
           });
           break;
         case 4:
-          userInfoProvider.coins -= 200;
-          Timer(const Duration(seconds: 2), () {
+          Future.delayed(const Duration(seconds: 2), () {
             setState(() {
               game.changeCurrentImage();
             });
           });
           break;
         case 5:
-          Timer(const Duration(milliseconds: 250), () {
+          Future.delayed(const Duration(milliseconds: 250), () {
             if (game.playerWin) {
               userInfoProvider.coins += game.gameReward;
               _playPathSound("Applause.mp3");
@@ -270,7 +188,8 @@ class _LotteryGameSceneState extends State<LotteryGameScene>
               currentLevel: game.gameLevel,
               currentDigit: game.numberOfDigits,
               doneTutorial: userInfoProvider.lotteryGameDatabase.doneTutorial);
-          Timer(const Duration(seconds: 2), () => _showGameEndDialog());
+          Future.delayed(
+              const Duration(seconds: 2), () => _showGameEndDialog());
           break;
       }
     }
@@ -329,117 +248,189 @@ class _LotteryGameSceneState extends State<LotteryGameScene>
       },
       child: Scaffold(
         resizeToAvoidBottomInset: true,
-        body: Stack(
-          children: [
-            Container(
-              decoration: BoxDecoration(
-                image: DecorationImage(
-                  image: AssetImage(game.currentImagePath),
-                  fit: BoxFit.fill,
-                ),
-              ),
+        body: Container(
+          decoration: BoxDecoration(
+            image: DecorationImage(
+              image: AssetImage(game.currentImagePath),
+              fit: BoxFit.fill,
             ),
-            Row(
-              children: [
-                Expanded(
-                  flex: 1,
-                  child: LayoutBuilder(builder: (context, boxConstraints) {
-                    return Align(
-                      alignment: Alignment.topLeft,
-                      child: ElevatedButton(
-                        onPressed: () {
-                          game.isPaused = true;
-                          _showAlertDialog();
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.pink,
-                          shape: const CircleBorder(),
+          ),
+          child: Stack(
+            children: [
+              Align(
+                alignment: const Alignment(-0.95, -0.9),
+                child: FractionallySizedBox(
+                  widthFactor: 0.5 * 1 / 7,
+                  child: AspectRatio(
+                    aspectRatio: 1,
+                    child: GestureDetector(
+                      onTap: () {
+                        game.isPaused = true;
+                        _showAlertDialog();
+                      },
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Colors.pink,
+                          border: Border.all(color: Colors.black, width: 1),
+                          shape: BoxShape.circle,
                         ),
-                        child: Icon(
-                          Icons.cancel,
-                          size: boxConstraints.maxWidth * 0.5,
+                        child: FractionallySizedBox(
+                          heightFactor: 0.8,
+                          widthFactor: 0.8,
+                          child: LayoutBuilder(builder: (BuildContext context,
+                              BoxConstraints constraints) {
+                            double iconSize = constraints.maxWidth;
+                            return Icon(
+                              Icons.cancel,
+                              color: Colors.white,
+                              size: iconSize,
+                            );
+                          }),
                         ),
                       ),
-                    );
-                  }),
-                ),
-                //input form
-                Expanded(
-                  flex: 5,
-                  child: Stack(
-                    children: [
-                      ShowNumber(number: game.showNumber),
-                      _getRules(),
-                      if (game.gameProgress == 2) _getForm(),
-                      if (game.gameProgress == 3) ...[
-                        // add animation about spend money
-                        // left part image
-                        // right part -200 text (red)
-                        const MoneyAnimation(),
-                        // Align(
-                        //   alignment: const Alignment(0.05, -0.95),
-                        //   child: FractionallySizedBox(
-                        //     widthFactor: 0.15,
-                        //     heightFactor: 0.1,
-                        //     child: Consumer<UserInfoProvider>(
-                        //       builder: (context, value, child) {
-                        //         return AutoSizeText(
-                        //           value.coins.toString(),
-                        //           style: const TextStyle(
-                        //             color: Colors.white,
-                        //             fontSize: 100,
-                        //           ),
-                        //         );
-                        //       },
-                        //     ),
-                        //   ),
-                        // )
-                      ],
-                    ],
+                    ),
                   ),
                 ),
-                // continue button
-                Flexible(
-                    flex: 1,
-                    child: LayoutBuilder(
-                      builder: (buildContext, boxConstraints) {
-                        return Align(
-                          alignment: Alignment.centerRight,
-                          child: Opacity(
-                            opacity: game.gameProgress == 2 ? 1 : 0,
-                            child: Container(
-                              height: boxConstraints.maxWidth * 0.5,
-                              width: boxConstraints.maxWidth * 0.5,
-                              decoration: BoxDecoration(
-                                image: const DecorationImage(
-                                  image: AssetImage(
-                                      'assets/global/checkButton.png'),
-                                ),
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              child: GestureDetector(
-                                onTap: game.disableButton
-                                    ? null
-                                    : () {
-                                        if (!game.disableButton &&
-                                            (game.gameProgress == 2)) {
-                                          if (game.gameProgress == 2) {
-                                            game.getResult();
-                                          }
-                                          setState(() {
-                                            game.changeCurrentImage();
-                                          });
-                                        }
-                                      },
+              ),
+              ShowNumber(number: game.showNumber),
+              Align(
+                alignment: Alignment.center,
+                child: FractionallySizedBox(
+                  widthFactor: 5 / 7,
+                  child: _getRules(),
+                ),
+              ),
+              if (game.gameProgress == 2)
+                Align(
+                  alignment: Alignment.center,
+                  child: FractionallySizedBox(
+                    widthFactor: 5 / 7,
+                    child: _getForm(),
+                  ),
+                ),
+              Align(
+                alignment: const Alignment(0.05, -0.95),
+                child: FractionallySizedBox(
+                  widthFactor: 0.12,
+                  heightFactor: 0.1,
+                  child: Consumer<UserInfoProvider>(
+                    builder: (context, value, child) {
+                      return AutoSizeText(
+                        value.coins.toString(),
+                        textAlign: TextAlign.right,
+                        style: TextStyle(
+                          color: Colors.white
+                              .withOpacity(game.gameProgress == 3 ? 1 : 0),
+                          fontSize: 100,
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ),
+              FadeTransition(
+                opacity: Tween(begin: 0.0, end: 1.0)
+                    .chain(CurveTween(curve: const Interval(0.0, 0.4)))
+                    .animate(_controller),
+                child: FadeTransition(
+                  opacity: Tween(begin: 1.0, end: 0.0)
+                      .chain(CurveTween(curve: const Interval(0.6, 1.0)))
+                      .animate(_controller),
+                  child: SlideTransition(
+                    position: Tween(
+                            begin: const Offset(2.0, 1.0),
+                            end: const Offset(2.0, 0.0))
+                        .chain(CurveTween(curve: const Interval(0.0, 0.4)))
+                        .animate(_controller),
+                    child: SlideTransition(
+                      position: Tween(
+                              begin: const Offset(2.0, 0.0),
+                              end: const Offset(2.0, -2.0))
+                          .chain(CurveTween(curve: const Interval(0.6, 1.0)))
+                          .animate(_controller),
+                      child: const FractionallySizedBox(
+                        widthFactor: 0.15,
+                        heightFactor: 0.1,
+                        child: AutoSizeText(
+                          '-200',
+                          style: TextStyle(
+                            color: Colors.red,
+                            fontSize: 100,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              FadeTransition(
+                opacity: Tween(begin: 0.0, end: 1.0)
+                    .chain(CurveTween(curve: const Interval(0.0, 0.4)))
+                    .animate(_controller),
+                child: FadeTransition(
+                  opacity: Tween(begin: 1.0, end: 0.0)
+                      .chain(CurveTween(curve: const Interval(0.6, 1.0)))
+                      .animate(_controller),
+                  child: SlideTransition(
+                    position: Tween(
+                            begin: const Offset(0.0, 0.5),
+                            end: const Offset(0.0, 0.3))
+                        .chain(CurveTween(curve: const Interval(0.0, 0.4)))
+                        .animate(_controller),
+                    child: SlideTransition(
+                      position: Tween(
+                              begin: const Offset(0.0, 0.3),
+                              end: const Offset(0.0, -0.3))
+                          .chain(CurveTween(curve: const Interval(0.6, 1.0)))
+                          .animate(_controller),
+                      child: FractionallySizedBox(
+                        widthFactor: 0.3,
+                        child: AspectRatio(
+                          aspectRatio: 902 / 710,
+                          child: Image.asset(
+                              'assets/lottery_game_scene/SpendMoney.png'),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              Align(
+                alignment: Alignment.centerRight,
+                child: FractionallySizedBox(
+                  widthFactor: 1 / 7,
+                  child: game.gameProgress == 2 || game.gameProgress == 3
+                      ? GestureDetector(
+                          onTap: game.disableButton
+                              ? null
+                              : game.gameProgress == 3
+                                  ? () {
+                                      _controller.forward();
+                                    }
+                                  : () {
+                                      game.getResult();
+                                      setState(() {
+                                        game.changeCurrentImage();
+                                      });
+                                    },
+                          child: Align(
+                            alignment: const Alignment(0.9, 0.0),
+                            child: FractionallySizedBox(
+                              widthFactor: 0.5,
+                              child: AspectRatio(
+                                aspectRatio: 1,
+                                child: Image.asset(
+                                    'assets/global/checkButton.png'),
+                                //child: Placeholder(),
                               ),
                             ),
                           ),
-                        );
-                      },
-                    )),
-              ],
-            ),
-          ],
+                        )
+                      : Container(),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -501,7 +492,6 @@ class _LotteryGameSceneState extends State<LotteryGameScene>
                                   for (int i = 1; i <= 49; i++) ...[
                                     InkWell(
                                       onTap: () {
-                                        logger.d('$i');
                                         _playPathSound('$i.mp3');
                                         setState(() {
                                           if (game.numOfChosen ==
@@ -712,93 +702,201 @@ class _LotteryGameSceneState extends State<LotteryGameScene>
     );
   }
 
-  Widget _getRules() {
+  AnimatedOpacity _getRules() {
+    List<Alignment> starPosition = [
+      const Alignment(-1.0, -0.5),
+      const Alignment(-0.5, -0.85),
+      const Alignment(0.0, -1.0),
+      const Alignment(0.5, -0.85),
+      const Alignment(1.0, -0.5),
+    ];
+    String starLight = 'assets/lottery_game_scene/star_light.png';
+    String starDark = 'assets/lottery_game_scene/star_dark.png';
+    List<AutoSizeText> rules = [
+      const AutoSizeText.rich(
+        TextSpan(
+          children: [
+            TextSpan(text: '請把出現的', style: TextStyle(color: Colors.black)),
+            TextSpan(text: '所有數字', style: TextStyle(color: Colors.red)),
+            TextSpan(text: '記下來！', style: TextStyle(color: Colors.black)),
+          ],
+        ),
+        softWrap: true,
+        maxLines: 2,
+        style: TextStyle(fontSize: 50),
+      ),
+      const AutoSizeText.rich(
+        TextSpan(
+          children: [
+            TextSpan(text: '請把「', style: TextStyle(color: Colors.black)),
+            TextSpan(text: '聽到', style: TextStyle(color: Colors.red)),
+            TextSpan(text: '」的所有數字記下來！', style: TextStyle(color: Colors.black)),
+          ],
+        ),
+        softWrap: true,
+        maxLines: 2,
+        style: TextStyle(fontSize: 50),
+      ),
+      const AutoSizeText.rich(
+        TextSpan(
+          children: [
+            TextSpan(text: '請「', style: TextStyle(color: Colors.black)),
+            TextSpan(text: '按照順序', style: TextStyle(color: Colors.red)),
+            TextSpan(text: '」把所有數字記下來！', style: TextStyle(color: Colors.black)),
+          ],
+        ),
+        softWrap: true,
+        maxLines: 2,
+        style: TextStyle(fontSize: 50),
+      ),
+      const AutoSizeText.rich(
+        TextSpan(
+          children: [
+            TextSpan(text: '請將所有數字由「', style: TextStyle(color: Colors.black)),
+            TextSpan(text: '小到大排列', style: TextStyle(color: Colors.red)),
+            TextSpan(text: '」記下來！', style: TextStyle(color: Colors.black)),
+          ],
+        ),
+        softWrap: true,
+        maxLines: 2,
+        style: TextStyle(fontSize: 50),
+      ),
+      const AutoSizeText.rich(
+        TextSpan(
+          children: [
+            TextSpan(text: '請將所有的「', style: TextStyle(color: Colors.black)),
+            TextSpan(text: '單數', style: TextStyle(color: Colors.red)),
+            TextSpan(text: '」記下來！', style: TextStyle(color: Colors.black)),
+          ],
+        ),
+        softWrap: true,
+        maxLines: 2,
+        style: TextStyle(fontSize: 50),
+      ),
+      const AutoSizeText.rich(
+        TextSpan(
+          children: [
+            TextSpan(text: '請將所有的「', style: TextStyle(color: Colors.black)),
+            TextSpan(text: '雙數', style: TextStyle(color: Colors.red)),
+            TextSpan(text: '」記下來！', style: TextStyle(color: Colors.black)),
+          ],
+        ),
+        softWrap: true,
+        maxLines: 2,
+        style: TextStyle(fontSize: 50),
+      ),
+    ];
+
     return AnimatedOpacity(
       opacity: game.gameProgress == 0 ? 1.0 : 0.0,
       duration: const Duration(milliseconds: 300),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: [
-          Expanded(
-            flex: 4,
-            child: Padding(
+      child: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Stack(
+          children: [
+            Container(
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.9),
+                border: Border.all(
+                  color: Colors.purple,
+                  width: 5,
+                ),
+                borderRadius: const BorderRadius.all(
+                  Radius.circular(30),
+                ),
+              ),
+            ),
+            for (int i = 0; i < 5; i++) ...[
+              Align(
+                alignment: starPosition[i],
+                child: FractionallySizedBox(
+                  heightFactor: 0.35,
+                  child: AspectRatio(
+                    aspectRatio: 1,
+                    child: Transform.rotate(
+                      angle: -pi / 3 + pi * Random().nextDouble(),
+                      child: Image.asset(
+                          i <= game.gameLevel ? starLight : starDark),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+            Align(
+              alignment: const Alignment(0.0, 0.3),
+              child: FractionallySizedBox(
+                widthFactor: 0.6,
+                heightFactor: 0.4,
+                child: Center(child: rules[game.gameLevel]),
+              ),
+            ),
+            Padding(
               padding: const EdgeInsets.all(8.0),
-              child: Stack(
-                children: [
-                  Container(
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.9),
-                      border: Border.all(
-                        color: Colors.purple,
-                        width: 5,
-                      ),
-                      borderRadius: const BorderRadius.all(
-                        Radius.circular(30),
-                      ),
-                    ),
-                  ),
-                  for (int i = 0; i < 5; i++) ...[
-                    Align(
-                      alignment: starPosition[i],
-                      child: FractionallySizedBox(
-                        widthFactor: 0.2,
-                        heightFactor: 0.4,
-                        child: Transform.rotate(
-                            angle: -pi / 3 + pi * i,
-                            child: Image.asset(
-                                i <= game.gameLevel ? starLight : starDark)),
-                      ),
-                    ),
-                  ],
-                  Align(
-                    alignment: const Alignment(0.0, 0.3),
-                    child: FractionallySizedBox(
-                      widthFactor: 0.6,
-                      heightFactor: 0.3,
-                      child: Center(child: rules[game.gameLevel]),
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Align(
-                      alignment: const Alignment(0.0, 1.0),
-                      child: FractionallySizedBox(
-                        widthFactor: 0.3,
-                        heightFactor: 0.2,
-                        child: GestureDetector(
-                          onTap: () {
-                            Logger().i('tap');
+              child: Align(
+                alignment: const Alignment(0.5, 1.0),
+                child: FractionallySizedBox(
+                  widthFactor: 0.25,
+                  heightFactor: 0.15,
+                  child: GestureDetector(
+                    onTap: isPlaying
+                        ? null
+                        : () {
                             setState(() {
                               game.changeCurrentImage();
                             });
                           },
+                    child: Image.asset(
+                      'assets/lottery_game_scene/start_button.png',
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Align(
+                alignment: const Alignment(-0.5, 1.0),
+                child: FractionallySizedBox(
+                  widthFactor: 0.25,
+                  heightFactor: 0.15,
+                  child: GestureDetector(
+                    onTap: isPlaying
+                        ? null
+                        : () {
+                            setState(() {
+                              _playInstruction();
+                            });
+                          },
+                    child: Stack(
+                      children: [
+                        Center(
                           child: Image.asset(
-                            'assets/lottery_game_scene/start_button.png',
+                            'assets/global/continue_button.png',
                           ),
                         ),
-                      ),
+                        const Center(
+                          child: FractionallySizedBox(
+                            heightFactor: 0.7,
+                            widthFactor: 0.7,
+                            child: Center(
+                              child: AutoSizeText(
+                                '再聽一次',
+                                style: TextStyle(
+                                    fontFamily: 'GSR_B',
+                                    fontSize: 100,
+                                    color: Colors.white),
+                              ),
+                            ),
+                          ),
+                        )
+                      ],
                     ),
-                  )
-                ],
+                  ),
+                ),
               ),
-            ),
-          ),
-          /*Flexible(
-            flex: 1,
-            child: ElevatedButton(
-              onPressed: () {
-                // ignore: todo
-                // TODO add audios
-              },
-              child: const AutoSizeText(
-                '再聽一次',
-                style:
-                    TextStyle(fontSize: 30, fontFamily: 'NotoSansTC_Regular'),
-                maxLines: 1,
-              ),
-            ),
-          ),*/
-        ],
+            )
+          ],
+        ),
       ),
     );
   }
@@ -815,7 +913,7 @@ class ShowNumber extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Align(
-      alignment: const Alignment(0.7, -0.5),
+      alignment: const Alignment(0.35, -0.55),
       child: AnimatedOpacity(
         opacity: number != '' ? 1.0 : 0.0,
         duration: const Duration(
@@ -840,57 +938,6 @@ class ShowNumber extends StatelessWidget {
           ),
         ),
       ),
-    );
-  }
-}
-
-class MoneyAnimation extends StatefulWidget {
-  const MoneyAnimation({super.key});
-
-  @override
-  State<MoneyAnimation> createState() => _MoneyAnimationState();
-}
-
-class _MoneyAnimationState extends State<MoneyAnimation>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller =
-        AnimationController(duration: const Duration(seconds: 2), vsync: this);
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        Align(
-          alignment: const Alignment(0.05, -0.95),
-          child: FractionallySizedBox(
-            widthFactor: 0.15,
-            heightFactor: 0.1,
-            child: Consumer<UserInfoProvider>(
-              builder: (context, value, child) {
-                return AutoSizeText(
-                  value.coins.toString(),
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 100,
-                  ),
-                );
-              },
-            ),
-          ),
-        ),
-      ],
     );
   }
 }
