@@ -139,8 +139,8 @@ class _LotteryGameMenu extends State<LotteryGameMenu>
                                 }
                               });
                             },
-                            child: buttonWithText('新遊戲', Alignment.bottomRight,
-                                Alignment.centerRight),
+                            child: buttonWithText(
+                                '新遊戲', Alignment.center, Alignment.center),
                           ),
                         ),
                       ),
@@ -177,8 +177,8 @@ class _LotteryGameMenu extends State<LotteryGameMenu>
                                 }
                               });
                             },
-                            child: buttonWithText('繼續遊戲', Alignment.bottomLeft,
-                                Alignment.centerLeft),
+                            child: buttonWithText(
+                                '繼續遊戲', Alignment.center, Alignment.center),
                           ),
                         ),
                       ),
@@ -203,8 +203,8 @@ class _LotteryGameMenu extends State<LotteryGameMenu>
                                 }
                               });
                             },
-                            child: buttonWithText('教學模式', Alignment.topRight,
-                                Alignment.centerRight),
+                            child: buttonWithText(
+                                '教學模式', Alignment.center, Alignment.center),
                           ),
                         ),
                       ),
@@ -222,7 +222,7 @@ class _LotteryGameMenu extends State<LotteryGameMenu>
                               GoRouter.of(context).pop();
                             },
                             child: buttonWithText(
-                                '返回', Alignment.topLeft, Alignment.centerLeft),
+                                '返回', Alignment.center, Alignment.center),
                           ),
                         ),
                       ),

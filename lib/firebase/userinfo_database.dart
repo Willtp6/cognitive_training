@@ -32,6 +32,7 @@ class UserDatabaseService {
       'weeklyRewardCycle': List.generate(4, (index) => false),
       'cycleStartDay': DateTime.now(),
       'accumulatePlayTime': List.generate(7, (index) => 0),
+      'currentWeek': 0,
     });
   }
 }

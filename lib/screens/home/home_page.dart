@@ -1,3 +1,4 @@
+import 'package:audioplayers/audioplayers.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cognitive_training/models/user_checkin_provider.dart';
@@ -10,6 +11,7 @@ import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:logger/logger.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -19,29 +21,17 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  @override
-  void initState() {
-    super.initState();
-    SystemChrome.setPreferredOrientations([
-      DeviceOrientation.landscapeLeft,
-      DeviceOrientation.landscapeRight,
-    ]);
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
-  }
-
   final AuthService _authService = AuthService();
   final HomeTutorial _homeTutorial = HomeTutorial();
   late UserInfoProvider userInfoProvider;
   late UserCheckinProvider userCheckinProvider;
+  AudioPlayer player = AudioPlayer();
+  final Future<SharedPreferences> _prefs = SharedPreferences.getInstance();
 
   List<bool> isChosen = [false, false, false, false];
   List<double> xPositions = [-0.95, -0.3166, 0.3166, 0.95];
   int? chosenGame = 0;
-  String chosenLanguage = '中文';
+  String chosenLanguage = '國語';
   List<String> gameImagePaths = [
     'assets/home_page/choosing_game_lottery.png',
     'assets/home_page/choosing_game_fishing.png',
@@ -74,6 +64,34 @@ class _HomePageState extends State<HomePage> {
     '/home/route_game_menu',
   ];
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+
+  @override
+  void initState() {
+    super.initState();
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.landscapeLeft,
+      DeviceOrientation.landscapeRight,
+    ]);
+    setLanguage();
+  }
+
+  @override
+  void dispose() {
+    player.dispose();
+    super.dispose();
+  }
+
+  void setLanguage() async {
+    chosenLanguage = await _prefs.then((SharedPreferences prefs) {
+      return prefs.getString('chosenLanguage') ?? '國語';
+    });
+  }
+
+  Future<void> _changeLanguage(String language) async {
+    final SharedPreferences prefs = await _prefs;
+    await prefs.setString('chosenLanguage', language);
+    Logger().i(prefs.getString('chosenLanguage'));
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -159,7 +177,7 @@ class _HomePageState extends State<HomePage> {
               trailing: DropdownButton(
                 value: chosenLanguage,
                 items: <String>[
-                  '中文',
+                  '國語',
                   '台語',
                 ].map<DropdownMenuItem<String>>((String value) {
                   return DropdownMenuItem<String>(
@@ -173,6 +191,8 @@ class _HomePageState extends State<HomePage> {
                 onChanged: (value) {
                   setState(() {
                     chosenLanguage = value!;
+                    Logger().i(value.toString());
+                    _changeLanguage(value.toString());
                   });
                 },
               ),
@@ -249,7 +269,7 @@ class _HomePageState extends State<HomePage> {
               Expanded(
                 child: Center(
                   child: Padding(
-                    padding: const EdgeInsets.all(8.0),
+                    padding: const EdgeInsets.all(2.0),
                     child: FittedBox(
                       fit: BoxFit.fitHeight,
                       child: IconButton(
@@ -268,31 +288,52 @@ class _HomePageState extends State<HomePage> {
               ),
               // chceckin reward page
               Expanded(
-                child: Center(
-                  child: Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: FittedBox(
-                      fit: BoxFit.fitHeight,
-                      child: Consumer2<UserInfoProvider, UserCheckinProvider>(
-                          builder:
-                              (context, infoProvider, checkinProvider, child) {
-                        return IconButton(
-                          iconSize: 100,
-                          onPressed: () {
-                            GoRouter.of(context).push('/home/reward');
-                          },
-                          icon: Icon(
-                            Icons.calendar_today_outlined,
-                            color: checkinProvider.haveCheckinReward ||
-                                    checkinProvider.haveAccumulatePlayReward
-                                ? Colors.amber
-                                : Colors.black,
+                child: Consumer2<UserInfoProvider, UserCheckinProvider>(
+                    builder: (context, infoProvider, checkinProvider, child) {
+                  return Padding(
+                    padding: const EdgeInsets.all(2.0),
+                    child: Stack(
+                      children: [
+                        Center(
+                          child: FittedBox(
+                            fit: BoxFit.fitHeight,
+                            child: IconButton(
+                              iconSize: 100,
+                              onPressed: () {
+                                GoRouter.of(context).push('/home/reward');
+                              },
+                              icon: Icon(
+                                Icons.calendar_today_outlined,
+                                color: checkinProvider.haveCheckinReward ||
+                                        checkinProvider.haveAccumulatePlayReward
+                                    ? Colors.amber
+                                    : Colors.black,
+                              ),
+                            ),
                           ),
-                        );
-                      }),
+                        ),
+                        Center(
+                          child: IgnorePointer(
+                            child: FractionallySizedBox(
+                              child: AutoSizeText(
+                                '!',
+                                style: TextStyle(
+                                  fontSize: 100,
+                                  color: Colors.red.withOpacity(
+                                      checkinProvider.haveCheckinReward ||
+                                              checkinProvider
+                                                  .haveAccumulatePlayReward
+                                          ? 1
+                                          : 0),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                  ),
-                ),
+                  );
+                }),
               ),
             ],
           ),
@@ -455,8 +496,12 @@ class _HomePageState extends State<HomePage> {
               _homeTutorial.tutorialProgress++;
               if (_homeTutorial.tutorialProgress == 1) {
                 chosenGame = 0;
+                player.play(AssetSource(
+                    'instruction_record/chinese/tutorial/choose_game.m4a'));
               } else if (_homeTutorial.tutorialProgress == 2) {
                 isChosen[0] = true;
+                player.play(AssetSource(
+                    'instruction_record/chinese/tutorial/start_game.m4a'));
               }
             } else {
               Future.delayed(const Duration(milliseconds: 500), () {
@@ -494,7 +539,7 @@ class _HomePageState extends State<HomePage> {
           strokeCap: StrokeCap.round,
           child: GestureDetector(
             onTap: () {
-              if (!_homeTutorial.isTutorial) {
+              if (!_homeTutorial.isTutorial && chosenGame == 0) {
                 String route = gameRoutes[isChosen.indexOf(true)];
                 GoRouter.of(context).push(route);
               }

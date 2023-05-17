@@ -6,7 +6,7 @@ import 'package:logger/logger.dart';
 class UserCheckinProvider extends ChangeNotifier {
   User? _user;
   int _test = 0;
-  int currentWeek = 0;
+  int _currentWeek = 0;
   bool _isReady = false;
   DateTime _cycleStartDay = DateTime.now();
   DateTime _lastLoginTime = DateTime.now();
@@ -43,6 +43,7 @@ class UserCheckinProvider extends ChangeNotifier {
         .get()
         .then((doc) {
       if (doc.exists) {
+        _currentWeek = doc.data()!['currentWeek'];
         _cycleStartDay = doc.data()!['cycleStartDay'].toDate();
         _lastLoginTime = doc.data()!['lastLoginTime'].toDate();
         _loginCycle = doc.data()!['loginCycle'].cast<bool>();
@@ -65,6 +66,17 @@ class UserCheckinProvider extends ChangeNotifier {
   set test(int number) {
     _test = number;
     notifyListeners();
+  }
+
+  int get currentWeek => _currentWeek;
+  set currentWeek(int newWeek) {
+    _currentWeek = newWeek;
+    FirebaseFirestore.instance
+        .collection('user_checkin_info')
+        .doc(_user?.uid)
+        .update({'currentWeek': newWeek}).then((value) {
+      notifyListeners();
+    });
   }
 
   bool get haveCheckinReward => _haveCheckinReward;
@@ -137,7 +149,12 @@ class UserCheckinProvider extends ChangeNotifier {
     // is difference >= 28 is a new 4 week loop reset startday to now
     if (difference >= 28) cycleStartDay = DateTime.now();
     // if difference >= 7 is a new week
-    if (difference >= 7) currentWeek = difference ~/ 7;
+    int newWeek = difference ~/ 7;
+    if (currentWeek != newWeek) {
+      loginCycle = List.generate(7, (index) => false);
+      loginRewardCycle = List.generate(7, (index) => false);
+      currentWeek = newWeek;
+    }
 
     // set the cycle login day to true then check if have reward to get
     _loginCycle[difference.remainder(7)] = true;

@@ -4,6 +4,7 @@ import 'dart:math';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:cognitive_training/firebase/record_game.dart';
 import 'package:cognitive_training/models/user_info_provider.dart';
+import 'package:cognitive_training/screens/login/login_page.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 
@@ -28,16 +29,11 @@ class LotteryGame {
     'assets/lottery_game_scene/BuyLotteryTickets.png',
     'assets/lottery_game_scene/BuyLotter.png',
   ];
+  final String formPath =
+      'assets/lottery_game_scene/NumberInput_withoutWord.png';
 
   final String imagePathWin = 'assets/lottery_game_scene/BuyLotter_win.png';
   final String imagePathLose = 'assets/lottery_game_scene/BuyLotter_lose.png';
-  final List<String> gameRules = [
-    '接下來你會聽到加看到數字，請試著記下所有的數字吧(不用依照順序喔)',
-    'level 2 rule',
-    'level 3 rule',
-    'level 4 rule',
-    'level 5 rule'
-  ];
 
   int gameProgress = 0;
   bool playerWin = false;
@@ -60,6 +56,32 @@ class LotteryGame {
   late bool doneTutorial;
   late List<bool> isChosen;
 
+  String getInstructionAudioPath(String chosenLanguage) {
+    String language = chosenLanguage == '國語' ? 'chinese' : 'taiwanese';
+    //String path = 'instruction_record/${language}/lottery_game';
+    String path =
+        'instruction_record/chinese/lottery_game/rule_level_${gameLevel + 1}';
+    if (gameLevel == 4) {
+      switch (specialRules) {
+        case 0:
+          path = '${path}_even';
+          break;
+        case 1:
+          path = '${path}_max';
+          break;
+        case 2:
+          path = '${path}_min';
+          break;
+        case 3:
+          path = '${path}_odd';
+          break;
+        default:
+      }
+    }
+    path = '$path.m4a';
+    return path;
+  }
+
   void setArrays(int min, int max) {
     Random random = Random();
     Set<int> usedNumbers = {};
@@ -80,24 +102,33 @@ class LotteryGame {
 
   void record() {
     RecordLotteryGame().recordGame(
-        gameLevel: gameLevel,
-        numberOfDigits: numberOfDigits,
-        numOfCorrectAns: numOfCorrectAns,
-        end: end,
-        start: start);
+      gameLevel: gameLevel,
+      numberOfDigits: numberOfDigits,
+      numOfCorrectAns: numOfCorrectAns,
+      end: end,
+      start: start,
+    );
   }
 
   void levelUpgrades() {
-    currentIndex = 0;
-    loseInCurrentDigits = 0;
-    continuousWinInEightDigits = 0;
-    numberOfDigits = 2;
-    gameProgress = 0;
-    gameLevel++;
+    if (gameLevel < 4) {
+      currentIndex = 0;
+      loseInCurrentDigits = 0;
+      continuousWinInEightDigits = 0;
+      numberOfDigits = 2;
+      gameProgress = -1;
+      gameLevel++;
+    }
   }
 
   void randomGenerateRules() {
     specialRules = Random().nextInt(4);
+  }
+
+  void setGame() {
+    if (gameLevel == 4) {
+      randomGenerateRules();
+    }
   }
 
   void getResult() {
@@ -105,7 +136,6 @@ class LotteryGame {
     switch (gameLevel) {
       case 0:
       case 1:
-        Logger().d(numArray);
         for (int i = 0; i < numArray.length; i++) {
           if (isChosen[numArray[i]]) {
             numOfCorrectAns++;
@@ -113,7 +143,17 @@ class LotteryGame {
         }
         break;
       case 2:
+        for (int i = 0; i < numArray.length; i++) {
+          if (numArray[i] == userArray[i]) {
+            Logger().i(numArray[i]);
+            Logger().i(userArray[i]);
+            numOfCorrectAns++;
+          }
+        }
+        break;
       case 3:
+        numArray.sort();
+        userArray.sort();
         for (int i = 0; i < numArray.length; i++) {
           if (numArray[i] == userArray[i]) {
             numOfCorrectAns++;
@@ -121,13 +161,34 @@ class LotteryGame {
         }
         break;
       case 4:
+        int sum = 0;
         switch (specialRules) {
           case 0:
+            //even
+            for (int i = 0; i < numArray.length; i++) {
+              if (numArray[i] % 2 == 0) sum += numArray[i];
+            }
+            break;
           case 1:
+            //max
+            numArray.sort((b, a) => a.compareTo(b));
+            sum = numArray[0] + numArray[1];
+            break;
           case 2:
+            //min
+            numArray.sort();
+            sum = numArray[0] + numArray[1];
+            break;
           case 3:
+            //odd
+            for (int i = 0; i < numArray.length; i++) {
+              if (numArray[i] % 2 == 1) sum += numArray[i];
+            }
+            break;
+          case 4:
             break;
         }
+        if (sum == userArray[0]) numOfCorrectAns = numArray.length;
         break;
       default:
         break;
@@ -174,6 +235,7 @@ class LotteryGame {
         : playerWin
             ? imagePathWin
             : imagePathLose;
+    if (gameLevel >= 2 && gameProgress == 2) currentImagePath = formPath;
   }
 
   void setNextGame() {
