@@ -85,6 +85,7 @@ class _HomePageState extends State<HomePage> {
     chosenLanguage = await _prefs.then((SharedPreferences prefs) {
       return prefs.getString('chosenLanguage') ?? '國語';
     });
+    setState(() {});
   }
 
   Future<void> _changeLanguage(String language) async {
@@ -525,7 +526,6 @@ class _HomePageState extends State<HomePage> {
           : const Alignment(0.5, 3.0),
       duration: const Duration(milliseconds: 300),
       child: FractionallySizedBox(
-        widthFactor: 0.2,
         heightFactor: 0.2,
         child: DottedBorder(
           color: _homeTutorial.tutorialProgress == 2
@@ -537,34 +537,38 @@ class _HomePageState extends State<HomePage> {
           dashPattern: const [8, 4],
           padding: const EdgeInsets.all(1),
           strokeCap: StrokeCap.round,
-          child: GestureDetector(
-            onTap: () {
-              if (!_homeTutorial.isTutorial && chosenGame == 0) {
-                String route = gameRoutes[isChosen.indexOf(true)];
-                GoRouter.of(context).push(route);
-              }
-            },
-            child: Stack(
-              children: [
-                Center(
-                  child: Image.asset('assets/global/continue_button.png'),
-                ),
-                const Center(
-                  child: FractionallySizedBox(
-                    heightFactor: 0.7,
-                    widthFactor: 0.6,
-                    child: FittedBox(
-                      child: Text(
-                        '開始遊戲',
-                        style: TextStyle(
-                          fontFamily: 'GSR_B',
-                          fontSize: 100,
+          child: AspectRatio(
+            aspectRatio: 835 / 353,
+            child: GestureDetector(
+              onTap: () {
+                if (!_homeTutorial.isTutorial && chosenGame == 0) {
+                  String route = gameRoutes[isChosen.indexOf(true)];
+                  GoRouter.of(context).push(route);
+                }
+              },
+              child: Stack(
+                children: [
+                  Center(
+                    child: Image.asset('assets/global/continue_button.png'),
+                  ),
+                  const Center(
+                    child: FractionallySizedBox(
+                      heightFactor: 0.7,
+                      widthFactor: 0.6,
+                      child: FittedBox(
+                        child: Text(
+                          '開始遊戲',
+                          style: TextStyle(
+                            fontFamily: 'GSR_B',
+                            fontSize: 100,
+                            color: Colors.white,
+                          ),
                         ),
                       ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),

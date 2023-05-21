@@ -200,7 +200,7 @@ class _LoginPageState extends State<LoginPage> {
                 color: _loginTutorial.isTutorial &&
                         _loginTutorial.tutorialProgress == 3
                     ? Colors.red
-                    : Colors.white,
+                    : Colors.white.withOpacity(0),
                 borderType: BorderType.RRect,
                 radius: const Radius.circular(10),
                 strokeWidth: 2,
@@ -259,7 +259,7 @@ class _LoginPageState extends State<LoginPage> {
                 color: _loginTutorial.isTutorial &&
                         _loginTutorial.tutorialProgress == 4
                     ? Colors.red
-                    : Colors.white,
+                    : Colors.white.withOpacity(0),
                 borderType: BorderType.RRect,
                 radius: const Radius.circular(10),
                 strokeWidth: 2,
@@ -317,9 +317,9 @@ class _LoginPageState extends State<LoginPage> {
                     setState(() {
                       isLoading = true;
                     });
-                    dynamic result = await _auth.login(userId);
-                    //dynamic result =
-                    //   await _auth.loginOrCreateAccountWithId(userId, userName);
+                    //dynamic result = await _auth.login(userId);
+                    dynamic result = await _auth.loginOrCreateAccountWithId(
+                        userId, userName);
 
                     if (result.runtimeType != String) {
                       String errorMessage;
@@ -343,7 +343,7 @@ class _LoginPageState extends State<LoginPage> {
                   color: _loginTutorial.isTutorial &&
                           _loginTutorial.tutorialProgress == 5
                       ? Colors.red
-                      : Colors.white,
+                      : Colors.white.withOpacity(0),
                   borderType: BorderType.RRect,
                   radius: const Radius.circular(10),
                   strokeWidth: 2,

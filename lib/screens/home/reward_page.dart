@@ -139,7 +139,10 @@ class CheckinRewardState extends State<CheckinReward> {
           Expanded(
             flex: 2,
             child: Center(
-              child: Image.asset(title, scale: 3),
+              child: Image.asset(
+                title,
+                fit: BoxFit.contain,
+              ),
             ),
           ),
           Expanded(
@@ -149,17 +152,17 @@ class CheckinRewardState extends State<CheckinReward> {
               Logger().i(provider.loginCycle);
               Logger().i(provider.loginRewardCycle);
               return Row(
-                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisSize: MainAxisSize.max,
                 children: [
                   for (int i = 0; i < numString.length; i++) ...[
                     if (provider.loginCycle[i] &&
                         provider.loginRewardCycle[i]) ...[
-                      rewardImage(i, rewardTaken: true),
+                      Expanded(child: rewardImage(i, rewardTaken: true)),
                     ] else if (provider.loginCycle[i] &&
                         !provider.loginRewardCycle[i]) ...[
-                      rewardImage(i, haveReward: true),
+                      Expanded(child: rewardImage(i, haveReward: true)),
                     ] else ...[
-                      rewardImage(i),
+                      Expanded(child: rewardImage(i)),
                     ]
                   ]
                 ],
@@ -173,12 +176,13 @@ class CheckinRewardState extends State<CheckinReward> {
 
   Widget rewardImage(int day,
       {bool haveReward = false, bool rewardTaken = false}) {
-    return Expanded(
+    return Column(
       key: ValueKey(day),
-      child: Column(
-        children: [
-          Expanded(
-            flex: 12,
+      children: [
+        Expanded(
+          flex: 12,
+          child: AspectRatio(
+            aspectRatio: 1,
             child: LayoutBuilder(
               builder: (BuildContext buildContext, BoxConstraints constraints) {
                 double minValue =
@@ -191,64 +195,62 @@ class CheckinRewardState extends State<CheckinReward> {
                           checkinProvider.updateRewardStatus(day);
                     }
                   },
-                  child: Center(
-                    child: Stack(
-                      children: [
-                        Opacity(
-                          opacity: haveReward ? 1 : 0.7,
-                          child: Image.asset(
-                            'assets/login_reward/calendar_without_tap.png',
-                            fit: BoxFit.contain,
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      Opacity(
+                        opacity: haveReward ? 1 : 0.7,
+                        child: Image.asset(
+                          'assets/login_reward/calendar_without_tap.png',
+                          fit: BoxFit.contain,
+                        ),
+                      ),
+                      Align(
+                        alignment: const Alignment(0.0, 0.65),
+                        child: FractionallySizedBox(
+                          heightFactor: 0.5,
+                          widthFactor: 0.5,
+                          child: Opacity(
+                            opacity: haveReward ? 1 : 0.3,
+                            child: Image.asset(
+                              'assets/login_reward/coin_without_tap.png',
+                              fit: BoxFit.contain,
+                            ),
                           ),
                         ),
-                        SizedBox(
-                          height: minValue,
-                          width: minValue,
-                          child: Padding(
-                            padding: EdgeInsets.only(
-                              top: minValue * 0.4,
-                              bottom: minValue * 0.1,
-                            ),
-                            child: Opacity(
-                              opacity: haveReward ? 1 : 0.3,
-                              child: Image.asset(
-                                'assets/login_reward/coin_without_tap.png',
-                                fit: BoxFit.contain,
-                              ),
-                            ),
-                            //child: Placeholder(),
-                          ),
-                        ),
-                        if (rewardTaken)
-                          Center(
-                              child: Transform.rotate(
+                      ),
+                      if (rewardTaken)
+                        Center(
+                          child: Transform.rotate(
                             angle: pi / 6,
                             child: Image.asset(
-                                'assets/login_reward/received seal.png'),
-                          ))
-                      ],
-                    ),
+                              'assets/login_reward/received seal.png',
+                              fit: BoxFit.contain,
+                            ),
+                          ),
+                        )
+                    ],
                   ),
                 );
               },
             ),
           ),
-          Expanded(
-            flex: 3,
-            child: Image.asset(
-              dayString[day],
-              fit: BoxFit.contain,
-            ),
+        ),
+        Expanded(
+          flex: 3,
+          child: Image.asset(
+            dayString[day],
+            fit: BoxFit.contain,
           ),
-          Expanded(
-            flex: 3,
-            child: Image.asset(
-              numString[day],
-              fit: BoxFit.contain,
-            ),
+        ),
+        Expanded(
+          flex: 3,
+          child: Image.asset(
+            numString[day],
+            fit: BoxFit.contain,
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }

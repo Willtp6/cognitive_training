@@ -8,8 +8,8 @@ class HomeTutorial {
   int tutorialProgress = 0;
   List<String> tutorialMessage = [
     '我是小幫手，現在要選擇想玩的遊戲!',
-    '點選想玩的遊戲，會出現遊戲的介紹及訓練內容',
-    '最後按下開始遊戲，就可以開始囉!',
+    '點選想玩的遊戲，會出現遊戲的介紹跟訓練的內容',
+    '接著畫面中央會出現開始遊戲，按下去就可以開始囉!',
   ];
   List<String> arrowPath = [
     'assets/home_page/tutorial_left_arrow.png',
@@ -143,6 +143,7 @@ class HomeTutorial {
                         style: TextStyle(
                           fontFamily: 'GSR_B',
                           fontSize: 100,
+                          color: Colors.white,
                         ),
                       ),
                     ),

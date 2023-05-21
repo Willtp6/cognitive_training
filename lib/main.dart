@@ -46,6 +46,7 @@ class MyApp extends StatelessWidget {
         routes: [
           GoRoute(
             path: 'home',
+            name: 'home',
             builder: (context, state) => const HomePage(),
             routes: [
               GoRoute(
@@ -109,6 +110,7 @@ class MyApp extends StatelessWidget {
           ),
           GoRoute(
             path: 'login',
+            name: 'login',
             builder: (context, state) => const LoginPage(),
           ),
         ],
@@ -142,6 +144,7 @@ class Wrapper extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Consumer<User?>(builder: (_, user, child) {
+      Logger().d(user);
       return user != null ? const HomePage() : const LoginPage();
     });
   }

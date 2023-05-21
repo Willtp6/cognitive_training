@@ -31,9 +31,10 @@ class LotteryGame {
   ];
   final String formPath =
       'assets/lottery_game_scene/NumberInput_withoutWord.png';
-
-  final String imagePathWin = 'assets/lottery_game_scene/BuyLotter_win.png';
-  final String imagePathLose = 'assets/lottery_game_scene/BuyLotter_lose.png';
+  final String imagePathWin =
+      'assets/lottery_game_scene/feedback/BuyLotter_win_background.png';
+  final String imagePathLose =
+      'assets/lottery_game_scene/feedback/BuyLotter_lose_background.png';
 
   int gameProgress = 0;
   bool playerWin = false;
@@ -43,13 +44,15 @@ class LotteryGame {
   int numOfChosen = 0;
   int currentIndex = 0;
   int loseInCurrentDigits = 0;
-  int continuousWinInEightDigits = 0;
+  int continuousCorrectRateBiggerThan50 = 0;
   int specialRules = 0;
   String showNumber = '';
   int numOfCorrectAns = 0;
   String currentImagePath = 'assets/lottery_game_scene/Temple2_withoutWord.png';
   List<int> coinReward = [200, 400, 800];
   int gameReward = 0;
+  double correctRate = 0;
+  List<int> maxNumberLength = [4, 5, 7, 7, 7];
 
   late DateTime start;
   late DateTime end;
@@ -58,24 +61,29 @@ class LotteryGame {
 
   String getInstructionAudioPath(String chosenLanguage) {
     String language = chosenLanguage == '國語' ? 'chinese' : 'taiwanese';
-    //String path = 'instruction_record/${language}/lottery_game';
+    Logger().d(chosenLanguage);
+    Logger().d(language);
     String path =
-        'instruction_record/chinese/lottery_game/rule_level_${gameLevel + 1}';
-    if (gameLevel == 4) {
-      switch (specialRules) {
-        case 0:
-          path = '${path}_even';
-          break;
-        case 1:
-          path = '${path}_max';
-          break;
-        case 2:
-          path = '${path}_min';
-          break;
-        case 3:
-          path = '${path}_odd';
-          break;
-        default:
+        'instruction_record/$language/lottery_game/rule_level_${gameLevel + 1}';
+    if (gameProgress == 2) {
+      path = '${path}_sum';
+    } else {
+      if (gameLevel == 4) {
+        switch (specialRules) {
+          case 0:
+            path = '${path}_even';
+            break;
+          case 1:
+            path = '${path}_max';
+            break;
+          case 2:
+            path = '${path}_min';
+            break;
+          case 3:
+            path = '${path}_odd';
+            break;
+          default:
+        }
       }
     }
     path = '$path.m4a';
@@ -112,22 +120,15 @@ class LotteryGame {
 
   void levelUpgrades() {
     if (gameLevel < 4) {
-      currentIndex = 0;
-      loseInCurrentDigits = 0;
-      continuousWinInEightDigits = 0;
       numberOfDigits = 2;
-      gameProgress = -1;
       gameLevel++;
     }
   }
 
-  void randomGenerateRules() {
-    specialRules = Random().nextInt(4);
-  }
-
   void setGame() {
+    // * get special game rule
     if (gameLevel == 4) {
-      randomGenerateRules();
+      specialRules = Random().nextInt(4);
     }
   }
 
@@ -194,7 +195,7 @@ class LotteryGame {
         break;
     }
     // reward is determined by correct rate
-    double correctRate = numOfCorrectAns / numberOfDigits;
+    correctRate = numOfCorrectAns / numberOfDigits;
     gameReward = 0;
     if (correctRate > 0 && correctRate <= 0.5) {
       gameReward = coinReward[0];
@@ -208,16 +209,28 @@ class LotteryGame {
 
   void changeDigitByResult() {
     if (playerWin) {
-      if (numberOfDigits == 8) {
-        continuousWinInEightDigits++;
-        if (continuousWinInEightDigits == 2) levelUpgrades();
+      if (loseInCurrentDigits > 0) loseInCurrentDigits--;
+      // *  if correctrate >= 0.5 continuously two times add the digit
+      if (correctRate >= 0.5) {
+        continuousCorrectRateBiggerThan50++;
       } else {
+        if (continuousCorrectRateBiggerThan50 > 0) {
+          continuousCorrectRateBiggerThan50--;
+        }
+      }
+      if (continuousCorrectRateBiggerThan50 >= 2) {
+        continuousCorrectRateBiggerThan50 = 0;
         numberOfDigits++;
-        if (loseInCurrentDigits > 0) loseInCurrentDigits--;
+        loseInCurrentDigits = 0;
+      }
+      if (numberOfDigits > maxNumberLength[gameLevel]) {
+        levelUpgrades();
       }
     } else {
-      if (numberOfDigits == 8) continuousWinInEightDigits = 0;
-      if (numOfCorrectAns / numberOfDigits < 0.5) loseInCurrentDigits++;
+      if (continuousCorrectRateBiggerThan50 > 0) {
+        continuousCorrectRateBiggerThan50--;
+      }
+      loseInCurrentDigits++;
       if (loseInCurrentDigits >= 2) {
         if (numberOfDigits > 2) {
           numberOfDigits--;

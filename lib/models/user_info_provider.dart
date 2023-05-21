@@ -72,10 +72,7 @@ class UserInfoProvider with ChangeNotifier {
 
   LotteryGameDatabase get lotteryGameDatabase => _lotteryGameDatabase;
   set lotteryGameDatabase(LotteryGameDatabase database) {
-    _lotteryGameDatabase = LotteryGameDatabase(
-        currentLevel: database.currentLevel,
-        currentDigit: database.currentDigit,
-        doneTutorial: database.doneTutorial);
+    _lotteryGameDatabase = database;
     FirebaseFirestore.instance
         .collection('user_basic_info')
         .doc(_user?.uid)
@@ -84,6 +81,23 @@ class UserInfoProvider with ChangeNotifier {
         'level': database.currentLevel,
         'digit': database.currentDigit,
         'doneTutorial': database.doneTutorial,
+      }
+    }).then((value) {
+      Logger().d('complete');
+      notifyListeners();
+    });
+  }
+
+  set lotteryGameDatabaseTutorial(bool isDone) {
+    _lotteryGameDatabase.doneTutorial = isDone;
+    FirebaseFirestore.instance
+        .collection('user_basic_info')
+        .doc(_user?.uid)
+        .update({
+      'lotteryGameDatabase': {
+        'level': _lotteryGameDatabase.currentLevel,
+        'digit': _lotteryGameDatabase.currentDigit,
+        'doneTutorial': isDone,
       }
     }).then((value) {
       notifyListeners();

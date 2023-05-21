@@ -78,7 +78,10 @@ flutter:
   # To add assets to your application, add an assets section, like this:
   assets:
     - assets/lottery_game_scene/
+    - assets/lottery_game_scene/feedback/
     - assets/lottery_game_sound/
+    - assets/lottery_game_sound/chinese/
+    - assets/lottery_game_sound/taiwanese/
     - assets/poker_game_scene/
     - assets/poker_game_sound/
     - assets/poker_game_card/
@@ -88,6 +91,8 @@ flutter:
     - assets/login_page/
     - assets/instruction_record/chinese/lottery_game/
     - assets/instruction_record/chinese/tutorial/
+    - assets/instruction_record/taiwanese/lottery_game/
+    - assets/instruction_record/taiwanese/tutorial/
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware
