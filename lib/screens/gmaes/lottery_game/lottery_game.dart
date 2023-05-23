@@ -35,6 +35,7 @@ class LotteryGame {
       'assets/lottery_game_scene/feedback/BuyLotter_win_background.png';
   final String imagePathLose =
       'assets/lottery_game_scene/feedback/BuyLotter_lose_background.png';
+  String rewardImagePath = '';
 
   int gameProgress = 0;
   bool playerWin = false;
@@ -94,10 +95,30 @@ class LotteryGame {
     Random random = Random();
     Set<int> usedNumbers = {};
     List<int> results = [];
+    //*number of odd or even number ahould be in the array
+    int numOfEvenOrOdd = 0;
 
     while (usedNumbers.length < numberOfDigits) {
       int randomNumber = min + random.nextInt(max - min + 1);
       if (!usedNumbers.contains(randomNumber)) {
+        //* in level four and case even or odd there should
+        //* be at least half of the number belongs to even or odd
+        if (gameLevel == 4 &&
+            (specialRules == 0 || specialRules == 3) &&
+            numOfEvenOrOdd < (numberOfDigits + 1) ~/ 2) {
+          switch (specialRules) {
+            //*even
+            case 0:
+              if (randomNumber % 2 != 0) continue;
+              numOfEvenOrOdd++;
+              break;
+            //*odd
+            case 3:
+              if (randomNumber % 2 != 1) continue;
+              numOfEvenOrOdd++;
+              break;
+          }
+        }
         usedNumbers.add(randomNumber);
         results.add(randomNumber);
       }
@@ -164,32 +185,33 @@ class LotteryGame {
       case 4:
         int sum = 0;
         switch (specialRules) {
+          //even
           case 0:
-            //even
             for (int i = 0; i < numArray.length; i++) {
-              if (numArray[i] % 2 == 0) sum += numArray[i];
+              if (userArray.contains(numArray[i])) numOfCorrectAns++;
             }
             break;
+          //max
           case 1:
-            //max
             numArray.sort((b, a) => a.compareTo(b));
             sum = numArray[0] + numArray[1];
+            if (sum == userArray[0]) numOfCorrectAns = numArray.length;
             break;
+          //min
           case 2:
-            //min
             numArray.sort();
             sum = numArray[0] + numArray[1];
+            if (sum == userArray[0]) numOfCorrectAns = numArray.length;
             break;
+          //odd
           case 3:
-            //odd
             for (int i = 0; i < numArray.length; i++) {
-              if (numArray[i] % 2 == 1) sum += numArray[i];
+              if (userArray.contains(numArray[i])) numOfCorrectAns++;
             }
             break;
-          case 4:
+          default:
             break;
         }
-        if (sum == userArray[0]) numOfCorrectAns = numArray.length;
         break;
       default:
         break;
@@ -199,10 +221,13 @@ class LotteryGame {
     gameReward = 0;
     if (correctRate > 0 && correctRate <= 0.5) {
       gameReward = coinReward[0];
+      rewardImagePath = 'assets/lottery_game_scene/feedback/reward_200.png';
     } else if (correctRate > 0.5 && correctRate <= 0.75) {
       gameReward = coinReward[1];
+      rewardImagePath = 'assets/lottery_game_scene/feedback/reward_400.png';
     } else if (correctRate > 0.75 && correctRate <= 1) {
       gameReward = coinReward[2];
+      rewardImagePath = 'assets/lottery_game_scene/feedback/reward_800.png';
     }
     correctRate != 0.0 ? playerWin = true : playerWin = false;
   }

@@ -47,125 +47,129 @@ class _PokerGameMenu extends State<PokerGameMenu>
 
   @override
   Widget build(BuildContext context) {
-    //userInfoProvider = Provider.of<UserInfoProvider>(context);
-    return Stack(
-      children: [
-        ScaleTransition(
-          scale: Tween(begin: 1.0, end: 1.6).animate(_controller),
-          child: SlideTransition(
-            position:
-                Tween(begin: const Offset(0, 0), end: const Offset(0.05, 0.05))
+    return SafeArea(
+      child: Scaffold(
+        body: Stack(
+          children: [
+            ScaleTransition(
+              scale: Tween(begin: 1.0, end: 1.6).animate(_controller),
+              child: SlideTransition(
+                position: Tween(
+                        begin: const Offset(0, 0),
+                        end: const Offset(0.05, 0.05))
                     .animate(_controller),
-            child: Container(
-              decoration: const BoxDecoration(
-                image: DecorationImage(
-                  image: AssetImage(
-                      'assets/poker_game_scene/Park1_witoutWalker.png'),
-                  fit: BoxFit.fill,
+                child: Container(
+                  decoration: const BoxDecoration(
+                    image: DecorationImage(
+                      image: AssetImage(
+                          'assets/poker_game_scene/Park1_witoutWalker.png'),
+                      fit: BoxFit.fill,
+                    ),
+                  ),
                 ),
               ),
             ),
-          ),
-        ),
-        FadeTransition(
-          opacity: Tween(begin: 1.0, end: 0.0)
-              .chain(CurveTween(curve: const Interval(0.0, 0.7)))
-              .animate(_controller),
-          child: Consumer<UserInfoProvider>(
-              builder: (context, userInfoProvider, child) {
-            return Container(
-              alignment: Alignment.center,
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Flexible(
-                    flex: 3,
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(15.0),
-                      ),
-                      child: const Text(
-                        'Game Label',
-                        style: TextStyle(
-                          color: Colors.black,
-                          decoration: TextDecoration.none,
+            FadeTransition(
+              opacity: Tween(begin: 1.0, end: 0.0)
+                  .chain(CurveTween(curve: const Interval(0.0, 0.7)))
+                  .animate(_controller),
+              child: Consumer<UserInfoProvider>(
+                  builder: (context, userInfoProvider, child) {
+                return Container(
+                  alignment: Alignment.center,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Flexible(
+                        flex: 3,
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(15.0),
+                          ),
+                          child: const Text(
+                            'Game Label',
+                            style: TextStyle(
+                              color: Colors.black,
+                              decoration: TextDecoration.none,
+                            ),
+                          ),
                         ),
                       ),
-                    ),
-                  ),
-                  Flexible(flex: 2, child: Container()),
-                  Flexible(
-                    flex: 1,
-                    child: ElevatedButton(
-                      onPressed: () {
-                        _controller.forward();
-                        _controller.addListener(() {
-                          if (_controller.isCompleted) {
-                            GoRouter.of(context)
-                                .push('/home/poker_game_menu/poker_game');
+                      Flexible(flex: 2, child: Container()),
+                      Flexible(
+                        flex: 1,
+                        child: ElevatedButton(
+                          onPressed: () {
+                            _controller.forward();
+                            _controller.addListener(() {
+                              if (_controller.isCompleted) {
+                                GoRouter.of(context)
+                                    .push('/home/poker_game_menu/poker_game');
+                                _controller.reset();
+                              }
+                            });
+                          },
+                          child: const Text('開始新遊戲'),
+                        ),
+                      ),
+                      Flexible(
+                        flex: 1,
+                        child: ElevatedButton(
+                          onPressed: () {
                             _controller.reset();
-                          }
-                        });
-                      },
-                      child: const Text('開始新遊戲'),
-                    ),
-                  ),
-                  Flexible(
-                    flex: 1,
-                    child: ElevatedButton(
-                      onPressed: () {
-                        _controller.reset();
-                        _controller.forward();
-                        final level =
-                            userInfoProvider.pokerGameDatabase.currentLevel;
-                        final doneTutorial =
-                            userInfoProvider.pokerGameDatabase.doneTutorial;
-                        _controller.addListener(() {
-                          if (_controller.isCompleted) {
-                            GoRouter.of(context).push(
-                                '/home/poker_game_menu/poker_game?startLevel=$level&isTutorial=$doneTutorial');
+                            _controller.forward();
+                            final level =
+                                userInfoProvider.pokerGameDatabase.currentLevel;
+                            final doneTutorial =
+                                userInfoProvider.pokerGameDatabase.doneTutorial;
+                            _controller.addListener(() {
+                              if (_controller.isCompleted) {
+                                GoRouter.of(context).push(
+                                    '/home/poker_game_menu/poker_game?startLevel=$level&isTutorial=$doneTutorial');
+                                _controller.reset();
+                              }
+                            });
+                          },
+                          child: const Text('繼續遊戲'),
+                        ),
+                      ),
+                      Flexible(
+                        flex: 1,
+                        child: ElevatedButton(
+                          onPressed: () {
                             _controller.reset();
-                          }
-                        });
-                      },
-                      child: const Text('繼續遊戲'),
-                    ),
+                            _controller.forward();
+                            _controller.addListener(() {
+                              if (_controller.isCompleted) {
+                                GoRouter.of(context).push(
+                                    '/home/poker_game_menu/poker_game?startLevel=0&isTutorial=true');
+                                _controller.reset();
+                              }
+                            });
+                          },
+                          child: const Text('教學模式'),
+                        ),
+                      ),
+                      Flexible(
+                        flex: 1,
+                        child: ElevatedButton(
+                          onPressed: () {
+                            GoRouter.of(context).pop();
+                          },
+                          child: const Text('返回'),
+                        ),
+                      ),
+                      //Expanded(flex: 1, child: Placeholder()),
+                    ],
                   ),
-                  Flexible(
-                    flex: 1,
-                    child: ElevatedButton(
-                      onPressed: () {
-                        _controller.reset();
-                        _controller.forward();
-                        _controller.addListener(() {
-                          if (_controller.isCompleted) {
-                            GoRouter.of(context).push(
-                                '/home/poker_game_menu/poker_game?startLevel=0&isTutorial=true');
-                            _controller.reset();
-                          }
-                        });
-                      },
-                      child: const Text('教學模式'),
-                    ),
-                  ),
-                  Flexible(
-                    flex: 1,
-                    child: ElevatedButton(
-                      onPressed: () {
-                        GoRouter.of(context).pop();
-                      },
-                      child: const Text('返回'),
-                    ),
-                  ),
-                  //Expanded(flex: 1, child: Placeholder()),
-                ],
-              ),
-            );
-          }),
+                );
+              }),
+            ),
+          ],
         ),
-      ],
+      ),
     );
   }
 }

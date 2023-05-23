@@ -30,63 +30,65 @@ class _RewardPageState extends State<RewardPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Container(
-        decoration: BoxDecoration(
-          color: Colors.lightBlue[100],
-          image: const DecorationImage(
-            image: AssetImage('assets/login_reward/reward_background.png'),
-            fit: BoxFit.fill,
+    return SafeArea(
+      child: Scaffold(
+        body: Container(
+          decoration: BoxDecoration(
+            color: Colors.lightBlue[100],
+            image: const DecorationImage(
+              image: AssetImage('assets/login_reward/reward_background.png'),
+              fit: BoxFit.fill,
+            ),
           ),
-        ),
-        child: Stack(children: [
-          Row(
-            children: [
-              Flexible(flex: 1, child: Container()),
-              Flexible(
-                flex: 5,
-                child: Column(
-                  children: [
-                    Flexible(flex: 1, child: Container()),
-                    const Flexible(flex: 8, child: CheckinReward()),
-                    Expanded(
-                      flex: 1,
-                      child: Container(),
-                    ),
-                    const Flexible(flex: 8, child: BonusReward()),
-                    Flexible(flex: 1, child: Container()),
-                  ],
+          child: Stack(children: [
+            Row(
+              children: [
+                Flexible(flex: 1, child: Container()),
+                Flexible(
+                  flex: 5,
+                  child: Column(
+                    children: [
+                      Flexible(flex: 1, child: Container()),
+                      const Flexible(flex: 8, child: CheckinReward()),
+                      Expanded(
+                        flex: 1,
+                        child: Container(),
+                      ),
+                      const Flexible(flex: 8, child: BonusReward()),
+                      Flexible(flex: 1, child: Container()),
+                    ],
+                  ),
                 ),
-              ),
-              Expanded(flex: 1, child: Container()),
-            ],
-          ),
-          Align(
-            alignment: Alignment.topRight,
-            child: FractionallySizedBox(
-              heightFactor: 0.25,
-              widthFactor: 0.1,
-              child: Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: FittedBox(
-                  fit: BoxFit.contain,
-                  child: ElevatedButton(
-                    onPressed: () {
-                      GoRouter.of(context).pop();
-                    },
-                    style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.red,
-                        shape: const CircleBorder()),
-                    child: const Icon(
-                      Icons.cancel,
-                      size: 100,
+                Expanded(flex: 1, child: Container()),
+              ],
+            ),
+            Align(
+              alignment: Alignment.topRight,
+              child: FractionallySizedBox(
+                heightFactor: 0.25,
+                widthFactor: 0.1,
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: FittedBox(
+                    fit: BoxFit.contain,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        GoRouter.of(context).pop();
+                      },
+                      style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.red,
+                          shape: const CircleBorder()),
+                      child: const Icon(
+                        Icons.cancel,
+                        size: 100,
+                      ),
                     ),
                   ),
                 ),
               ),
             ),
-          ),
-        ]),
+          ]),
+        ),
       ),
     );
   }

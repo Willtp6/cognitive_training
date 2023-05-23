@@ -11,6 +11,7 @@ import 'package:logger/logger.dart';
 import 'package:provider/provider.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:cognitive_training/models/user_model.dart';
+import 'package:rive/rive.dart';
 import '../../../shared/design_type.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -36,6 +37,8 @@ class _LotteryGameSceneState extends State<LotteryGameScene>
   final formKey = GlobalKey<FormState>();
 
   AudioPlayer player = AudioPlayer();
+
+  AudioPlayer tmpPlayer = AudioPlayer();
   bool isPlaying = false;
 
   late UserInfoProvider userInfoProvider;
@@ -78,6 +81,7 @@ class _LotteryGameSceneState extends State<LotteryGameScene>
     _controller.dispose();
     mytimer?.cancel();
     player.dispose();
+    tmpPlayer.dispose();
     super.dispose();
   }
 
@@ -146,9 +150,10 @@ class _LotteryGameSceneState extends State<LotteryGameScene>
       game.isCaseFunctioned = true;
       switch (game.gameProgress) {
         case 0:
+          game.setGame();
           game.setArrays(1, 49);
           Logger().d(game.numArray);
-          game.setGame();
+
           _playInstruction();
           break;
         case 1:
@@ -195,6 +200,8 @@ class _LotteryGameSceneState extends State<LotteryGameScene>
             if (game.playerWin) {
               userInfoProvider.coins += game.gameReward;
               _playPathSound("Applause.mp3");
+              tmpPlayer.play(
+                  AssetSource('lottery_game_sound/Lotter_win_firework.wav'));
             } else {
               _playPathSound("horror_lose.wav");
             }
@@ -213,8 +220,8 @@ class _LotteryGameSceneState extends State<LotteryGameScene>
                   game.isTutorial,
             );
           }
-          Future.delayed(
-              const Duration(seconds: 2), () => _showGameEndDialog());
+          Future.delayed(const Duration(seconds: 3, milliseconds: 500),
+              () => _showGameEndDialog());
           break;
       }
     }
@@ -225,216 +232,305 @@ class _LotteryGameSceneState extends State<LotteryGameScene>
     //listen and reset the state
     userInfoProvider = Provider.of<UserInfoProvider>(context);
     gameFunctions();
-    return WillPopScope(
-      onWillPop: () async {
-        showDialog(
-          context: context,
-          barrierDismissible: false, // user must tap button!
-          builder: (BuildContext context) {
-            game.isPaused = true;
-            return DefaultTextStyle(
-              style: const TextStyle(fontFamily: 'NotoSansTC_Regular'),
-              child: AlertDialog(
-                title: const Text('確定要離開嗎?'),
-                // this part can put multiple messages
-                content: SingleChildScrollView(
-                  child: ListBody(
-                    children: const <Widget>[
-                      Text('遊戲將不會被記錄下來喔!!!'),
-                      Text('而且猜中也能拿到獎勵'),
-                    ],
-                  ),
-                ),
-                actions: <Widget>[
-                  TextButton(
-                    child: const Text('繼續遊戲'),
-                    onPressed: () {
-                      game.isPaused = false;
-                      Navigator.of(context).pop(false);
-                    },
-                  ),
-                  TextButton(
-                    child: const Text('確定離開'),
-                    onPressed: () {
-                      game.isPaused = false;
-                      Navigator.of(context).pop(true);
-                    },
-                  ),
-                ],
-              ),
-            );
-          },
-        ).then((value) {
-          if (value == true) {
-            Navigator.of(context).pop();
-          }
-        });
-        return false;
-      },
-      child: Scaffold(
-        body: SingleChildScrollView(
-          child: Container(
-            height: MediaQuery.of(context).size.height,
-            width: MediaQuery.of(context).size.width,
-            decoration: BoxDecoration(
-              image: DecorationImage(
-                image: AssetImage(game.currentImagePath),
-                fit: BoxFit.fill,
-              ),
-            ),
-            child: Stack(
-              children: [
-                Align(
-                  alignment: const Alignment(-0.95, -0.9),
-                  child: FractionallySizedBox(
-                    widthFactor: 0.5 * 1 / 7,
-                    child: AspectRatio(
-                      aspectRatio: 1,
-                      child: GestureDetector(
-                        onTap: () {
-                          game.isPaused = true;
-                          _showAlertDialog();
-                        },
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: Colors.pink,
-                            border: Border.all(color: Colors.black, width: 1),
-                            shape: BoxShape.circle,
-                          ),
-                          child: FractionallySizedBox(
-                            heightFactor: 0.8,
-                            widthFactor: 0.8,
-                            child: LayoutBuilder(builder: (BuildContext context,
-                                BoxConstraints constraints) {
-                              double iconSize = constraints.maxWidth;
-                              return Icon(
-                                Icons.cancel,
-                                color: Colors.white,
-                                size: iconSize,
-                              );
-                            }),
-                          ),
-                        ),
-                      ),
+    return SafeArea(
+      child: WillPopScope(
+        onWillPop: () async {
+          showDialog(
+            context: context,
+            barrierDismissible: false, // user must tap button!
+            builder: (BuildContext context) {
+              game.isPaused = true;
+              return DefaultTextStyle(
+                style: const TextStyle(fontFamily: 'NotoSansTC_Regular'),
+                child: AlertDialog(
+                  title: const Text('確定要離開嗎?'),
+                  // this part can put multiple messages
+                  content: SingleChildScrollView(
+                    child: ListBody(
+                      children: const <Widget>[
+                        Text('遊戲將不會被記錄下來喔!!!'),
+                        Text('而且猜中也能拿到獎勵'),
+                      ],
                     ),
                   ),
-                ),
-                if (game.gameLevel != 1) _showNumber(game.showNumber),
-                Align(
-                  alignment: Alignment.center,
-                  child: FractionallySizedBox(
-                    widthFactor: 5 / 7,
-                    child: IgnorePointer(
-                      ignoring: game.gameProgress != 0,
-                      child: _getRules(),
+                  actions: <Widget>[
+                    TextButton(
+                      child: const Text('繼續遊戲'),
+                      onPressed: () {
+                        game.isPaused = false;
+                        Navigator.of(context).pop(false);
+                      },
                     ),
-                  ),
+                    TextButton(
+                      child: const Text('確定離開'),
+                      onPressed: () {
+                        game.isPaused = false;
+                        Navigator.of(context).pop(true);
+                      },
+                    ),
+                  ],
                 ),
-                if (game.gameProgress == 2)
+              );
+            },
+          ).then((value) {
+            if (value == true) {
+              Navigator.of(context).pop();
+            }
+          });
+          return false;
+        },
+        child: Scaffold(
+          body: SingleChildScrollView(
+            child: Container(
+              height: MediaQuery.of(context).size.height -
+                  MediaQuery.of(context).padding.top,
+              width: MediaQuery.of(context).size.width,
+              decoration: BoxDecoration(
+                image: DecorationImage(
+                  image: AssetImage(game.currentImagePath),
+                  fit: BoxFit.fill,
+                ),
+              ),
+              child: Stack(
+                children: [
+                  extiButton(),
+                  if (game.gameLevel != 1) _showNumber(game.showNumber),
                   Align(
                     alignment: Alignment.center,
                     child: FractionallySizedBox(
-                      widthFactor: 1,
-                      child: _getForm(),
-                    ),
-                  ),
-                IgnorePointer(
-                  child: Align(
-                    alignment: const Alignment(0.05, -0.95),
-                    child: FractionallySizedBox(
-                      widthFactor: 0.12,
-                      heightFactor: 0.1,
-                      child: Consumer<UserInfoProvider>(
-                        builder: (context, value, child) {
-                          return AutoSizeText(
-                            value.coins.toString(),
-                            textAlign: TextAlign.right,
-                            style: TextStyle(
-                              color: Colors.white
-                                  .withOpacity(game.gameProgress == 3 ? 1 : 0),
-                              fontSize: 100,
-                            ),
-                          );
-                        },
+                      widthFactor: 5 / 7,
+                      child: IgnorePointer(
+                        ignoring: game.gameProgress != 0,
+                        child: _getRules(),
                       ),
                     ),
                   ),
-                ),
-                IgnorePointer(
-                  child: FadeTransition(
-                    opacity: Tween(begin: 0.0, end: 1.0)
-                        .chain(CurveTween(curve: const Interval(0.0, 0.4)))
-                        .animate(_controller),
-                    child: FadeTransition(
-                      opacity: Tween(begin: 1.0, end: 0.0)
-                          .chain(CurveTween(curve: const Interval(0.7, 1.0)))
-                          .animate(_controller),
-                      child: SlideTransition(
-                        position: Tween(
-                                begin: const Offset(2.0, 1.0),
-                                end: const Offset(2.0, 0.1))
-                            .chain(CurveTween(curve: const Interval(0.0, 0.4)))
-                            .animate(_controller),
-                        child: SlideTransition(
-                          position: Tween(
-                                  begin: const Offset(2.0, 0.1),
-                                  end: const Offset(2.0, -2.0))
-                              .chain(
-                                  CurveTween(curve: const Interval(0.7, 1.0)))
-                              .animate(_controller),
-                          child: const FractionallySizedBox(
-                            widthFactor: 0.15,
-                            heightFactor: 0.1,
-                            child: AutoSizeText(
-                              '-200',
-                              style: TextStyle(
-                                color: Colors.red,
-                                fontSize: 100,
-                              ),
+                  if (game.gameProgress == 2)
+                    Align(
+                      alignment: Alignment.center,
+                      child: FractionallySizedBox(
+                        widthFactor: 1,
+                        child: _getForm(),
+                      ),
+                    ),
+                  topCoin(),
+                  costMoneyAnimation(),
+                  moneyAnimation(),
+                  if (game.gameProgress == 5) ...[
+                    if (game.playerWin) ...[
+                      const IgnorePointer(
+                        child: Align(
+                          alignment: Alignment(-0.5, -0.8),
+                          child: FractionallySizedBox(
+                            widthFactor: 0.25,
+                            child: RiveAnimation.asset(
+                              'assets/lottery_game_scene/feedback/firework_1.riv',
+                              alignment: Alignment.topCenter,
                             ),
                           ),
                         ),
                       ),
-                    ),
-                  ),
-                ),
-                IgnorePointer(
-                  child: FadeTransition(
-                    opacity: Tween(begin: 0.0, end: 1.0)
-                        .chain(CurveTween(curve: const Interval(0.0, 0.4)))
-                        .animate(_controller),
-                    child: FadeTransition(
-                      opacity: Tween(begin: 1.0, end: 0.0)
-                          .chain(CurveTween(curve: const Interval(0.7, 1.0)))
-                          .animate(_controller),
-                      child: SlideTransition(
-                        position: Tween(
-                                begin: const Offset(0.0, 0.5),
-                                end: const Offset(0.0, 0.3))
-                            .chain(CurveTween(curve: const Interval(0.0, 0.4)))
-                            .animate(_controller),
-                        child: SlideTransition(
-                          position: Tween(
-                                  begin: const Offset(0.0, 0.3),
-                                  end: const Offset(0.0, -0.3))
-                              .chain(
-                                  CurveTween(curve: const Interval(0.7, 1.0)))
-                              .animate(_controller),
+                      const IgnorePointer(
+                        child: Align(
+                          alignment: Alignment.centerLeft,
+                          child: FractionallySizedBox(
+                            widthFactor: 0.4,
+                            child: RiveAnimation.asset(
+                              'assets/lottery_game_scene/feedback/firework_2.riv',
+                              alignment: Alignment.bottomLeft,
+                            ),
+                          ),
+                        ),
+                      ),
+                      const IgnorePointer(
+                        child: Align(
+                          alignment: Alignment.centerRight,
                           child: FractionallySizedBox(
                             widthFactor: 0.3,
-                            child: AspectRatio(
-                              aspectRatio: 902 / 710,
-                              child: Image.asset(
-                                  'assets/lottery_game_scene/SpendMoney.png'),
+                            child: RiveAnimation.asset(
+                              'assets/lottery_game_scene/feedback/firework_3.riv',
                             ),
                           ),
                         ),
                       ),
-                    ),
+                      IgnorePointer(
+                        child: Align(
+                          alignment: const Alignment(0.25, 0.3),
+                          child: FractionallySizedBox(
+                            widthFactor: 0.3,
+                            child: RiveAnimation.asset(
+                              'assets/lottery_game_scene/feedback/${game.gameReward}.riv',
+                            ),
+                          ),
+                        ),
+                      )
+                    ] else if (!game.playerWin) ...[
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: FractionallySizedBox(
+                          widthFactor: 0.35,
+                          child: Image.asset(
+                              'assets/lottery_game_scene/feedback/leaf_with_wind.png'),
+                        ),
+                      ),
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: FractionallySizedBox(
+                          widthFactor: 0.25,
+                          child: Image.asset(
+                              'assets/lottery_game_scene/feedback/leaf_with_wind.png'),
+                        ),
+                      ),
+                      const IgnorePointer(
+                        child: RiveAnimation.asset(
+                          'assets/lottery_game_scene/feedback/fallen_leaf.riv',
+                          alignment: Alignment.centerLeft,
+                        ),
+                      ),
+                    ]
+                  ]
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Align extiButton() {
+    return Align(
+      alignment: const Alignment(-0.95, -0.9),
+      child: FractionallySizedBox(
+        widthFactor: 0.5 * 1 / 7,
+        child: AspectRatio(
+          aspectRatio: 1,
+          child: GestureDetector(
+            onTap: () {
+              game.isPaused = true;
+              _showAlertDialog();
+            },
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.pink,
+                border: Border.all(color: Colors.black, width: 1),
+                shape: BoxShape.circle,
+              ),
+              child: FractionallySizedBox(
+                heightFactor: 0.8,
+                widthFactor: 0.8,
+                child: LayoutBuilder(
+                  builder: (BuildContext context, BoxConstraints constraints) {
+                    double iconSize = constraints.maxWidth;
+                    return Icon(
+                      Icons.cancel,
+                      color: Colors.white,
+                      size: iconSize,
+                    );
+                  },
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  IgnorePointer moneyAnimation() {
+    return IgnorePointer(
+      child: FadeTransition(
+        opacity: Tween(begin: 0.0, end: 1.0)
+            .chain(CurveTween(curve: const Interval(0.0, 0.4)))
+            .animate(_controller),
+        child: FadeTransition(
+          opacity: Tween(begin: 1.0, end: 0.0)
+              .chain(CurveTween(curve: const Interval(0.7, 1.0)))
+              .animate(_controller),
+          child: SlideTransition(
+            position: Tween(
+                    begin: const Offset(0.0, 0.5), end: const Offset(0.0, 0.3))
+                .chain(CurveTween(curve: const Interval(0.0, 0.4)))
+                .animate(_controller),
+            child: SlideTransition(
+              position: Tween(
+                      begin: const Offset(0.0, 0.3),
+                      end: const Offset(0.0, -0.3))
+                  .chain(CurveTween(curve: const Interval(0.7, 1.0)))
+                  .animate(_controller),
+              child: FractionallySizedBox(
+                widthFactor: 0.3,
+                child: AspectRatio(
+                  aspectRatio: 902 / 710,
+                  child:
+                      Image.asset('assets/lottery_game_scene/SpendMoney.png'),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  IgnorePointer costMoneyAnimation() {
+    return IgnorePointer(
+      child: FadeTransition(
+        opacity: Tween(begin: 0.0, end: 1.0)
+            .chain(CurveTween(curve: const Interval(0.0, 0.4)))
+            .animate(_controller),
+        child: FadeTransition(
+          opacity: Tween(begin: 1.0, end: 0.0)
+              .chain(CurveTween(curve: const Interval(0.7, 1.0)))
+              .animate(_controller),
+          child: SlideTransition(
+            position: Tween(
+                    begin: const Offset(2.0, 1.0), end: const Offset(2.0, 0.1))
+                .chain(CurveTween(curve: const Interval(0.0, 0.4)))
+                .animate(_controller),
+            child: SlideTransition(
+              position: Tween(
+                      begin: const Offset(2.0, 0.1),
+                      end: const Offset(2.0, -2.0))
+                  .chain(CurveTween(curve: const Interval(0.7, 1.0)))
+                  .animate(_controller),
+              child: const FractionallySizedBox(
+                widthFactor: 0.15,
+                heightFactor: 0.1,
+                child: AutoSizeText(
+                  '-200',
+                  style: TextStyle(
+                    color: Colors.red,
+                    fontSize: 100,
                   ),
                 ),
-              ],
+              ),
             ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  IgnorePointer topCoin() {
+    return IgnorePointer(
+      child: Align(
+        alignment: const Alignment(0.05, -0.95),
+        child: FractionallySizedBox(
+          widthFactor: 0.12,
+          heightFactor: 0.1,
+          child: Consumer<UserInfoProvider>(
+            builder: (context, value, child) {
+              return AutoSizeText(
+                value.coins.toString(),
+                textAlign: TextAlign.right,
+                style: TextStyle(
+                  color: Colors.white.withOpacity(
+                      game.gameProgress == 3 || game.gameProgress == 5 ? 1 : 0),
+                  fontSize: 100,
+                ),
+              );
+            },
           ),
         ),
       ),
@@ -563,7 +659,10 @@ class _LotteryGameSceneState extends State<LotteryGameScene>
                   ],
                 );
               } else {
-                int lenOfForm = game.gameLevel == 4 ? 1 : game.numberOfDigits;
+                int lenOfForm = game.gameLevel == 4 &&
+                        (game.specialRules == 1 || game.specialRules == 2)
+                    ? 1
+                    : game.numberOfDigits;
                 return Form(
                   key: formKey,
                   child: Row(
@@ -599,8 +698,14 @@ class _LotteryGameSceneState extends State<LotteryGameScene>
                                                         const EdgeInsets.all(
                                                             5)),
                                             keyboardType: TextInputType.number,
-                                            validator: (val) =>
-                                                val!.isEmpty ? '輸入數字' : null,
+                                            // * if in level 4 & rule is even or odd than don't validate
+                                            validator: (game.gameLevel == 4 &&
+                                                    (game.specialRules == 0 ||
+                                                        game.specialRules == 3))
+                                                ? (_) => null
+                                                : (val) => val!.isEmpty
+                                                    ? '輸入數字'
+                                                    : null,
                                             textInputAction: i != lenOfForm - 1
                                                 ? TextInputAction.next
                                                 : TextInputAction.done,

@@ -41,62 +41,65 @@ class _LoginPageState extends State<LoginPage> {
   Widget build(BuildContext context) {
     double height = MediaQuery.of(context).size.height;
     double width = MediaQuery.of(context).size.width;
-    return Scaffold(
-      body: SingleChildScrollView(
-        child: Container(
-          height: height,
-          width: width,
-          decoration: BoxDecoration(
-            image: DecorationImage(
-              opacity: _loginTutorial.isTutorial ? 0.3 : 1,
-              image: const AssetImage('assets/global/login_background_1.jpeg'),
-              fit: BoxFit.fitWidth,
+    return SafeArea(
+      child: Scaffold(
+        body: SingleChildScrollView(
+          child: Container(
+            height: height - MediaQuery.of(context).padding.top,
+            width: width,
+            decoration: BoxDecoration(
+              image: DecorationImage(
+                opacity: _loginTutorial.isTutorial ? 0.3 : 1,
+                image:
+                    const AssetImage('assets/global/login_background_1.jpeg'),
+                fit: BoxFit.fitWidth,
+              ),
             ),
-          ),
-          child: Stack(
-            children: [
-              // main block of login
-              loginBlock(height, width),
-              // masked of login
-              if (_loginTutorial.isTutorial &&
-                  _loginTutorial.tutorialProgress < 1)
-                _loginTutorial.mask(width, height),
-              loginLogo(),
-              _loginTutorial.tutorialDoctor(),
-              _loginTutorial.chatBubble(),
-              GestureDetector(
-                onTap: () {
-                  setState(() {
-                    if (_loginTutorial.tutorialProgress < 5) {
-                      _loginTutorial.tutorialProgress++;
-                    } else {
-                      Future.delayed(const Duration(milliseconds: 500), () {
-                        _loginTutorial.tutorialProgress = 0;
-                      });
-                      _loginTutorial.isTutorial = false;
-                    }
-                  });
-                },
-                child: _loginTutorial.getContinueButton(),
-              ),
-              GestureDetector(
-                onTap: () {
-                  setState(() {
-                    _loginTutorial.isTutorial = true;
-                  });
-                },
-                child: _loginTutorial.tutorialButton(),
-              ),
-              if (_loginTutorial.isTutorial &&
-                  _loginTutorial.tutorialProgress >= 3)
-                _loginTutorial.hintArrow(),
-              // loading animation
-              if (isLoading)
-                const SpinKitCircle(
-                  color: Colors.blue,
-                  duration: Duration(milliseconds: 1500),
-                )
-            ],
+            child: Stack(
+              children: [
+                // main block of login
+                loginBlock(height, width),
+                // masked of login
+                if (_loginTutorial.isTutorial &&
+                    _loginTutorial.tutorialProgress < 1)
+                  _loginTutorial.mask(width, height),
+                loginLogo(),
+                _loginTutorial.tutorialDoctor(),
+                _loginTutorial.chatBubble(),
+                GestureDetector(
+                  onTap: () {
+                    setState(() {
+                      if (_loginTutorial.tutorialProgress < 5) {
+                        _loginTutorial.tutorialProgress++;
+                      } else {
+                        Future.delayed(const Duration(milliseconds: 500), () {
+                          _loginTutorial.tutorialProgress = 0;
+                        });
+                        _loginTutorial.isTutorial = false;
+                      }
+                    });
+                  },
+                  child: _loginTutorial.getContinueButton(),
+                ),
+                GestureDetector(
+                  onTap: () {
+                    setState(() {
+                      _loginTutorial.isTutorial = true;
+                    });
+                  },
+                  child: _loginTutorial.tutorialButton(),
+                ),
+                if (_loginTutorial.isTutorial &&
+                    _loginTutorial.tutorialProgress >= 3)
+                  _loginTutorial.hintArrow(),
+                // loading animation
+                if (isLoading)
+                  const SpinKitCircle(
+                    color: Colors.blue,
+                    duration: Duration(milliseconds: 1500),
+                  )
+              ],
+            ),
           ),
         ),
       ),

@@ -98,155 +98,160 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     userInfoProvider = Provider.of<UserInfoProvider>(context);
     userCheckinProvider = Provider.of<UserCheckinProvider>(context);
-    return Scaffold(
-      key: _scaffoldKey,
-      resizeToAvoidBottomInset: false,
-      drawer: Drawer(
-        child: ListView(
-          // Important: Remove any padding from the ListView.
-          padding: EdgeInsets.zero,
-          children: [
-            DrawerHeader(
-              decoration: const BoxDecoration(
-                color: Colors.blue,
-              ),
-              margin: const EdgeInsets.only(bottom: 50),
-              child: Consumer<UserInfoProvider>(
-                  builder: ((context, provider, child) {
-                return Column(
-                  children: [
-                    Expanded(
-                      flex: 4,
-                      child: AutoSizeText(
-                        provider.userName,
-                        style: const TextStyle(
-                          fontFamily: "GSR_B",
-                          fontSize: 100,
+    return SafeArea(
+      child: Scaffold(
+        key: _scaffoldKey,
+        resizeToAvoidBottomInset: false,
+        drawer: Drawer(
+          child: ListView(
+            // Important: Remove any padding from the ListView.
+            padding: EdgeInsets.zero,
+            children: [
+              DrawerHeader(
+                decoration: const BoxDecoration(
+                  color: Colors.blue,
+                ),
+                margin: const EdgeInsets.only(bottom: 50),
+                child: Consumer<UserInfoProvider>(
+                    builder: ((context, provider, child) {
+                  return Column(
+                    children: [
+                      Expanded(
+                        flex: 4,
+                        child: AutoSizeText(
+                          provider.userName,
+                          style: const TextStyle(
+                            fontFamily: "GSR_B",
+                            fontSize: 100,
+                          ),
                         ),
                       ),
-                    ),
-                    Expanded(flex: 1, child: Container()),
-                    Expanded(
-                      flex: 5,
-                      child: Row(
-                        children: [
-                          Image.asset(
-                            'assets/global/coin_without_tap.png',
-                            fit: BoxFit.contain,
-                          ),
-                          Expanded(
-                            child: AutoSizeText(
-                              '${provider.coins}\$',
-                              textAlign: TextAlign.right,
-                              style: const TextStyle(
-                                  fontFamily: 'GSR_B',
-                                  color: Colors.white,
-                                  fontSize: 100),
+                      Expanded(flex: 1, child: Container()),
+                      Expanded(
+                        flex: 5,
+                        child: Row(
+                          children: [
+                            Image.asset(
+                              'assets/global/coin_without_tap.png',
+                              fit: BoxFit.contain,
                             ),
-                          ),
-                        ],
+                            Expanded(
+                              child: AutoSizeText(
+                                '${provider.coins}\$',
+                                textAlign: TextAlign.right,
+                                style: const TextStyle(
+                                    fontFamily: 'GSR_B',
+                                    color: Colors.white,
+                                    fontSize: 100),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                  ],
-                );
-              })),
-            ),
-            ListTile(
-              leading: const Icon(
-                Icons.exit_to_app,
-                size: 40,
-                color: Colors.black,
-              ),
-              title: const Text(
-                '登出',
-                style: TextStyle(fontFamily: 'GSR_B', fontSize: 40),
-              ),
-              onTap: () async {
-                _showAlertDialog(context);
-              },
-            ),
-            ListTile(
-              leading: const Icon(
-                Icons.language,
-                size: 40,
-                color: Colors.black,
-              ),
-              title: const Text(
-                '語音',
-                style: TextStyle(fontFamily: 'GSR_B', fontSize: 40),
-              ),
-              trailing: DropdownButton(
-                value: chosenLanguage,
-                items: <String>[
-                  '國語',
-                  '台語',
-                ].map<DropdownMenuItem<String>>((String value) {
-                  return DropdownMenuItem<String>(
-                    value: value,
-                    child: Text(
-                      value,
-                      style: const TextStyle(fontFamily: 'GSR_B', fontSize: 40),
-                    ),
+                    ],
                   );
-                }).toList(),
-                onChanged: (value) {
-                  setState(() {
-                    chosenLanguage = value!;
-                    Logger().i(value.toString());
-                    _changeLanguage(value.toString());
-                  });
+                })),
+              ),
+              ListTile(
+                leading: const Icon(
+                  Icons.exit_to_app,
+                  size: 40,
+                  color: Colors.black,
+                ),
+                title: const Text(
+                  '登出',
+                  style: TextStyle(fontFamily: 'GSR_B', fontSize: 40),
+                ),
+                onTap: () async {
+                  _showAlertDialog(context);
                 },
               ),
-              onTap: () {
-                Navigator.of(context).pop();
-              },
-            )
-          ],
-        ),
-      ),
-      body: Container(
-        decoration: const BoxDecoration(
-          image: DecorationImage(
-            image: AssetImage('assets/global/login_background_1.jpeg'),
-            fit: BoxFit.fitWidth,
-            opacity: 0.3,
+              ListTile(
+                leading: const Icon(
+                  Icons.language,
+                  size: 40,
+                  color: Colors.black,
+                ),
+                title: const Text(
+                  '語音',
+                  style: TextStyle(fontFamily: 'GSR_B', fontSize: 40),
+                ),
+                trailing: DropdownButton(
+                  value: chosenLanguage,
+                  items: <String>[
+                    '國語',
+                    '台語',
+                  ].map<DropdownMenuItem<String>>((String value) {
+                    return DropdownMenuItem<String>(
+                      value: value,
+                      child: Text(
+                        value,
+                        style:
+                            const TextStyle(fontFamily: 'GSR_B', fontSize: 40),
+                      ),
+                    );
+                  }).toList(),
+                  onChanged: (value) {
+                    setState(() {
+                      chosenLanguage = value!;
+                      Logger().i(value.toString());
+                      _changeLanguage(value.toString());
+                    });
+                  },
+                ),
+                onTap: () {
+                  Navigator.of(context).pop();
+                },
+              )
+            ],
           ),
         ),
-        child: Stack(
-          children: [
-            title(),
-            settingAndCheckinReward(),
-            GestureDetector(
-              onTap: () {
-                setState(() {
-                  isChosen = List.generate(4, (index) => false);
-                  chosenGame = null;
-                  _homeTutorial.isTutorial = true;
-                });
-              },
-              child: _homeTutorial.tutorialButton(),
+        body: Container(
+          decoration: const BoxDecoration(
+            image: DecorationImage(
+              image: AssetImage('assets/global/login_background_1.jpeg'),
+              fit: BoxFit.fitWidth,
+              opacity: 0.3,
             ),
-            for (int i = 0; i < 4; i++)
-              if (i != chosenGame) getGameImage(i),
+          ),
+          child: Stack(
+            children: [
+              title(),
+              settingAndCheckinReward(),
+              GestureDetector(
+                onTap: () {
+                  setState(() {
+                    isChosen = List.generate(4, (index) => false);
+                    chosenGame = null;
+                    _homeTutorial.isTutorial = true;
+                  });
+                },
+                child: _homeTutorial.tutorialButton(),
+              ),
+              for (int i = 0; i < 4; i++)
+                if (i != chosenGame) getGameImage(i),
 
-            // mask of background
-            if (_homeTutorial.isTutorial)
-              Container(color: Colors.white.withOpacity(0.7)),
+              // mask of background
+              if (_homeTutorial.isTutorial)
+                Container(color: Colors.white.withOpacity(0.7)),
 
-            gameDescription(),
-            startButton(context),
-            if (chosenGame != null) getGameImage(chosenGame!),
+              gameDescription(),
+              startButton(context),
+              if (chosenGame != null) getGameImage(chosenGame!),
 
-            // mask of background
-            if (_homeTutorial.isTutorial && _homeTutorial.tutorialProgress == 2)
-              Container(color: Colors.white.withOpacity(0.7)),
+              // mask of background
+              if (_homeTutorial.isTutorial &&
+                  _homeTutorial.tutorialProgress == 2)
+                Container(color: Colors.white.withOpacity(0.7)),
 
-            _homeTutorial.tutorialDoctor(),
-            _homeTutorial.chatBubble(),
-            if (_homeTutorial.isTutorial && _homeTutorial.tutorialProgress >= 1)
-              _homeTutorial.hintArrow(),
-            continueButton(),
-          ],
+              _homeTutorial.tutorialDoctor(),
+              _homeTutorial.chatBubble(),
+              if (_homeTutorial.isTutorial &&
+                  _homeTutorial.tutorialProgress >= 1)
+                _homeTutorial.hintArrow(),
+              continueButton(),
+            ],
+          ),
         ),
       ),
     );
@@ -377,14 +382,6 @@ class _HomePageState extends State<HomePage> {
             alignment: Alignment.center,
             widthFactor: 0.95,
             heightFactor: 0.9,
-            /*child: AutoSizeText(
-              chosenGame != null ? gameDescriptionString[chosenGame!] : '',
-              maxLines: 3,
-              style: const TextStyle(
-                fontFamily: 'GSR_B',
-                fontSize: 50,
-              ),
-            ),*/
             child: Column(
               children: [
                 Expanded(
@@ -614,35 +611,40 @@ class _HomePageState extends State<HomePage> {
                   });
                 }
               },
-              child: Stack(
-                children: [
-                  Center(
-                    child: Image.asset(
-                        'assets/home_page/choosing_game_banner.png'),
+              child: Container(
+                decoration: const BoxDecoration(
+                  image: DecorationImage(
+                    image:
+                        AssetImage('assets/home_page/choosing_game_banner.png'),
+                    fit: BoxFit.fill,
                   ),
-                  Align(
-                    alignment: const Alignment(0.0, -0.7),
-                    child: FractionallySizedBox(
-                      heightFactor: 0.2,
-                      widthFactor: 0.8,
-                      child: AutoSizeText(
-                        gameName[gameIndex],
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(fontSize: 100),
+                ),
+                child: Stack(
+                  children: [
+                    Align(
+                      alignment: const Alignment(0.0, -0.7),
+                      child: FractionallySizedBox(
+                        heightFactor: 0.2,
+                        widthFactor: 0.8,
+                        child: AutoSizeText(
+                          gameName[gameIndex],
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(fontSize: 100),
+                        ),
                       ),
                     ),
-                  ),
-                  Align(
-                    alignment: const Alignment(0.0, 0.7),
-                    child: FractionallySizedBox(
-                      widthFactor: 0.885,
-                      child: Image.asset(
-                        gameImagePaths[gameIndex],
-                        fit: BoxFit.fitWidth,
+                    Align(
+                      alignment: const Alignment(0.0, 0.65),
+                      child: FractionallySizedBox(
+                        widthFactor: 0.885,
+                        child: Image.asset(
+                          gameImagePaths[gameIndex],
+                          fit: BoxFit.fitWidth,
+                        ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),
