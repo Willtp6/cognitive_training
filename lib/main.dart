@@ -1,40 +1,44 @@
+import 'package:cognitive_training/app_lifecycle/app_lifecycle.dart';
+import 'package:cognitive_training/audio/audio_controller.dart';
+import 'package:cognitive_training/check_internet/check_connection_status.dart';
 import 'package:cognitive_training/models/user_info_provider.dart';
 import 'package:cognitive_training/models/user_checkin_provider.dart';
-import 'package:cognitive_training/screens/gmaes/fishing_game/fishing_game.dart';
-import 'package:cognitive_training/screens/gmaes/lottery_game/lottery_game_scene.dart';
-import 'package:cognitive_training/screens/gmaes/lottery_game/lottery_game_menu.dart';
-import 'package:cognitive_training/screens/gmaes/poker_game/poker_game.dart';
-import 'package:cognitive_training/screens/gmaes/poker_game/poker_game_menu.dart';
+import 'package:cognitive_training/screens/games/fishing_game/fishing_game.dart';
+import 'package:cognitive_training/screens/games/lottery_game/lottery_game_scene.dart';
+import 'package:cognitive_training/screens/games/lottery_game/lottery_game_menu.dart';
+import 'package:cognitive_training/screens/games/poker_game/poker_game_scene.dart';
+import 'package:cognitive_training/screens/games/poker_game/poker_game_menu.dart';
 import 'package:cognitive_training/screens/home/reward_page.dart';
+import 'package:cognitive_training/settings/persistence/local_storage_settings_persistence.dart';
+import 'package:cognitive_training/settings/persistence/settings_persistence.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-import 'package:cognitive_training/firebase/auth.dart';
 import 'package:cognitive_training/screens/home/home_page.dart';
 import 'package:cognitive_training/screens/login/login_page.dart';
-import 'package:cognitive_training/screens/splash/splash_page.dart';
 import 'package:logger/logger.dart';
 import 'firebase_options.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 
-import 'screens/gmaes/fishing_game/fishing_game_menu.dart';
+import 'settings/setting_controller.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-  // final userInfoProvider = UserInfoProvider();
-  // runApp(ChangeNotifierProvider.value(
-  //   value: userInfoProvider,
-  //   child: MyApp(),
-  // ));
-  runApp(MyApp());
+  runApp(
+    MyApp(
+      settingsPersistence: LocalStorageSettingsPersistence(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
-  MyApp({super.key});
+  MyApp({super.key, required this.settingsPersistence});
+
+  final SettingsPersistence settingsPersistence;
 
   final router = GoRouter(
     routes: [
@@ -54,6 +58,7 @@ class MyApp extends StatelessWidget {
                 builder: (context, state) => const RewardPage(),
               ),
               GoRoute(
+                name: 'lottery_game_menu',
                 path: 'lottery_game_menu',
                 builder: (context, state) => const LotteryGameMenu(),
                 routes: [
@@ -79,31 +84,23 @@ class MyApp extends StatelessWidget {
                 ],
               ),
               GoRoute(
+                name: 'poker_game_menu',
                 path: 'poker_game_menu',
                 builder: (context, state) => const PokerGameMenu(),
                 routes: [
                   GoRoute(
+                    name: 'poker_game',
                     path: 'poker_game',
                     builder: (context, state) {
                       final parameters = state.queryParams;
                       final startLevel = parameters['startLevel'] ?? '0';
-                      final isTutorial = parameters['isTutorial'] ?? 'true';
+                      final isTutorial = parameters['isTutorial'] ?? 'false';
                       return PokerGame(
-                        startLevel: int.tryParse(startLevel),
+                        startLevel: int.tryParse(startLevel) ?? 0,
                         isTutorial: isTutorial == 'true',
                       );
                     },
                   ),
-                ],
-              ),
-              GoRoute(
-                path: 'fishing_game_menu',
-                builder: (context, state) => const FishingGameMenu(),
-                routes: [
-                  GoRoute(
-                    path: 'fishing_game',
-                    builder: (context, state) => const FishingGame(),
-                  )
                 ],
               ),
             ],
@@ -120,19 +117,43 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MultiProvider(
-      providers: [
-        StreamProvider(
-          create: (context) => FirebaseAuth.instance.authStateChanges(),
-          initialData: null,
+    return AppLifecycleObserver(
+      child: MultiProvider(
+        providers: [
+          StreamProvider(
+            create: (context) => FirebaseAuth.instance.authStateChanges(),
+            initialData: null,
+          ),
+          ChangeNotifierProvider.value(value: UserInfoProvider()),
+          ChangeNotifierProvider.value(value: UserCheckinProvider()),
+          Provider<SettingsController>(
+            lazy: false,
+            create: (context) => SettingsController(
+              persistence: settingsPersistence,
+            )..loadStateFromPersistence(),
+          ),
+          Provider<CheckConnectionStatus>(
+            lazy: false,
+            create: (context) => CheckConnectionStatus(),
+          ),
+          ProxyProvider2<SettingsController, ValueNotifier<AppLifecycleState>,
+              AudioController>(
+            lazy: false,
+            create: (context) => AudioController()..initialize(),
+            update: (context, settings, lifecycleNotifier, audio) {
+              if (audio == null) throw ArgumentError.notNull();
+              audio.attachLifecycleNotifier(lifecycleNotifier);
+              audio.attachSettings(settings);
+              return audio;
+            },
+            dispose: (context, audio) => audio.dispose(),
+          ),
+        ],
+        child: MaterialApp.router(
+          debugShowCheckedModeBanner: false,
+          theme: ThemeData(fontFamily: 'GSR_R'),
+          routerConfig: router,
         ),
-        ChangeNotifierProvider.value(value: UserInfoProvider()),
-        ChangeNotifierProvider.value(value: UserCheckinProvider()),
-      ],
-      child: MaterialApp.router(
-        debugShowCheckedModeBanner: false,
-        theme: ThemeData(fontFamily: 'GSR_R'),
-        routerConfig: router,
       ),
     );
   }

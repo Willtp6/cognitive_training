@@ -1,5 +1,4 @@
 import 'package:cognitive_training/models/user_info_provider.dart';
-import 'package:cognitive_training/screens/gmaes/lottery_game/lottery_game_scene.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';

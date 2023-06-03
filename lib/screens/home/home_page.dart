@@ -1,9 +1,12 @@
 import 'package:audioplayers/audioplayers.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cognitive_training/audio/audio_controller.dart';
 import 'package:cognitive_training/models/user_checkin_provider.dart';
 import 'package:cognitive_training/models/user_info_provider.dart';
 import 'package:cognitive_training/screens/home/home_tutorial.dart';
+import 'package:cognitive_training/settings/setting_controller.dart';
+import 'package:cognitive_training/check_internet/check_connection_status.dart';
 import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/material.dart';
 import 'package:cognitive_training/firebase/auth.dart';
@@ -12,6 +15,7 @@ import 'package:go_router/go_router.dart';
 import 'package:logger/logger.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -20,18 +24,21 @@ class HomePage extends StatefulWidget {
   _HomePageState createState() => _HomePageState();
 }
 
-class _HomePageState extends State<HomePage> {
+class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   final AuthService _authService = AuthService();
   final HomeTutorial _homeTutorial = HomeTutorial();
   late UserInfoProvider userInfoProvider;
   late UserCheckinProvider userCheckinProvider;
   AudioPlayer player = AudioPlayer();
-  final Future<SharedPreferences> _prefs = SharedPreferences.getInstance();
+
+  // !
+  final checker = CheckConnectionStatus();
+  // !
 
   List<bool> isChosen = [false, false, false, false];
   List<double> xPositions = [-0.95, -0.3166, 0.3166, 0.95];
-  int? chosenGame = 0;
-  String chosenLanguage = '國語';
+  int? chosenGame;
+  String? chosenLanguage;
   List<String> gameImagePaths = [
     'assets/home_page/choosing_game_lottery.png',
     'assets/home_page/choosing_game_fishing.png',
@@ -46,8 +53,8 @@ class _HomePageState extends State<HomePage> {
   ];
   List<String> gameDescriptionString = [
     '廟裡的神明會給你一組樂透彩券號碼，將號碼記憶下來，去彩券行下注贏取獎金!想成為樂透得主嗎？那就試著記下中獎號碼吧！',
-    '公園散步巧遇朋友，展開一場撲克牌遊戲，想在這場遊戲中勝利，就要選擇適合的牌打出去！一起來挑戰吧！',
     '到海邊釣魚，水面上漣漪越大，水底下的魚越大。選擇正確的釣竿，一起來釣大魚吧！',
+    '公園散步巧遇朋友，展開一場撲克牌遊戲，想在這場遊戲中勝利，就要選擇適合的牌打出去！一起來挑戰吧！',
     '接到家人的電話請求幫忙出門辦事。請用最快的速度完成家人交辦的各項任務，再回到家中！我們出發吧！',
   ];
   List<String> gameTrainingArea = [
@@ -72,32 +79,32 @@ class _HomePageState extends State<HomePage> {
       DeviceOrientation.landscapeLeft,
       DeviceOrientation.landscapeRight,
     ]);
-    setLanguage();
+    WidgetsBinding.instance.addObserver(this);
+    //checkConnection();
   }
 
   @override
   void dispose() {
     player.dispose();
+    WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
 
-  void setLanguage() async {
-    chosenLanguage = await _prefs.then((SharedPreferences prefs) {
-      return prefs.getString('chosenLanguage') ?? '國語';
-    });
-    setState(() {});
-  }
-
-  Future<void> _changeLanguage(String language) async {
-    final SharedPreferences prefs = await _prefs;
-    await prefs.setString('chosenLanguage', language);
-    Logger().i(prefs.getString('chosenLanguage'));
+  void checkConnection() async {
+    final connectivityResult = await Connectivity().checkConnectivity();
+    if (connectivityResult == ConnectivityResult.none) {
+      Logger().d('disconnnected');
+    } else {
+      Logger().d('connected');
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     userInfoProvider = Provider.of<UserInfoProvider>(context);
     userCheckinProvider = Provider.of<UserCheckinProvider>(context);
+    final settings = context.watch<SettingsController>();
+    chosenLanguage = settings.language.value;
     return SafeArea(
       child: Scaffold(
         key: _scaffoldKey,
@@ -195,7 +202,7 @@ class _HomePageState extends State<HomePage> {
                     setState(() {
                       chosenLanguage = value!;
                       Logger().i(value.toString());
-                      _changeLanguage(value.toString());
+                      settings.setLanguage(value);
                     });
                   },
                 ),
@@ -385,7 +392,7 @@ class _HomePageState extends State<HomePage> {
             child: Column(
               children: [
                 Expanded(
-                  flex: 2,
+                  flex: 3,
                   child: Align(
                     alignment: const Alignment(-0.95, 0.0),
                     child: FractionallySizedBox(
@@ -416,7 +423,7 @@ class _HomePageState extends State<HomePage> {
                   ),
                 ),
                 Expanded(
-                  flex: 4,
+                  flex: 8,
                   child: FractionallySizedBox(
                     widthFactor: 0.8,
                     heightFactor: 0.9,
@@ -432,7 +439,7 @@ class _HomePageState extends State<HomePage> {
                   ),
                 ),
                 Expanded(
-                  flex: 2,
+                  flex: 3,
                   child: Align(
                     alignment: const Alignment(-0.95, 0.0),
                     child: FractionallySizedBox(
@@ -463,7 +470,7 @@ class _HomePageState extends State<HomePage> {
                   ),
                 ),
                 Expanded(
-                  flex: 1,
+                  flex: 2,
                   child: FractionallySizedBox(
                     widthFactor: 0.8,
                     heightFactor: 0.9,
@@ -538,7 +545,14 @@ class _HomePageState extends State<HomePage> {
             aspectRatio: 835 / 353,
             child: GestureDetector(
               onTap: () {
-                if (!_homeTutorial.isTutorial && chosenGame == 0) {
+                final status = context.read<CheckConnectionStatus>();
+                if (status.connectionStatus.value == ConnectivityResult.none) {
+                  Logger().w('lost connection');
+                  lostConnectionDialog(context);
+                } else if (!_homeTutorial.isTutorial &&
+                    (chosenGame == 0 || chosenGame == 2)) {
+                  final audioController = context.read<AudioController>();
+                  audioController.stopAudio();
                   String route = gameRoutes[isChosen.indexOf(true)];
                   GoRouter.of(context).push(route);
                 }
@@ -599,14 +613,17 @@ class _HomePageState extends State<HomePage> {
             child: GestureDetector(
               onTap: () {
                 if (!_homeTutorial.isTutorial) {
+                  final audioController = context.read<AudioController>();
                   setState(() {
                     if (isChosen.contains(true)) {
                       if (isChosen.indexOf(true) == gameIndex) {
                         isChosen[gameIndex] = false;
+                        audioController.stopAudio();
                       }
                     } else {
                       isChosen[gameIndex] = !isChosen[gameIndex];
                       chosenGame = gameIndex;
+                      audioController.playGameDescription(gameIndex);
                     }
                   });
                 }
@@ -616,7 +633,7 @@ class _HomePageState extends State<HomePage> {
                   image: DecorationImage(
                     image:
                         AssetImage('assets/home_page/choosing_game_banner.png'),
-                    fit: BoxFit.fill,
+                    fit: BoxFit.contain,
                   ),
                 ),
                 child: Stack(
@@ -625,7 +642,6 @@ class _HomePageState extends State<HomePage> {
                       alignment: const Alignment(0.0, -0.7),
                       child: FractionallySizedBox(
                         heightFactor: 0.2,
-                        widthFactor: 0.8,
                         child: AutoSizeText(
                           gameName[gameIndex],
                           textAlign: TextAlign.center,
@@ -636,10 +652,11 @@ class _HomePageState extends State<HomePage> {
                     Align(
                       alignment: const Alignment(0.0, 0.65),
                       child: FractionallySizedBox(
+                        heightFactor: 0.44,
                         widthFactor: 0.885,
                         child: Image.asset(
                           gameImagePaths[gameIndex],
-                          fit: BoxFit.fitWidth,
+                          fit: BoxFit.contain,
                         ),
                       ),
                     ),
@@ -698,6 +715,52 @@ class _HomePageState extends State<HomePage> {
                   GoRouter.of(context).pop();
                   GoRouter.of(context).pop();
                 }
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> lostConnectionDialog(BuildContext context) async {
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false, // user must tap button!
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Center(
+            child: Text(
+              '沒有網路連線',
+              style: TextStyle(fontFamily: 'GSR_B', fontSize: 40),
+            ),
+          ),
+          // this part can put multiple messages
+          content: SingleChildScrollView(
+            child: ListBody(
+              children: const <Widget>[
+                Text(
+                  '遊戲內紀錄需要網路連線',
+                  style: TextStyle(fontFamily: 'GSR_B', fontSize: 30),
+                  textAlign: TextAlign.center,
+                ),
+                Text(
+                  '請確保網路連線正常',
+                  style: TextStyle(fontFamily: 'GSR_B', fontSize: 30),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
+          ),
+          actionsAlignment: MainAxisAlignment.center,
+          actions: <Widget>[
+            TextButton(
+              child: const Text(
+                '關閉',
+                style: TextStyle(fontFamily: 'GSR_B', fontSize: 40),
+              ),
+              onPressed: () {
+                GoRouter.of(context).pop();
               },
             ),
           ],

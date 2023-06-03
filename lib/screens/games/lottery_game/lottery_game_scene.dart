@@ -1,9 +1,10 @@
 import 'dart:async';
 import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cognitive_training/audio/audio_controller.dart';
 import 'package:cognitive_training/firebase/record_game.dart';
 import 'package:cognitive_training/models/user_info_provider.dart';
-import 'package:cognitive_training/screens/gmaes/lottery_game/lottery_game.dart';
+import 'package:cognitive_training/screens/games/lottery_game/lottery_game.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:audioplayers/audioplayers.dart';
@@ -39,7 +40,6 @@ class _LotteryGameSceneState extends State<LotteryGameScene>
   AudioPlayer player = AudioPlayer();
 
   AudioPlayer tmpPlayer = AudioPlayer();
-  bool isPlaying = false;
 
   late UserInfoProvider userInfoProvider;
 
@@ -101,12 +101,14 @@ class _LotteryGameSceneState extends State<LotteryGameScene>
       return prefs.getString('chosenLanguage') ?? '國語';
     });
     String path = game.getInstructionAudioPath(chosenLanguage);
-    isPlaying = true;
     await player.play(AssetSource(path));
   }
 
   //Todo add chinese audio
   void _playNumberSound() async {
+    chosenLanguage = await _prefs.then((SharedPreferences prefs) {
+      return prefs.getString('chosenLanguage') ?? '國語';
+    });
     String language = chosenLanguage == '國語' ? 'chinese' : 'taiwanese';
     if (game.currentIndex < game.numberOfDigits) {
       await player.play(AssetSource(
@@ -145,7 +147,7 @@ class _LotteryGameSceneState extends State<LotteryGameScene>
     }
   }
 
-  void gameFunctions() {
+  void gameFunctions(BuildContext context) {
     if (!game.isCaseFunctioned) {
       game.isCaseFunctioned = true;
       switch (game.gameProgress) {
@@ -180,9 +182,9 @@ class _LotteryGameSceneState extends State<LotteryGameScene>
             });
           });
           _controller.forward();
-          Future.delayed(const Duration(seconds: 1, milliseconds: 300),
-              () async {
-            await player.play(AssetSource('lottery_game_sound/coin.mp3'));
+          Future.delayed(const Duration(seconds: 1, milliseconds: 300), () {
+            final audioController = context.read<AudioController>();
+            audioController.playCoinAudio();
             setState(() {
               userInfoProvider.coins -= 200;
             });
@@ -197,13 +199,14 @@ class _LotteryGameSceneState extends State<LotteryGameScene>
           break;
         case 5:
           Future.delayed(const Duration(milliseconds: 250), () {
+            final audioController = context.read<AudioController>();
             if (game.playerWin) {
               userInfoProvider.coins += game.gameReward;
-              _playPathSound("Applause.mp3");
+              audioController.playWinAudio();
               tmpPlayer.play(
                   AssetSource('lottery_game_sound/Lotter_win_firework.wav'));
             } else {
-              _playPathSound("horror_lose.wav");
+              audioController.playLoseAudio();
             }
           });
           game.changeDigitByResult();
@@ -231,7 +234,7 @@ class _LotteryGameSceneState extends State<LotteryGameScene>
   Widget build(BuildContext context) {
     //listen and reset the state
     userInfoProvider = Provider.of<UserInfoProvider>(context);
-    gameFunctions();
+    gameFunctions(context);
     return SafeArea(
       child: WillPopScope(
         onWillPop: () async {
@@ -293,7 +296,7 @@ class _LotteryGameSceneState extends State<LotteryGameScene>
               ),
               child: Stack(
                 children: [
-                  extiButton(),
+                  exitButton(),
                   if (game.gameLevel != 1) _showNumber(game.showNumber),
                   Align(
                     alignment: Alignment.center,
@@ -398,7 +401,7 @@ class _LotteryGameSceneState extends State<LotteryGameScene>
     );
   }
 
-  Align extiButton() {
+  Align exitButton() {
     return Align(
       alignment: const Alignment(-0.95, -0.9),
       child: FractionallySizedBox(

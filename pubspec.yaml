@@ -52,6 +52,8 @@ dependencies:
   dotted_border: ^2.0.0+3
   tuple: ^2.0.1
   shared_preferences: ^2.1.1
+  connectivity_plus: ^4.0.1
+  path_provider: ^2.0.15
 
 dev_dependencies:
   flutter_test:
@@ -90,8 +92,14 @@ flutter:
     - assets/login_reward/
     - assets/login_page/
     - assets/instruction_record/chinese/lottery_game/
+    - assets/instruction_record/chinese/fishing_game/
+    - assets/instruction_record/chinese/poker_game/
+    - assets/instruction_record/chinese/routing_game/
     - assets/instruction_record/chinese/tutorial/
     - assets/instruction_record/taiwanese/lottery_game/
+    - assets/instruction_record/taiwanese/fishing_game/
+    - assets/instruction_record/taiwanese/poker_game/
+    - assets/instruction_record/taiwanese/routing_game/
     - assets/instruction_record/taiwanese/tutorial/
 
   # An image asset can refer to one or more resolution-specific "variants", see
