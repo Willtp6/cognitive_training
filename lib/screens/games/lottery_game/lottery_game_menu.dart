@@ -118,7 +118,7 @@ class _LotteryGameMenu extends State<LotteryGameMenu>
                       Align(
                         alignment: Alignment.bottomCenter,
                         child: FractionallySizedBox(
-                          heightFactor: 0.5,
+                          heightFactor: 0.35,
                           widthFactor: 0.3,
                           child: Column(
                             children: [
@@ -139,7 +139,7 @@ class _LotteryGameMenu extends State<LotteryGameMenu>
                                             .lotteryGameDatabase.doneTutorial;
                                         if (doneTutorial) {
                                           Logger().i('continue game');
-                                          GoRouter.of(context).goNamed(
+                                          GoRouter.of(context).pushNamed(
                                             'lottery_game',
                                             queryParams: {
                                               'startLevel': level.toString(),
@@ -150,7 +150,7 @@ class _LotteryGameMenu extends State<LotteryGameMenu>
                                           );
                                         } else {
                                           Logger().i('tutorial');
-                                          GoRouter.of(context).goNamed(
+                                          GoRouter.of(context).pushNamed(
                                               'lottery_game',
                                               queryParams: {
                                                 'isTutorial': 'true'
@@ -162,26 +162,26 @@ class _LotteryGameMenu extends State<LotteryGameMenu>
                                   ),
                                 ),
                               ),
-                              Flexible(
-                                child: AspectRatio(
-                                  aspectRatio: 835 / 353,
-                                  child: GestureDetector(
-                                    onTap: () {
-                                      _controller.forward();
-                                      Future.delayed(const Duration(seconds: 2),
-                                          () {
-                                        _controller.reset();
-                                        GoRouter.of(context).goNamed(
-                                            'lottery_game',
-                                            queryParams: {
-                                              'isTutorial': 'true'
-                                            });
-                                      });
-                                    },
-                                    child: buttonWithText('教學模式'),
-                                  ),
-                                ),
-                              ),
+                              // Flexible(
+                              //   child: AspectRatio(
+                              //     aspectRatio: 835 / 353,
+                              //     child: GestureDetector(
+                              //       onTap: () {
+                              //         _controller.forward();
+                              //         Future.delayed(const Duration(seconds: 2),
+                              //             () {
+                              //           _controller.reset();
+                              //           GoRouter.of(context).goNamed(
+                              //               'lottery_game',
+                              //               queryParams: {
+                              //                 'isTutorial': 'true'
+                              //               });
+                              //         });
+                              //       },
+                              //       child: buttonWithText('教學模式'),
+                              //     ),
+                              //   ),
+                              // ),
                               Flexible(
                                 child: AspectRatio(
                                   aspectRatio: 835 / 353,

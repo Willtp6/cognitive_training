@@ -29,11 +29,13 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   final HomeTutorial _homeTutorial = HomeTutorial();
   late UserInfoProvider userInfoProvider;
   late UserCheckinProvider userCheckinProvider;
+  late AudioController _audioController;
   AudioPlayer player = AudioPlayer();
 
-  // !
-  final checker = CheckConnectionStatus();
-  // !
+  // // !
+  // final checker = CheckConnectionStatus();
+  late DateTime time_;
+  // // !
 
   List<bool> isChosen = [false, false, false, false];
   List<double> xPositions = [-0.95, -0.3166, 0.3166, 0.95];
@@ -80,13 +82,15 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       DeviceOrientation.landscapeRight,
     ]);
     WidgetsBinding.instance.addObserver(this);
-    //checkConnection();
+    time_ = DateTime.now();
+    Logger().d('load home ${time_}');
   }
 
   @override
   void dispose() {
     player.dispose();
     WidgetsBinding.instance.removeObserver(this);
+    Logger().d('dispose home ${time_}');
     super.dispose();
   }
 
@@ -105,113 +109,13 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     userCheckinProvider = Provider.of<UserCheckinProvider>(context);
     final settings = context.watch<SettingsController>();
     chosenLanguage = settings.language.value;
+    _audioController = context.read<AudioController>();
     return SafeArea(
       child: Scaffold(
         key: _scaffoldKey,
         resizeToAvoidBottomInset: false,
         drawer: Drawer(
-          child: ListView(
-            // Important: Remove any padding from the ListView.
-            padding: EdgeInsets.zero,
-            children: [
-              DrawerHeader(
-                decoration: const BoxDecoration(
-                  color: Colors.blue,
-                ),
-                margin: const EdgeInsets.only(bottom: 50),
-                child: Consumer<UserInfoProvider>(
-                    builder: ((context, provider, child) {
-                  return Column(
-                    children: [
-                      Expanded(
-                        flex: 4,
-                        child: AutoSizeText(
-                          provider.userName,
-                          style: const TextStyle(
-                            fontFamily: "GSR_B",
-                            fontSize: 100,
-                          ),
-                        ),
-                      ),
-                      Expanded(flex: 1, child: Container()),
-                      Expanded(
-                        flex: 5,
-                        child: Row(
-                          children: [
-                            Image.asset(
-                              'assets/global/coin_without_tap.png',
-                              fit: BoxFit.contain,
-                            ),
-                            Expanded(
-                              child: AutoSizeText(
-                                '${provider.coins}\$',
-                                textAlign: TextAlign.right,
-                                style: const TextStyle(
-                                    fontFamily: 'GSR_B',
-                                    color: Colors.white,
-                                    fontSize: 100),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  );
-                })),
-              ),
-              ListTile(
-                leading: const Icon(
-                  Icons.exit_to_app,
-                  size: 40,
-                  color: Colors.black,
-                ),
-                title: const Text(
-                  '登出',
-                  style: TextStyle(fontFamily: 'GSR_B', fontSize: 40),
-                ),
-                onTap: () async {
-                  _showAlertDialog(context);
-                },
-              ),
-              ListTile(
-                leading: const Icon(
-                  Icons.language,
-                  size: 40,
-                  color: Colors.black,
-                ),
-                title: const Text(
-                  '語音',
-                  style: TextStyle(fontFamily: 'GSR_B', fontSize: 40),
-                ),
-                trailing: DropdownButton(
-                  value: chosenLanguage,
-                  items: <String>[
-                    '國語',
-                    '台語',
-                  ].map<DropdownMenuItem<String>>((String value) {
-                    return DropdownMenuItem<String>(
-                      value: value,
-                      child: Text(
-                        value,
-                        style:
-                            const TextStyle(fontFamily: 'GSR_B', fontSize: 40),
-                      ),
-                    );
-                  }).toList(),
-                  onChanged: (value) {
-                    setState(() {
-                      chosenLanguage = value!;
-                      Logger().i(value.toString());
-                      settings.setLanguage(value);
-                    });
-                  },
-                ),
-                onTap: () {
-                  Navigator.of(context).pop();
-                },
-              )
-            ],
-          ),
+          child: drawerItem(settings, context),
         ),
         body: Container(
           decoration: const BoxDecoration(
@@ -231,6 +135,10 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                     isChosen = List.generate(4, (index) => false);
                     chosenGame = null;
                     _homeTutorial.isTutorial = true;
+                    _audioController.playInstructionRecord(
+                        'tutorial/self_introduction.m4a');
+                    //player.play(AssetSource(
+                    //    'instruction_record/chinese/tutorial/self_introduction.m4a'));
                   });
                 },
                 child: _homeTutorial.tutorialButton(),
@@ -261,6 +169,110 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
           ),
         ),
       ),
+    );
+  }
+
+  ListView drawerItem(SettingsController settings, BuildContext context) {
+    return ListView(
+      // Important: Remove any padding from the ListView.
+      padding: EdgeInsets.zero,
+      children: [
+        DrawerHeader(
+          decoration: const BoxDecoration(
+            color: Colors.blue,
+          ),
+          margin: const EdgeInsets.only(bottom: 50),
+          child:
+              Consumer<UserInfoProvider>(builder: ((context, provider, child) {
+            return Column(
+              children: [
+                Expanded(
+                  flex: 4,
+                  child: AutoSizeText(
+                    provider.userName,
+                    style: const TextStyle(
+                      fontFamily: "GSR_B",
+                      fontSize: 100,
+                    ),
+                  ),
+                ),
+                Expanded(flex: 1, child: Container()),
+                Expanded(
+                  flex: 5,
+                  child: Row(
+                    children: [
+                      Image.asset(
+                        'assets/global/coin_without_tap.png',
+                        fit: BoxFit.contain,
+                      ),
+                      Expanded(
+                        child: AutoSizeText(
+                          '${provider.coins}\$',
+                          textAlign: TextAlign.right,
+                          style: const TextStyle(
+                              fontFamily: 'GSR_B',
+                              color: Colors.white,
+                              fontSize: 100),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            );
+          })),
+        ),
+        ListTile(
+          leading: const Icon(
+            Icons.exit_to_app,
+            size: 40,
+            color: Colors.black,
+          ),
+          title: const Text(
+            '登出',
+            style: TextStyle(fontFamily: 'GSR_B', fontSize: 40),
+          ),
+          onTap: () async {
+            _showAlertDialog(context);
+          },
+        ),
+        ListTile(
+          leading: const Icon(
+            Icons.language,
+            size: 40,
+            color: Colors.black,
+          ),
+          title: const Text(
+            '語音',
+            style: TextStyle(fontFamily: 'GSR_B', fontSize: 40),
+          ),
+          trailing: DropdownButton(
+            value: chosenLanguage,
+            items: <String>[
+              '國語',
+              '台語',
+            ].map<DropdownMenuItem<String>>((String value) {
+              return DropdownMenuItem<String>(
+                value: value,
+                child: Text(
+                  value,
+                  style: const TextStyle(fontFamily: 'GSR_B', fontSize: 40),
+                ),
+              );
+            }).toList(),
+            onChanged: (value) {
+              setState(() {
+                chosenLanguage = value!;
+                Logger().i(value.toString());
+                settings.setLanguage(value);
+              });
+            },
+          ),
+          onTap: () {
+            Navigator.of(context).pop();
+          },
+        )
+      ],
     );
   }
 
@@ -501,14 +513,19 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
               _homeTutorial.tutorialProgress++;
               if (_homeTutorial.tutorialProgress == 1) {
                 chosenGame = 0;
-                player.play(AssetSource(
-                    'instruction_record/chinese/tutorial/choose_game.m4a'));
+                _audioController
+                    .playInstructionRecord('tutorial/choose_game.m4a');
+                //player.play(AssetSource(
+                //    'instruction_record/chinese/tutorial/choose_game.m4a'));
               } else if (_homeTutorial.tutorialProgress == 2) {
                 isChosen[0] = true;
-                player.play(AssetSource(
-                    'instruction_record/chinese/tutorial/start_game.m4a'));
+                _audioController
+                    .playInstructionRecord('tutorial/start_game.m4a');
+                //player.play(AssetSource(
+                //    'instruction_record/chinese/tutorial/start_game.m4a'));
               }
             } else {
+              _audioController.stopAudio();
               Future.delayed(const Duration(milliseconds: 500), () {
                 _homeTutorial.tutorialProgress = 0;
               });

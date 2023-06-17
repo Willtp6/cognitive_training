@@ -117,7 +117,6 @@ class _PokerGameMenu extends State<PokerGameMenu>
                                     onTap: () {
                                       if (buttonEnabled) {
                                         buttonEnabled = false;
-                                        Logger().d(buttonEnabled);
                                         _controller.forward();
                                         Future.delayed(
                                             const Duration(seconds: 1), () {
@@ -125,14 +124,22 @@ class _PokerGameMenu extends State<PokerGameMenu>
                                               .pokerGameDatabase.currentLevel;
                                           final doneTutorial = userInfoProvider
                                               .pokerGameDatabase.doneTutorial;
-                                          GoRouter.of(context).goNamed(
+                                          final responseTimeList =
+                                              userInfoProvider.pokerGameDatabase
+                                                  .responseTimeList
+                                                  .cast<int>();
+                                          Logger().d('before go');
+                                          GoRouter.of(context).pushNamed(
                                             'poker_game',
                                             queryParams: {
                                               'startLevel': level.toString(),
                                               'isTutorial':
                                                   (!doneTutorial).toString(),
+                                              'responseTimeList':
+                                                  responseTimeList.toString(),
                                             },
                                           );
+                                          Logger().d('after go');
                                           _controller.reset();
                                           buttonEnabled = true;
                                         });

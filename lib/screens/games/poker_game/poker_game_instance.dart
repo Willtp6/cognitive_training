@@ -66,10 +66,13 @@ class Player {
 class GameInstance {
   int gameLevel;
   List<int> numberOfCards = [5, 6, 6, 8];
+  String backgroundPath = 'assets/poker_game_scene/play_board.png';
 
   Player player = Player();
   Player computer = Player();
   late Deck deck;
+
+  int opponentCoin = 10000;
 
   late DateTime start;
   late DateTime end;
@@ -87,7 +90,11 @@ class GameInstance {
   int continuousWin = 0;
   int continuousLose = 0;
 
-  GameInstance({required this.gameLevel}) {
+  List<int> responseTimeList;
+  List<int> coinWin = [100, 200, 250, 300];
+  List<int> coinLose = [100, 100, 150, 150];
+
+  GameInstance({required this.gameLevel, required this.responseTimeList}) {
     deck = Deck();
     deck.shuffle();
   }
@@ -125,6 +132,7 @@ class GameInstance {
   void getResult() {
     end = DateTime.now();
     List<String> suits = ['Spades', 'Hearts', 'Diamonds', 'Clubs'];
+    // reset isTie and isPlayerWin
     isTie = false;
     isPlayerWin = false;
 
@@ -134,8 +142,10 @@ class GameInstance {
         isPlayerWin = playerCard!.suit == computerCard!.suit ||
             playerCard!.rank == computerCard!.rank;
       } else {
-        isPlayerWin = playerCard!.rank > computerCard!.rank ||
-            (playerCard!.rank == computerCard!.rank &&
+        int playerRank = playerCard!.rank == 1 ? 14 : playerCard!.rank;
+        int computerRank = computerCard!.rank == 1 ? 14 : computerCard!.rank;
+        isPlayerWin = playerRank > computerRank ||
+            (playerRank == computerRank &&
                 suits.indexOf(playerCard!.suit) <
                     suits.indexOf(computerCard!.suit));
       }
@@ -143,20 +153,39 @@ class GameInstance {
       // check if any of card in hand is winable
       for (PokerCard card in player.hand) {
         if (gameLevel > 1) {
+          // suit the same or rank the same
           isTie = !(card.suit == computerCard!.suit ||
               card.rank == computerCard!.rank);
           if (!isTie) break;
         } else {
-          isTie = !(card.rank > computerCard!.rank ||
-              (card.rank == computerCard!.rank &&
+          int cardRank = card.rank == 1 ? 14 : card.rank;
+          int computerRank = computerCard!.rank == 1 ? 14 : computerCard!.rank;
+          isTie = !(cardRank > computerRank ||
+              (cardRank == computerRank &&
                   suits.indexOf(card.suit) <
                       suits.indexOf(computerCard!.suit)));
           if (!isTie) break;
         }
       }
     }
+    changeOpponentCoin();
     continuousWinLose();
+    int resTime = end.difference(start).inMilliseconds;
+    responseTimeList.add(resTime);
+    responseTimeList.sort();
+    if (responseTimeList.length > 50) {
+      responseTimeList.removeAt(0);
+      responseTimeList.removeLast();
+    }
     recordGame();
+  }
+
+  void changeOpponentCoin() {
+    if (isPlayerWin) {
+      opponentCoin -= coinLose[gameLevel];
+    } else {
+      if (!isTie) opponentCoin += coinWin[gameLevel];
+    }
   }
 
   void continuousWinLose() {
@@ -172,16 +201,20 @@ class GameInstance {
 
   int gameLevelChange() {
     if (continuousWin >= 5) {
-      if (gameLevel < 3) gameLevel++;
       continuousWin = 0;
       continuousLose = 0;
-      return 1;
+      if (gameLevel < 3) {
+        gameLevel++;
+        return 1;
+      }
     }
     if (continuousLose >= 5) {
-      if (gameLevel > 0) gameLevel--;
       continuousWin = 0;
       continuousLose = 0;
-      return 2;
+      if (gameLevel > 0) {
+        gameLevel--;
+        return 2;
+      }
     }
     return 0;
   }
@@ -197,5 +230,16 @@ class GameInstance {
       start: start,
       end: end,
     );
+  }
+
+  int getTimeLimit() {
+    switch (gameLevel) {
+      case 0:
+        return 10000;
+      case 1:
+        return responseTimeList[responseTimeList.length ~/ 2] + 3000;
+      default:
+        return responseTimeList[responseTimeList.length ~/ 2];
+    }
   }
 }

@@ -62,12 +62,6 @@ class UserCheckinProvider extends ChangeNotifier {
 
   bool get isReady => _isReady;
 
-  int get test => _test;
-  set test(int number) {
-    _test = number;
-    notifyListeners();
-  }
-
   int get currentWeek => _currentWeek;
   set currentWeek(int newWeek) {
     _currentWeek = newWeek;

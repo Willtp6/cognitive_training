@@ -95,9 +95,20 @@ class MyApp extends StatelessWidget {
                       final parameters = state.queryParams;
                       final startLevel = parameters['startLevel'] ?? '0';
                       final isTutorial = parameters['isTutorial'] ?? 'false';
+                      final responseTimeList =
+                          parameters['responseTimeList'] ?? '[]';
+                      Logger().d(responseTimeList);
+                      List<int> myList = responseTimeList.length >= 3
+                          ? responseTimeList
+                              .substring(1, responseTimeList.length - 1)
+                              .split(', ')
+                              .map<int>((item) => int.parse(item))
+                              .toList()
+                          : [];
                       return PokerGame(
                         startLevel: int.tryParse(startLevel) ?? 0,
                         isTutorial: isTutorial == 'true',
+                        responseTimeList: myList,
                       );
                     },
                   ),

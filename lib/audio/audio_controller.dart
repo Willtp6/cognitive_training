@@ -89,6 +89,10 @@ class AudioController {
     }
   }
 
+  String getLanguage() {
+    return _settings?.language.value == '國語' ? 'chinese' : 'taiwanese';
+  }
+
   void _stopAllSound() {
     // * check template
   }
@@ -110,23 +114,35 @@ class AudioController {
 
   void _languageHandler() {}
 
-  void playPathAudio() {}
+  void playInstructionRecord(String path) {
+    String language = getLanguage();
+    _audioPlayer.play(AssetSource('instruction_record/$language/$path'));
+  }
+
+  void pauseAudio() {
+    _audioPlayer.pause();
+  }
+
+  void resumeAudio() {
+    _audioPlayer.resume();
+  }
 
   void stopAudio() {
     _audioPlayer.pause();
     _audioPlayer.release();
   }
 
-  void playCoinAudio() {
-    _audioPlayer.play(AssetSource('lottery_game_sound/coin.mp3'));
+  void playLotteryGameNumber(String path) {
+    String language = getLanguage();
+    _audioPlayer.play(AssetSource('lottery_game_sound/$language/$path'));
   }
 
-  void playLoseAudio() {
-    _audioPlayer.play(AssetSource('lottery_game_sound/horror_lose.wav'));
+  void playLotteryGameSoundEffect(String path) {
+    _audioPlayer.play(AssetSource('lottery_game_sound/$path'));
   }
 
-  void playWinAudio() {
-    _audioPlayer.play(AssetSource('lottery_game_sound/Applause.mp3'));
+  void playPokerGameSoundEffect(String path) {
+    _audioPlayer.play(AssetSource('poker_game_sound/$path'));
   }
 
   void playGameDescription(int index) {
@@ -136,8 +152,7 @@ class AudioController {
       'poker_game',
       'routing_game'
     ];
-    String language =
-        _settings?.language.value == '國語' ? 'chinese' : 'taiwanese';
+    String language = getLanguage();
     _audioPlayer.play(AssetSource(
         'instruction_record/$language/${game[index]}/game_description.m4a'));
   }

@@ -125,7 +125,15 @@ class CheckinRewardState extends State<CheckinReward> {
   late UserCheckinProvider checkinProvider;
   @override
   void initState() {
+    Logger().d('created');
     super.initState();
+  }
+
+  @override
+  void dispose() {
+    // TODO: implement dispose
+    Logger().d('disposed');
+    super.dispose();
   }
 
   @override

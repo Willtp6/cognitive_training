@@ -6,14 +6,20 @@ class LotteryGameDatabase {
   int currentLevel;
   int currentDigit;
   bool doneTutorial;
-  LotteryGameDatabase(
-      {required this.currentLevel,
-      required this.currentDigit,
-      required this.doneTutorial});
+  LotteryGameDatabase({
+    required this.currentLevel,
+    required this.currentDigit,
+    required this.doneTutorial,
+  });
 }
 
 class PokerGameDatabase {
   int currentLevel;
   bool doneTutorial;
-  PokerGameDatabase({required this.currentLevel, required this.doneTutorial});
+  List<int> responseTimeList;
+  PokerGameDatabase({
+    required this.currentLevel,
+    required this.doneTutorial,
+    required this.responseTimeList,
+  });
 }

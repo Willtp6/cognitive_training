@@ -42,9 +42,13 @@ class UserInfoProvider with ChangeNotifier {
           currentDigit: doc.data()!['lotteryGameDatabase']['digit'],
           doneTutorial: doc.data()!['lotteryGameDatabase']['doneTutorial'],
         );
+        List<dynamic> responseTimeList = doc.data()!['pokerGameDatabase']
+                ['responseTimeList'] ??
+            [10000, 10000, 10000, 10000, 10000];
         _pokerGameDatabase = PokerGameDatabase(
           currentLevel: doc.data()!['pokerGameDatabase']['level'],
           doneTutorial: doc.data()!['pokerGameDatabase']['doneTutorial'],
+          responseTimeList: responseTimeList.cast<int>(),
         );
       } else {
         //! this part should throw error about data missing
@@ -107,8 +111,10 @@ class UserInfoProvider with ChangeNotifier {
   PokerGameDatabase get pokerGameDatabase => _pokerGameDatabase;
   set pokerGameDatabase(PokerGameDatabase database) {
     _pokerGameDatabase = PokerGameDatabase(
-        currentLevel: database.currentLevel,
-        doneTutorial: database.doneTutorial);
+      currentLevel: database.currentLevel,
+      doneTutorial: database.doneTutorial,
+      responseTimeList: database.responseTimeList,
+    );
     FirebaseFirestore.instance
         .collection('user_basic_info')
         .doc(_user?.uid)
@@ -116,6 +122,7 @@ class UserInfoProvider with ChangeNotifier {
       'pokerGameDatabase': {
         'level': database.currentLevel,
         'doneTutorial': database.doneTutorial,
+        'responseTimeList': database.responseTimeList,
       }
     }).then((value) {
       notifyListeners();

@@ -60,12 +60,8 @@ class LotteryGame {
   late bool doneTutorial;
   late List<bool> isChosen;
 
-  String getInstructionAudioPath(String chosenLanguage) {
-    String language = chosenLanguage == '國語' ? 'chinese' : 'taiwanese';
-    Logger().d(chosenLanguage);
-    Logger().d(language);
-    String path =
-        'instruction_record/$language/lottery_game/rule_level_${gameLevel + 1}';
+  String getInstructionAudioPath() {
+    String path = 'lottery_game/rule_level_${gameLevel + 1}';
     if (gameProgress == 2) {
       path = '${path}_sum';
     } else {
@@ -130,12 +126,24 @@ class LotteryGame {
   }
 
   void record() {
+    // go through the loop
+    if (gameLevel < 2) {
+      userArray = [];
+      for (int i = 1; i < isChosen.length; i++) {
+        if (isChosen[i]) userArray.add(i);
+      }
+    } else {
+      userArray.remove(-1);
+    }
     RecordLotteryGame().recordGame(
       gameLevel: gameLevel,
       numberOfDigits: numberOfDigits,
       numOfCorrectAns: numOfCorrectAns,
       end: end,
       start: start,
+      specialRule: specialRules,
+      answer: numArray,
+      playerInput: userArray,
     );
   }
 
