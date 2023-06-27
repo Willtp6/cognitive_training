@@ -58,7 +58,7 @@ class LotteryGame {
   late DateTime start;
   late DateTime end;
   late bool doneTutorial;
-  late List<bool> isChosen;
+  List<bool> isChosen = List.generate(50, (index) => false);
 
   String getInstructionAudioPath() {
     String path = 'lottery_game/rule_level_${gameLevel + 1}';
@@ -91,7 +91,7 @@ class LotteryGame {
     Random random = Random();
     Set<int> usedNumbers = {};
     List<int> results = [];
-    //*number of odd or even number ahould be in the array
+    //* number of odd or even number ahould be in the array
     int numOfEvenOrOdd = 0;
 
     while (usedNumbers.length < numberOfDigits) {
@@ -103,12 +103,12 @@ class LotteryGame {
             (specialRules == 0 || specialRules == 3) &&
             numOfEvenOrOdd < (numberOfDigits + 1) ~/ 2) {
           switch (specialRules) {
-            //*even
+            //* even
             case 0:
               if (randomNumber % 2 != 0) continue;
               numOfEvenOrOdd++;
               break;
-            //*odd
+            //* odd
             case 3:
               if (randomNumber % 2 != 1) continue;
               numOfEvenOrOdd++;

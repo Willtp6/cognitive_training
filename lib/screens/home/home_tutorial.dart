@@ -12,8 +12,8 @@ class HomeTutorial {
     '接著畫面中央會出現開始遊戲，按下去就可以開始囉!',
   ];
   List<String> arrowPath = [
-    'assets/home_page/tutorial_left_arrow.png',
-    'assets/home_page/tutorial_right_arrow.png',
+    'assets/global/tutorial_left_arrow.png',
+    'assets/global/tutorial_right_arrow.png',
   ];
   List<Alignment> arrowAlignment = [
     const Alignment(-0.4, 0.0),

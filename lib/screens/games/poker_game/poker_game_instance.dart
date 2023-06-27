@@ -65,6 +65,9 @@ class Player {
 
 class GameInstance {
   int gameLevel;
+  List<int> responseTimeList;
+  bool isTutorial;
+
   List<int> numberOfCards = [5, 6, 6, 8];
   String backgroundPath = 'assets/poker_game_scene/play_board.png';
 
@@ -90,11 +93,13 @@ class GameInstance {
   int continuousWin = 0;
   int continuousLose = 0;
 
-  List<int> responseTimeList;
   List<int> coinWin = [100, 200, 250, 300];
   List<int> coinLose = [100, 100, 150, 150];
 
-  GameInstance({required this.gameLevel, required this.responseTimeList}) {
+  GameInstance(
+      {required this.gameLevel,
+      required this.responseTimeList,
+      required this.isTutorial}) {
     deck = Deck();
     deck.shuffle();
   }
@@ -241,5 +246,10 @@ class GameInstance {
       default:
         return responseTimeList[responseTimeList.length ~/ 2];
     }
+  }
+
+  String getRulePath() {
+    String path = gameLevel <= 1 ? 'find_bigger.m4a' : 'find_the_same.m4a';
+    return path;
   }
 }

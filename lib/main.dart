@@ -104,7 +104,7 @@ class MyApp extends StatelessWidget {
                               .split(', ')
                               .map<int>((item) => int.parse(item))
                               .toList()
-                          : [];
+                          : [10, 10, 10, 10, 10];
                       return PokerGame(
                         startLevel: int.tryParse(startLevel) ?? 0,
                         isTutorial: isTutorial == 'true',

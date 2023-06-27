@@ -34,7 +34,6 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
 
   // // !
   // final checker = CheckConnectionStatus();
-  late DateTime time_;
   // // !
 
   List<bool> isChosen = [false, false, false, false];
@@ -82,15 +81,12 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       DeviceOrientation.landscapeRight,
     ]);
     WidgetsBinding.instance.addObserver(this);
-    time_ = DateTime.now();
-    Logger().d('load home ${time_}');
   }
 
   @override
   void dispose() {
     player.dispose();
     WidgetsBinding.instance.removeObserver(this);
-    Logger().d('dispose home ${time_}');
     super.dispose();
   }
 
@@ -137,8 +133,6 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                     _homeTutorial.isTutorial = true;
                     _audioController.playInstructionRecord(
                         'tutorial/self_introduction.m4a');
-                    //player.play(AssetSource(
-                    //    'instruction_record/chinese/tutorial/self_introduction.m4a'));
                   });
                 },
                 child: _homeTutorial.tutorialButton(),
@@ -263,7 +257,6 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
             onChanged: (value) {
               setState(() {
                 chosenLanguage = value!;
-                Logger().i(value.toString());
                 settings.setLanguage(value);
               });
             },
