@@ -11,6 +11,7 @@ class AudioController {
   final logger = Logger();
 
   final AudioPlayer _audioPlayer;
+  final AudioPlayer _audioPlayer2;
 
   ValueNotifier<AppLifecycleState>? _lifecycleNotifier;
 
@@ -18,7 +19,8 @@ class AudioController {
 
   AudioController({int polyphony = 2})
       : assert(polyphony >= 1),
-        _audioPlayer = AudioPlayer(playerId: 'audioPlayer');
+        _audioPlayer = AudioPlayer(playerId: 'audioPlayer'),
+        _audioPlayer2 = AudioPlayer(playerId: 'audioPlayer2');
 
   /// Preloads all sound effects.
   Future<void> initialize() async {
@@ -61,6 +63,7 @@ class AudioController {
     _lifecycleNotifier?.removeListener(_handleAppLifecycle);
     _stopAllSound();
     _audioPlayer.dispose();
+    _audioPlayer2.dispose();
   }
 
   void attachLifecycleNotifier(
@@ -155,5 +158,9 @@ class AudioController {
     String language = getLanguage();
     _audioPlayer.play(AssetSource(
         'instruction_record/$language/${game[index]}/game_description.m4a'));
+  }
+
+  void playByExtraPlayer(String path) {
+    _audioPlayer2.play(AssetSource(path));
   }
 }

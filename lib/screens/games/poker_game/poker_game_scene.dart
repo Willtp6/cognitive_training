@@ -14,21 +14,22 @@ import 'package:provider/provider.dart';
 import 'poker_game_instance.dart';
 import 'poker_game_tutorial.dart';
 
-class PokerGame extends StatefulWidget {
+class PokerGameScene extends StatefulWidget {
   final startLevel;
   var isTutorial;
   final responseTimeList;
-  PokerGame(
+  PokerGameScene(
       {super.key,
       required this.startLevel,
       required this.isTutorial,
       required this.responseTimeList});
 
   @override
-  State<PokerGame> createState() => _PokerGameState();
+  State<PokerGameScene> createState() => _PokerGameStateScene();
 }
 
-class _PokerGameState extends State<PokerGame> with TickerProviderStateMixin {
+class _PokerGameStateScene extends State<PokerGameScene>
+    with TickerProviderStateMixin {
   late AnimationController _controller;
   late AnimationController _controllerChosenPlayer;
   late AnimationController _controllerChosenComputer;
@@ -131,8 +132,7 @@ class _PokerGameState extends State<PokerGame> with TickerProviderStateMixin {
           _showLevelUpgradeDialog().then((value) {
             setState(() {
               game.cardDealed = false;
-              String path =
-                  game.gameLevel < 1 ? 'find_bigger.m4a' : 'find_the_same.m4a';
+              String path = game.getRulePath();
               audioController.playInstructionRecord('poker_game/$path');
             });
           });
@@ -142,8 +142,7 @@ class _PokerGameState extends State<PokerGame> with TickerProviderStateMixin {
           _showLevelDowngradeDialog().then((value) {
             setState(() {
               game.cardDealed = false;
-              String path =
-                  game.gameLevel < 1 ? 'find_bigger.m4a' : 'find_the_same.m4a';
+              String path = game.getRulePath();
               audioController.playInstructionRecord('poker_game/$path');
             });
           });
@@ -273,6 +272,10 @@ class _PokerGameState extends State<PokerGame> with TickerProviderStateMixin {
 
   void emptyFunction() {}
 
+  bool isTutorialModePop() {
+    return game.isTutorial;
+  }
+
   @override
   Widget build(BuildContext context) {
     userInfoProvider = Provider.of<UserInfoProvider>(context);
@@ -280,61 +283,66 @@ class _PokerGameState extends State<PokerGame> with TickerProviderStateMixin {
     return SafeArea(
       child: WillPopScope(
         onWillPop: () async {
+          // audioController.pauseAudio();
+          // bool shouldPop = true;
+          // await showDialog(
+          //   context: context,
+          //   barrierDismissible: false, // user must tap button!
+          //   builder: (BuildContext context) {
+          //     return AlertDialog(
+          //       title: const Center(
+          //         child: Text(
+          //           '確定要離開嗎?',
+          //           style: TextStyle(fontFamily: 'GSR_B', fontSize: 40),
+          //         ),
+          //       ),
+          //       // this part can put multiple messages
+          //       content: SingleChildScrollView(
+          //         child: ListBody(
+          //           children: const <Widget>[
+          //             Center(
+          //               child: Text(
+          //                 '遊戲將不會被記錄下來喔!!!',
+          //                 style: TextStyle(fontFamily: 'GSR_B', fontSize: 30),
+          //               ),
+          //             ),
+          //           ],
+          //         ),
+          //       ),
+          //       actionsAlignment: MainAxisAlignment.center,
+          //       actions: <Widget>[
+          //         TextButton(
+          //           child: const Text(
+          //             '繼續遊戲',
+          //             style: TextStyle(fontFamily: 'GSR_B', fontSize: 30),
+          //           ),
+          //           onPressed: () {
+          //             audioController.resumeAudio();
+          //             Navigator.of(context).pop(false);
+          //           },
+          //         ),
+          //         TextButton(
+          //           child: const Text(
+          //             '確定離開',
+          //             style: TextStyle(fontFamily: 'GSR_B', fontSize: 30),
+          //           ),
+          //           onPressed: () {
+          //             Navigator.of(context).pop(true);
+          //           },
+          //         ),
+          //       ],
+          //     );
+          //   },
+          // ).then((value) {
+          //   shouldPop = value;
+          // });
+          // return shouldPop;
           audioController.pauseAudio();
-          showDialog(
-            context: context,
-            barrierDismissible: false, // user must tap button!
-            builder: (BuildContext context) {
-              return AlertDialog(
-                title: const Center(
-                  child: Text(
-                    '確定要離開嗎?',
-                    style: TextStyle(fontFamily: 'GSR_B', fontSize: 40),
-                  ),
-                ),
-                // this part can put multiple messages
-                content: SingleChildScrollView(
-                  child: ListBody(
-                    children: const <Widget>[
-                      Center(
-                        child: Text(
-                          '遊戲將不會被記錄下來喔!!!',
-                          style: TextStyle(fontFamily: 'GSR_B', fontSize: 30),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                actionsAlignment: MainAxisAlignment.center,
-                actions: <Widget>[
-                  TextButton(
-                    child: const Text(
-                      '繼續遊戲',
-                      style: TextStyle(fontFamily: 'GSR_B', fontSize: 30),
-                    ),
-                    onPressed: () {
-                      Navigator.of(context).pop(false);
-                      audioController.resumeAudio();
-                    },
-                  ),
-                  TextButton(
-                    child: const Text(
-                      '確定離開',
-                      style: TextStyle(fontFamily: 'GSR_B', fontSize: 30),
-                    ),
-                    onPressed: () {
-                      Navigator.of(context).pop(true);
-                    },
-                  ),
-                ],
-              );
-            },
-          ).then((value) {
-            if (value == true) {
-              Navigator.of(context).pop();
-            }
-          });
-          return false;
+          if (isTutorialModePop()) {
+            return await _showSkipTutorialDialog();
+          } else {
+            return await _showAlertDialog();
+          }
         },
         child: Scaffold(
           body: SizedBox(
@@ -658,9 +666,12 @@ class _PokerGameState extends State<PokerGame> with TickerProviderStateMixin {
         child: AspectRatio(
           aspectRatio: 1,
           child: GestureDetector(
-            onTap: () {
-              //game.isPaused = true;
-              _showAlertDialog();
+            onTap: () async {
+              if (isTutorialModePop()) {
+                if (await _showSkipTutorialDialog()) context.pop();
+              } else {
+                if (await _showAlertDialog()) context.pop();
+              }
             },
             child: Container(
               decoration: BoxDecoration(
@@ -745,8 +756,12 @@ class _PokerGameState extends State<PokerGame> with TickerProviderStateMixin {
       builder: (BuildContext context) {
         return AlertDialog(
           title: const Center(
-              child: Text('本局結束',
-                  style: TextStyle(fontFamily: 'GSR_B', fontSize: 40))),
+            child: Text(
+              '本局結束',
+              style: TextStyle(fontFamily: 'GSR_B', fontSize: 40),
+            ),
+          ),
+          actionsAlignment: MainAxisAlignment.center,
           actions: <Widget>[
             TextButton(
               child: const Text(
@@ -760,7 +775,7 @@ class _PokerGameState extends State<PokerGame> with TickerProviderStateMixin {
             ),
             TextButton(
               child: const Text(
-                '繼續下一場遊戲',
+                '繼續遊戲',
                 style: TextStyle(fontFamily: 'GSR_B', fontSize: 30),
               ),
               onPressed: () {
@@ -865,9 +880,10 @@ class _PokerGameState extends State<PokerGame> with TickerProviderStateMixin {
     );
   }
 
-  Future<void> _showAlertDialog() async {
+  Future<bool> _showAlertDialog() async {
     audioController.pauseAudio();
-    return showDialog<void>(
+    bool shouldPop = false;
+    await showDialog(
       context: context,
       barrierDismissible: false, // user must tap button!
       builder: (BuildContext context) {
@@ -901,7 +917,7 @@ class _PokerGameState extends State<PokerGame> with TickerProviderStateMixin {
               onPressed: () {
                 //game.isPaused = false;
                 audioController.resumeAudio();
-                Navigator.of(context).pop();
+                Navigator.of(context).pop(false);
               },
             ),
             TextButton(
@@ -910,14 +926,71 @@ class _PokerGameState extends State<PokerGame> with TickerProviderStateMixin {
                 style: TextStyle(fontFamily: 'GSR_B', fontSize: 30),
               ),
               onPressed: () {
-                Navigator.of(context).pop();
-                Navigator.of(context).pop();
+                Navigator.of(context).pop(true);
               },
             ),
           ],
         );
       },
-    );
+    ).then((value) => shouldPop = value);
+    return shouldPop;
+  }
+
+  Future<bool> _showSkipTutorialDialog() async {
+    audioController.pauseAudio();
+    bool shouldPop = false;
+    await showDialog(
+      context: context,
+      barrierDismissible: false, // user must tap button!
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Center(
+            child: Text(
+              '確定要離開嗎?',
+              style: TextStyle(fontFamily: 'GSR_B', fontSize: 40),
+            ),
+          ),
+          // this part can put multiple messages
+          content: SingleChildScrollView(
+            child: ListBody(
+              children: const <Widget>[
+                Center(
+                  child: Text(
+                    '要退出教學模式嗎?',
+                    style: TextStyle(fontFamily: 'GSR_B', fontSize: 30),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          actionsAlignment: MainAxisAlignment.center,
+          actions: <Widget>[
+            TextButton(
+              child: const Text(
+                '繼續教學',
+                style: TextStyle(fontFamily: 'GSR_B', fontSize: 30),
+              ),
+              onPressed: () {
+                //audioController.resumeAudio();
+                Navigator.of(context).pop(false);
+              },
+            ),
+            TextButton(
+              child: const Text(
+                '確定離開',
+                style: TextStyle(fontFamily: 'GSR_B', fontSize: 30),
+              ),
+              onPressed: () {
+                //audioController.stopAudio();
+                userInfoProvider.pokerGameDoneTutorial();
+                Navigator.of(context).pop(true);
+              },
+            ),
+          ],
+        );
+      },
+    ).then((value) => shouldPop = value);
+    return shouldPop;
   }
 
   Future<void> _showTutorialEndDialog() async {
@@ -1081,6 +1154,7 @@ class _RuleScreenState extends State<RuleScreen> {
   @override
   void initState() {
     super.initState();
+    Logger().d('play rule');
     if (!widget.game.isTutorial) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         String path = widget.game.gameLevel <= 1

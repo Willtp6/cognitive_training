@@ -8,6 +8,7 @@ import 'package:cognitive_training/screens/games/lottery_game/lottery_game.dart'
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:audioplayers/audioplayers.dart';
+import 'package:go_router/go_router.dart';
 import 'package:logger/logger.dart';
 import 'package:provider/provider.dart';
 import 'package:auto_size_text/auto_size_text.dart';
@@ -38,8 +39,6 @@ class _LotteryGameSceneState extends State<LotteryGameScene>
     with TickerProviderStateMixin {
   Timer? mytimer;
   final formKey = GlobalKey<FormState>();
-
-  AudioPlayer tmpPlayer = AudioPlayer();
 
   late AudioController audioController;
 
@@ -78,7 +77,6 @@ class _LotteryGameSceneState extends State<LotteryGameScene>
   void dispose() {
     _controller.dispose();
     mytimer?.cancel();
-    tmpPlayer.dispose();
     super.dispose();
   }
 
@@ -93,7 +91,6 @@ class _LotteryGameSceneState extends State<LotteryGameScene>
     });
   }
 
-  //Todo add chinese audio
   void _playNumberSound() async {
     if (game.currentIndex < game.numberOfDigits) {
       audioController.playLotteryGameNumber(
@@ -185,26 +182,19 @@ class _LotteryGameSceneState extends State<LotteryGameScene>
             if (game.playerWin) {
               userInfoProvider.coins += game.gameReward;
               audioController.playLotteryGameSoundEffect('Applause.mp3');
-              tmpPlayer.play(
-                  AssetSource('lottery_game_sound/Lotter_win_firework.wav'));
+              audioController.playByExtraPlayer(
+                  'lottery_game_sound/Lotter_win_firework.wav');
             } else {
               audioController.playLotteryGameSoundEffect('horror_lose.wav');
             }
           });
           game.changeDigitByResult();
-          // ignore: ToDo
-          //TODO done tutorial need modify
-          // * this part is for record the digit and level of current game
-          if (game.isTutorial) {
-            userInfoProvider.lotteryGameDatabaseTutorial = true;
-          } else {
-            userInfoProvider.lotteryGameDatabase = LotteryGameDatabase(
-              currentLevel: game.gameLevel,
-              currentDigit: game.numberOfDigits,
-              doneTutorial: userInfoProvider.lotteryGameDatabase.doneTutorial ||
-                  game.isTutorial,
-            );
-          }
+          userInfoProvider.lotteryGameDatabase = LotteryGameDatabase(
+            currentLevel: game.gameLevel,
+            currentDigit: game.numberOfDigits,
+            doneTutorial: userInfoProvider.lotteryGameDatabase.doneTutorial ||
+                game.isTutorial,
+          );
           Future.delayed(const Duration(seconds: 3, milliseconds: 500),
               () => _showGameEndDialog());
           break;
@@ -224,12 +214,17 @@ class _LotteryGameSceneState extends State<LotteryGameScene>
           game.changeCurrentImage();
           break;
         case 10:
+          userInfoProvider.lotteryGameDoneTutorial();
           _showTutorialEndDialog();
           break;
         default:
           break;
       }
     });
+  }
+
+  bool isTutorialModePop() {
+    return game.isTutorial;
   }
 
   @override
@@ -244,68 +239,11 @@ class _LotteryGameSceneState extends State<LotteryGameScene>
       child: WillPopScope(
         onWillPop: () async {
           audioController.pauseAudio();
-          showDialog(
-            context: context,
-            barrierDismissible: false, // user must tap button!
-            builder: (BuildContext context) {
-              game.isPaused = true;
-              return AlertDialog(
-                title: const Center(
-                  child: Text(
-                    '確定要離開嗎?',
-                    style: TextStyle(fontFamily: 'GSR_B', fontSize: 40),
-                  ),
-                ),
-                // this part can put multiple messages
-                content: SingleChildScrollView(
-                  child: ListBody(
-                    children: const <Widget>[
-                      Center(
-                          child: Text(
-                        '遊戲將不會被記錄下來喔!!!',
-                        style: TextStyle(fontFamily: 'GSR_B', fontSize: 30),
-                      )),
-                      Center(
-                          child: Text(
-                        '而且猜中也能拿到獎勵',
-                        style: TextStyle(fontFamily: 'GSR_B', fontSize: 30),
-                      )),
-                    ],
-                  ),
-                ),
-                actionsAlignment: MainAxisAlignment.center,
-                actions: <Widget>[
-                  TextButton(
-                    child: const Text(
-                      '繼續遊戲',
-                      style: TextStyle(fontFamily: 'GSR_B', fontSize: 30),
-                    ),
-                    onPressed: () {
-                      game.isPaused = false;
-                      audioController.resumeAudio();
-                      Navigator.of(context).pop(false);
-                    },
-                  ),
-                  TextButton(
-                    child: const Text(
-                      '確定離開',
-                      style: TextStyle(fontFamily: 'GSR_B', fontSize: 30),
-                    ),
-                    onPressed: () {
-                      game.isPaused = false;
-                      audioController.stopAudio();
-                      Navigator.of(context).pop(true);
-                    },
-                  ),
-                ],
-              );
-            },
-          ).then((value) {
-            if (value == true) {
-              Navigator.of(context).pop();
-            }
-          });
-          return false;
+          if (isTutorialModePop()) {
+            return await _showSkipTutorialDialog();
+          } else {
+            return await _showAlertDialog();
+          }
         },
         child: Scaffold(
           body: SingleChildScrollView(
@@ -322,7 +260,7 @@ class _LotteryGameSceneState extends State<LotteryGameScene>
               child: Stack(
                 children: [
                   //* mask for tutorial
-                  if (widget.isTutorial) ...[
+                  if (game.isTutorial) ...[
                     Container(
                       color: Colors.white.withOpacity(0.7),
                     )
@@ -458,9 +396,13 @@ class _LotteryGameSceneState extends State<LotteryGameScene>
         child: AspectRatio(
           aspectRatio: 1,
           child: GestureDetector(
-            onTap: () {
+            onTap: () async {
               game.isPaused = true;
-              _showAlertDialog();
+              if (isTutorialModePop()) {
+                if (await _showSkipTutorialDialog()) context.pop();
+              } else {
+                if (await _showAlertDialog()) context.pop();
+              }
             },
             child: Container(
               decoration: BoxDecoration(
@@ -660,10 +602,10 @@ class _LotteryGameSceneState extends State<LotteryGameScene>
                                   for (int i = 0; i < 49; i++) ...[
                                     Opacity(
                                       opacity: game.isTutorial &&
-                                                  _lotteryGameTutorial
+                                              (_lotteryGameTutorial
                                                           .tutorialProgress !=
                                                       8 ||
-                                              (i ~/ 7 < 3 || i % 7 < 3)
+                                                  (i ~/ 7 < 3 || i % 7 < 3))
                                           ? 0.3
                                           : 1,
                                       child: InkWell(
@@ -911,9 +853,10 @@ class _LotteryGameSceneState extends State<LotteryGameScene>
     );
   }
 
-  Future<void> _showAlertDialog() async {
+  Future<bool> _showAlertDialog() async {
     audioController.pauseAudio();
-    return showDialog<void>(
+    bool shouldPop = false;
+    await showDialog(
       context: context,
       barrierDismissible: false, // user must tap button!
       builder: (BuildContext context) {
@@ -953,7 +896,7 @@ class _LotteryGameSceneState extends State<LotteryGameScene>
               onPressed: () {
                 game.isPaused = false;
                 audioController.resumeAudio();
-                Navigator.of(context).pop();
+                Navigator.of(context).pop(false);
               },
             ),
             TextButton(
@@ -963,14 +906,72 @@ class _LotteryGameSceneState extends State<LotteryGameScene>
               ),
               onPressed: () {
                 audioController.stopAudio();
-                Navigator.of(context).pop();
-                Navigator.of(context).pop();
+                Navigator.of(context).pop(true);
               },
             ),
           ],
         );
       },
-    );
+    ).then((value) => shouldPop = value);
+    return shouldPop;
+  }
+
+  Future<bool> _showSkipTutorialDialog() async {
+    audioController.pauseAudio();
+    bool shouldPop = false;
+    await showDialog(
+      context: context,
+      barrierDismissible: false, // user must tap button!
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Center(
+            child: Text(
+              '確定要離開嗎?',
+              style: TextStyle(fontFamily: 'GSR_B', fontSize: 40),
+            ),
+          ),
+          // this part can put multiple messages
+          content: SingleChildScrollView(
+            child: ListBody(
+              children: const <Widget>[
+                Center(
+                  child: Text(
+                    '要退出教學模式嗎?',
+                    style: TextStyle(fontFamily: 'GSR_B', fontSize: 30),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          actionsAlignment: MainAxisAlignment.center,
+          actions: <Widget>[
+            TextButton(
+              child: const Text(
+                '繼續教學',
+                style: TextStyle(fontFamily: 'GSR_B', fontSize: 30),
+              ),
+              onPressed: () {
+                game.isPaused = false;
+                //audioController.resumeAudio();
+                Navigator.of(context).pop(false);
+              },
+            ),
+            TextButton(
+              child: const Text(
+                '確定離開',
+                style: TextStyle(fontFamily: 'GSR_B', fontSize: 30),
+              ),
+              onPressed: () {
+                //audioController.stopAudio();
+                userInfoProvider.lotteryGameDoneTutorial();
+                Navigator.of(context).pop(true);
+              },
+            ),
+          ],
+        );
+      },
+    ).then((value) => shouldPop = value);
+    return shouldPop;
   }
 
   Future<void> _exceedLimitAlertDialog() async {
@@ -1103,11 +1104,6 @@ class _LotteryGameSceneState extends State<LotteryGameScene>
   }
 
   Future<void> _showTutorialEndDialog() async {
-    userInfoProvider.pokerGameDatabase = PokerGameDatabase(
-      currentLevel: 0,
-      doneTutorial: true,
-      responseTimeList: [],
-    );
     return showDialog<void>(
       context: context,
       barrierDismissible: false, // user must tap button!
@@ -1142,7 +1138,10 @@ class _LotteryGameSceneState extends State<LotteryGameScene>
               onPressed: () {
                 Navigator.of(context).pop();
                 game.isTutorial = false;
-                game.numberOfDigits = 2;
+                game.gameLevel =
+                    userInfoProvider.lotteryGameDatabase.currentLevel;
+                game.numberOfDigits =
+                    userInfoProvider.lotteryGameDatabase.currentDigit;
                 game.setNextGame();
                 setState(() {
                   game.changeCurrentImage();
@@ -1187,9 +1186,9 @@ class RuleScreen extends StatefulWidget {
 class _RuleScreenState extends State<RuleScreen> {
   List<Alignment> starPosition = [
     const Alignment(-1.0, -0.6),
-    const Alignment(-0.5, -0.8),
+    const Alignment(-0.5, -0.85),
     const Alignment(0.0, -1.0),
-    const Alignment(0.5, -0.8),
+    const Alignment(0.5, -0.85),
     const Alignment(1.0, -0.6),
   ];
   String starLight = 'assets/global/star_light.png';
@@ -1328,11 +1327,10 @@ class _RuleScreenState extends State<RuleScreen> {
                     for (int i = 0; i < 5; i++) ...[
                       Opacity(
                         opacity: widget.game.isTutorial &&
-                                    (widget.lotteryGameTutorial
-                                                .tutorialProgress !=
+                                ((widget.lotteryGameTutorial.tutorialProgress !=
                                             2 &&
                                         i == 0) ||
-                                i != 0
+                                    i != 0)
                             ? 0.3
                             : 1,
                         child: Align(
@@ -1449,41 +1447,6 @@ class _RuleScreenState extends State<RuleScreen> {
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  Align difficultyStars() {
-    return Align(
-      //alignment: Alignment.topCenter,
-      //child: FractionallySizedBox(
-      //heightFactor: 1,
-      child: Stack(
-        children: [
-          for (int i = 0; i < 5; i++) ...[
-            Opacity(
-              opacity: widget.game.isTutorial &&
-                          (widget.lotteryGameTutorial.tutorialProgress != 2 &&
-                              i == 0) ||
-                      i != 0
-                  ? 0.3
-                  : 1,
-              child: Align(
-                alignment: starPosition[i],
-                child: FractionallySizedBox(
-                  widthFactor: 0.2,
-                  child: AspectRatio(
-                    aspectRatio: 1,
-                    //child: Image.asset(
-                    //    i <= widget.game.gameLevel ? starLight : starDark),
-                    child: Placeholder(),
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ],
-        // ),
       ),
     );
   }

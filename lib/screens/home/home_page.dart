@@ -559,8 +559,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                 if (status.connectionStatus.value == ConnectivityResult.none) {
                   Logger().w('lost connection');
                   lostConnectionDialog(context);
-                } else if (!_homeTutorial.isTutorial &&
-                    (chosenGame == 0 || chosenGame == 2)) {
+                } else if (!_homeTutorial.isTutorial && (chosenGame! < 3)) {
                   final audioController = context.read<AudioController>();
                   audioController.stopAudio();
                   String route = gameRoutes[isChosen.indexOf(true)];

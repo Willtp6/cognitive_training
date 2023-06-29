@@ -3,7 +3,8 @@ import 'package:cognitive_training/audio/audio_controller.dart';
 import 'package:cognitive_training/check_internet/check_connection_status.dart';
 import 'package:cognitive_training/models/user_info_provider.dart';
 import 'package:cognitive_training/models/user_checkin_provider.dart';
-import 'package:cognitive_training/screens/games/fishing_game/fishing_game.dart';
+import 'package:cognitive_training/screens/games/fishing_game/fishing_game_menu.dart';
+import 'package:cognitive_training/screens/games/fishing_game/fishing_game_scene.dart';
 import 'package:cognitive_training/screens/games/lottery_game/lottery_game_scene.dart';
 import 'package:cognitive_training/screens/games/lottery_game/lottery_game_menu.dart';
 import 'package:cognitive_training/screens/games/poker_game/poker_game_scene.dart';
@@ -84,6 +85,19 @@ class MyApp extends StatelessWidget {
                 ],
               ),
               GoRoute(
+                name: 'fishing_game_menu',
+                path: 'fishing_game_menu',
+                builder: (context, state) => const FishingGameMenu(),
+                routes: [
+                  GoRoute(
+                      name: 'fishing_game',
+                      path: 'fishing_game',
+                      builder: (context, state) {
+                        return FishingGameScene();
+                      }),
+                ],
+              ),
+              GoRoute(
                 name: 'poker_game_menu',
                 path: 'poker_game_menu',
                 builder: (context, state) => const PokerGameMenu(),
@@ -104,8 +118,8 @@ class MyApp extends StatelessWidget {
                               .split(', ')
                               .map<int>((item) => int.parse(item))
                               .toList()
-                          : [10, 10, 10, 10, 10];
-                      return PokerGame(
+                          : [10000, 10000, 10000, 10000, 10000];
+                      return PokerGameScene(
                         startLevel: int.tryParse(startLevel) ?? 0,
                         isTutorial: isTutorial == 'true',
                         responseTimeList: myList,

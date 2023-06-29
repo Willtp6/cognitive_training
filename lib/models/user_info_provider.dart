@@ -92,8 +92,8 @@ class UserInfoProvider with ChangeNotifier {
     });
   }
 
-  set lotteryGameDatabaseTutorial(bool isDone) {
-    _lotteryGameDatabase.doneTutorial = isDone;
+  void lotteryGameDoneTutorial() {
+    _pokerGameDatabase.doneTutorial = true;
     FirebaseFirestore.instance
         .collection('user_basic_info')
         .doc(_user?.uid)
@@ -101,7 +101,7 @@ class UserInfoProvider with ChangeNotifier {
       'lotteryGameDatabase': {
         'level': _lotteryGameDatabase.currentLevel,
         'digit': _lotteryGameDatabase.currentDigit,
-        'doneTutorial': isDone,
+        'doneTutorial': true,
       }
     }).then((value) {
       notifyListeners();
@@ -110,11 +110,12 @@ class UserInfoProvider with ChangeNotifier {
 
   PokerGameDatabase get pokerGameDatabase => _pokerGameDatabase;
   set pokerGameDatabase(PokerGameDatabase database) {
-    _pokerGameDatabase = PokerGameDatabase(
-      currentLevel: database.currentLevel,
-      doneTutorial: database.doneTutorial,
-      responseTimeList: database.responseTimeList,
-    );
+    // _pokerGameDatabase = PokerGameDatabase(
+    //   currentLevel: database.currentLevel,
+    //   doneTutorial: database.doneTutorial,
+    //   responseTimeList: database.responseTimeList,
+    // );
+    _pokerGameDatabase = database;
     FirebaseFirestore.instance
         .collection('user_basic_info')
         .doc(_user?.uid)
@@ -123,6 +124,22 @@ class UserInfoProvider with ChangeNotifier {
         'level': database.currentLevel,
         'doneTutorial': database.doneTutorial,
         'responseTimeList': database.responseTimeList,
+      }
+    }).then((value) {
+      notifyListeners();
+    });
+  }
+
+  void pokerGameDoneTutorial() {
+    _pokerGameDatabase.doneTutorial = true;
+    FirebaseFirestore.instance
+        .collection('user_basic_info')
+        .doc(_user?.uid)
+        .update({
+      'pokerGameDatabase': {
+        'level': _lotteryGameDatabase.currentLevel,
+        'digit': _lotteryGameDatabase.currentDigit,
+        'doneTutorial': true,
       }
     }).then((value) {
       notifyListeners();

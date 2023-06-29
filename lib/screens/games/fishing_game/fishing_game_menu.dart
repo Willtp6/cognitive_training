@@ -1,7 +1,9 @@
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:cognitive_training/models/user_info_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
+import 'package:logger/logger.dart';
 import 'package:provider/provider.dart';
 
 class FishingGameMenu extends StatefulWidget {
@@ -14,175 +16,217 @@ class FishingGameMenu extends StatefulWidget {
 class _FishingGameMenuState extends State<FishingGameMenu>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
+  late UserInfoProvider _userInfoProvider;
+  bool buttonEnabled = true;
 
   @override
   void initState() {
+    super.initState();
     _controller = AnimationController(
-      duration: const Duration(seconds: 2),
+      duration: const Duration(milliseconds: 600),
       vsync: this,
     );
-    SystemChrome.setPreferredOrientations([
-      DeviceOrientation.landscapeRight,
-      DeviceOrientation.landscapeLeft,
-    ]);
-    super.initState();
   }
 
   @override
   void dispose() {
     _controller.dispose();
-    SystemChrome.setPreferredOrientations([
-      DeviceOrientation.portraitUp,
-      DeviceOrientation.portraitDown,
-    ]);
     super.dispose();
   }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    SystemChrome.setPreferredOrientations([
-      DeviceOrientation.landscapeRight,
-      DeviceOrientation.landscapeLeft,
-    ]);
+    // SystemChrome.setPreferredOrientations([
+    //   DeviceOrientation.landscapeRight,
+    //   DeviceOrientation.landscapeLeft,
+    // ]);
     _controller.reset();
-    _controller.dispose();
-    _controller =
-        AnimationController(duration: const Duration(seconds: 2), vsync: this);
+    // _controller.dispose();
+    // _controller =
+    //     AnimationController(duration: const Duration(seconds: 2), vsync: this);
+  }
+
+  void startGame() {
+    if (buttonEnabled) {
+      buttonEnabled = false;
+      _controller.forward();
+      Future.delayed(const Duration(milliseconds: 600), () {
+        _controller.reset();
+        //final level = _userInfoProvider.lotteryGameDatabase.currentLevel;
+        //final digit = _userInfoProvider.lotteryGameDatabase.currentDigit;
+        final doneTutorial = _userInfoProvider.lotteryGameDatabase.doneTutorial;
+        if (doneTutorial) {
+          Logger().i('continue game');
+          GoRouter.of(context).pushNamed(
+            'fishing_game',
+            // queryParams: {
+            //   'startLevel': level.toString(),
+            //   'startDigit': digit.toString(),
+            //   'isTutorial': (!doneTutorial).toString(),
+            // },
+          );
+        } else {
+          Logger().i('tutorial');
+          GoRouter.of(context).pushNamed(
+            'fishing_game',
+            // queryParams: {
+            //   'startLevel': 0.toString(),
+            //   'startDigit': 1.toString(),
+            //   'isTutorial': 'true'
+            // },
+          );
+        }
+        _controller.reset();
+        buttonEnabled = true;
+      });
+    }
+  }
+
+  void startTutorial() {
+    if (buttonEnabled) {
+      buttonEnabled = false;
+      _controller.forward();
+      Future.delayed(const Duration(seconds: 2), () {
+        _controller.reset();
+        GoRouter.of(context).pushNamed(
+          'fishing_game',
+          queryParams: {
+            'startLevel': 0.toString(),
+            'startDigit': 1.toString(),
+            'isTutorial': 'true'
+          },
+        );
+        buttonEnabled = true;
+      });
+    }
+  }
+
+  void goBack() {
+    if (buttonEnabled) context.pop();
   }
 
   @override
   Widget build(BuildContext context) {
-    var userInfoProvider = context.watch<UserInfoProvider>();
-    return Stack(
-      children: [
-        ScaleTransition(
-          scale: Tween(begin: 1.0, end: 1.5)
-              .chain(CurveTween(curve: const Interval(0.7, 1.0)))
-              .animate(_controller),
-          child: ScaleTransition(
-            scale: Tween(begin: 1.0, end: 1.6)
-                .chain(CurveTween(curve: const Interval(0.0, 0.7)))
-                .animate(_controller),
-            child: SlideTransition(
-              position: Tween(
-                      begin: const Offset(0, 0), end: const Offset(-0.13, 0.11))
-                  .chain(CurveTween(curve: const Interval(0.0, 0.7)))
+    _userInfoProvider = context.read<UserInfoProvider>();
+    return SafeArea(
+      child: Scaffold(
+        body: Stack(
+          children: [
+            ScaleTransition(
+              scale: Tween(begin: 1.0, end: 1.5)
+                  .chain(CurveTween(curve: const Interval(0.0, 1.0)))
                   .animate(_controller),
               child: Container(
                 decoration: const BoxDecoration(
                   image: DecorationImage(
                     image: AssetImage(
-                        'assets/lottery_game_scene/Temple1_withoutWord.png'),
+                        'assets/fishing_game/scene/menu_and_result.png'),
                     fit: BoxFit.fill,
+                  ),
+                ),
+              ),
+            ),
+            FadeTransition(
+              opacity: Tween(begin: 1.0, end: 0.0).animate(_controller),
+              child: Consumer<UserInfoProvider>(
+                builder: (context, userInfoProvider, child) {
+                  return Stack(
+                    children: [
+                      gameLabel(),
+                      Align(
+                        alignment: const Alignment(0.0, 0.9),
+                        child: FractionallySizedBox(
+                          heightFactor: 0.45,
+                          widthFactor: 0.3,
+                          child: Column(children: [
+                            buttonWithText('進入遊戲', startGame),
+                            buttonWithText('教學模式', startTutorial),
+                            buttonWithText('返回', goBack),
+                          ]),
+                        ),
+                      )
+                    ],
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Align gameLabel() {
+    return Align(
+      alignment: const Alignment(0.0, -0.7),
+      child: FractionallySizedBox(
+        heightFactor: 0.2,
+        widthFactor: 0.4,
+        child: FittedBox(
+          child: Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              border: Border.all(color: Colors.grey, width: 8),
+              borderRadius: BorderRadius.circular(50.0),
+            ),
+            child: const Center(
+              child: Padding(
+                padding: EdgeInsets.all(20.0),
+                child: AutoSizeText(
+                  '釣 魚',
+                  style: TextStyle(
+                    fontFamily: "GSR_B",
+                    fontSize: 100,
+                    color: Colors.black,
+                    decoration: TextDecoration.none,
                   ),
                 ),
               ),
             ),
           ),
         ),
-        FadeTransition(
-          opacity: Tween(begin: 1.0, end: 0.0)
-              .chain(CurveTween(curve: const Interval(0.0, 0.7)))
-              .animate(_controller),
-          child: Consumer<UserInfoProvider>(
-            builder: (context, userInfoProvider, child) {
-              return Container(
-                alignment: Alignment.center,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Flexible(
-                      flex: 3,
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(15.0),
-                        ),
-                        child: const Text(
-                          'Game Label',
-                          style: TextStyle(
-                            color: Colors.black,
-                            decoration: TextDecoration.none,
-                          ),
-                        ),
+      ),
+    );
+  }
+
+  Flexible buttonWithText(String text, Function onTapFunction) {
+    return Flexible(
+      child: AspectRatio(
+        aspectRatio: 835 / 353,
+        child: GestureDetector(
+          onTap: () {
+            onTapFunction();
+          },
+          child: Container(
+            decoration: const BoxDecoration(
+              image: DecorationImage(
+                image: AssetImage('assets/global/continue_button.png'),
+              ),
+            ),
+            child: FractionallySizedBox(
+              heightFactor: 0.5,
+              widthFactor: 0.8,
+              child: LayoutBuilder(
+                builder:
+                    (BuildContext buildContext, BoxConstraints boxConstraints) {
+                  double width = boxConstraints.maxWidth;
+                  return Center(
+                    child: AutoSizeText(
+                      text,
+                      style: TextStyle(
+                        fontSize: width / 4,
+                        color: Colors.white,
+                        fontFamily: 'GSR_B',
                       ),
                     ),
-                    Flexible(
-                      flex: 1,
-                      child: Container(),
-                    ),
-                    Flexible(
-                      flex: 1,
-                      child: ElevatedButton(
-                        onPressed: () {
-                          _controller.reset();
-                          _controller.forward();
-                          _controller.addListener(() {
-                            if (_controller.isCompleted) {
-                              Future.delayed(const Duration(milliseconds: 200),
-                                  () {
-                                _controller.reset();
-                              });
-                            }
-                          });
-                        },
-                        child: const Text('開始新遊戲'),
-                      ),
-                    ),
-                    Flexible(
-                      flex: 1,
-                      child: ElevatedButton(
-                        onPressed: () {
-                          _controller.reset();
-                          _controller.forward();
-                          _controller.addListener(() {
-                            if (_controller.isCompleted) {
-                              Future.delayed(const Duration(milliseconds: 200),
-                                  () {
-                                _controller.reset();
-                              });
-                            }
-                          });
-                        },
-                        child: const Text('繼續遊戲'),
-                      ),
-                    ),
-                    Flexible(
-                      flex: 1,
-                      child: ElevatedButton(
-                        onPressed: () {
-                          _controller.reset();
-                          _controller.forward();
-                          _controller.addListener(() {
-                            if (_controller.isCompleted) {
-                              Future.delayed(const Duration(milliseconds: 200),
-                                  () {
-                                _controller.reset();
-                              });
-                            }
-                          });
-                        },
-                        child: const Text('教學模式'),
-                      ),
-                    ),
-                    Flexible(
-                      flex: 1,
-                      child: ElevatedButton(
-                        onPressed: () {
-                          GoRouter.of(context).pop();
-                        },
-                        child: const Text('返回'),
-                      ),
-                    ),
-                  ],
-                ),
-              );
-            },
+                  );
+                },
+              ),
+            ),
           ),
         ),
-      ],
+      ),
     );
   }
 }

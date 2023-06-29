@@ -84,6 +84,11 @@ flutter:
     - assets/lottery_game_sound/
     - assets/lottery_game_sound/chinese/
     - assets/lottery_game_sound/taiwanese/
+    - assets/fishing_game/fish/
+    - assets/fishing_game/garbage/
+    - assets/fishing_game/ripple/
+    - assets/fishing_game/scene/
+    - assets/fishing_game/sound/
     - assets/poker_game_scene/
     - assets/poker_game_sound/
     - assets/poker_game_card/
