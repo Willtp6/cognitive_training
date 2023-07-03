@@ -23,3 +23,13 @@ class PokerGameDatabase {
     required this.responseTimeList,
   });
 }
+
+class FishingGameDatabase {
+  int currentLevel;
+  bool doneTutorial;
+
+  FishingGameDatabase({
+    required this.currentLevel,
+    required this.doneTutorial,
+  });
+}

@@ -52,7 +52,6 @@ class _FishingGameMenuState extends State<FishingGameMenu>
       buttonEnabled = false;
       _controller.forward();
       Future.delayed(const Duration(milliseconds: 600), () {
-        _controller.reset();
         //final level = _userInfoProvider.lotteryGameDatabase.currentLevel;
         //final digit = _userInfoProvider.lotteryGameDatabase.currentDigit;
         final doneTutorial = _userInfoProvider.lotteryGameDatabase.doneTutorial;
@@ -77,7 +76,6 @@ class _FishingGameMenuState extends State<FishingGameMenu>
             // },
           );
         }
-        _controller.reset();
         buttonEnabled = true;
       });
     }
@@ -114,7 +112,7 @@ class _FishingGameMenuState extends State<FishingGameMenu>
         body: Stack(
           children: [
             ScaleTransition(
-              scale: Tween(begin: 1.0, end: 1.5)
+              scale: Tween(begin: 1.0, end: 1.0)
                   .chain(CurveTween(curve: const Interval(0.0, 1.0)))
                   .animate(_controller),
               child: Container(

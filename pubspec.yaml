@@ -87,6 +87,7 @@ flutter:
     - assets/fishing_game/fish/
     - assets/fishing_game/garbage/
     - assets/fishing_game/ripple/
+    - assets/fishing_game/rod/
     - assets/fishing_game/scene/
     - assets/fishing_game/sound/
     - assets/poker_game_scene/
@@ -131,24 +132,6 @@ flutter:
   #         weight: 700
   #
   fonts:
-    # - family: NotoSansTC_Black
-    #   fonts:
-    #     - asset: assets/Noto_Sans_TC/NotoSansTc-Black.otf
-    # - family: NotoSansTC_Bold
-    #   fonts:
-    #     - asset: assets/Noto_Sans_TC/NotoSansTc-Bold.otf
-    # - family: NotoSansTC_Light
-    #   fonts:
-    #     - asset: assets/Noto_Sans_TC/NotoSansTc-Light.otf
-    # - family: NotoSansTC_Medium
-    #   fonts:
-    #     - asset: assets/Noto_Sans_TC/NotoSansTc-Medium.otf
-    # - family: NotoSansTC_Regular
-    #   fonts:
-    #     - asset: assets/Noto_Sans_TC/NotoSansTc-Regular.otf
-    # - family: NotoSansTC_Thin
-    #   fonts:
-    #     - asset: assets/Noto_Sans_TC/NotoSansTc-Thin.otf
     - family: GSR_B
       fonts:
         - asset: assets/ttc/GenSenRounded-B.ttc

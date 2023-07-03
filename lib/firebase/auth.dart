@@ -1,4 +1,4 @@
-import 'package:cognitive_training/firebase/userinfo_database.dart';
+import 'package:cognitive_training/firebase/user_database_service.dart';
 import 'package:cognitive_training/models/user_checkin_provider.dart';
 import 'package:cognitive_training/models/user_info_provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -30,7 +30,6 @@ class AuthService {
   // but if there's any one want to add new functions should be careful
   Future loginOrCreateAccountWithId(String uid, String userName) async {
     String email = "$uid@gmail.com";
-    //String passwd = uid.padLeft(6, '0');
     String passwd = userName.padLeft(6, '0');
     try {
       UserCredential result = await _auth.signInWithEmailAndPassword(
@@ -41,12 +40,13 @@ class AuthService {
         try {
           UserCredential result = await _auth.createUserWithEmailAndPassword(
               email: email, password: passwd);
-          result.user?.updateDisplayName(userName);
+          result.user!.updateDisplayName(userName);
           // create new user info database
           await UserDatabaseService(docId: result.user!.uid, userName: userName)
-              .createUserInfo();
-          userInfoProvider.updateUserData(result.user);
-          userCheckinProvider.updateData(result.user);
+            ..createUserBasicInfo()
+            ..createUserCheckinInfo();
+          //userInfoProvider.updateUserData(result.user);
+          //userCheckinProvider.updateData(result.user);
           return result.user?.uid;
         } catch (error) {
           return error;
