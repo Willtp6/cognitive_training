@@ -12,6 +12,7 @@ class AudioController {
 
   final AudioPlayer _audioPlayer;
   final AudioPlayer _audioPlayer2;
+  final AudioPlayer _bgmPlayer;
 
   ValueNotifier<AppLifecycleState>? _lifecycleNotifier;
 
@@ -20,7 +21,8 @@ class AudioController {
   AudioController({int polyphony = 2})
       : assert(polyphony >= 1),
         _audioPlayer = AudioPlayer(playerId: 'audioPlayer'),
-        _audioPlayer2 = AudioPlayer(playerId: 'audioPlayer2');
+        _audioPlayer2 = AudioPlayer(playerId: 'audioPlayer2'),
+        _bgmPlayer = AudioPlayer(playerId: 'bgmPlayer');
 
   /// Preloads all sound effects.
   Future<void> initialize() async {
@@ -64,6 +66,7 @@ class AudioController {
     _stopAllSound();
     _audioPlayer.dispose();
     _audioPlayer2.dispose();
+    _bgmPlayer.dispose();
   }
 
   void attachLifecycleNotifier(
@@ -117,7 +120,27 @@ class AudioController {
 
   void _languageHandler() {}
 
-  void playInstructionRecord(String path) {
+  void playBGM(String path) {
+    _bgmPlayer.setReleaseMode(ReleaseMode.loop);
+    _bgmPlayer.play(AssetSource(path));
+  }
+
+  void pauseBGM() {
+    _bgmPlayer.pause();
+  }
+
+  void resumeBGM() {
+    _bgmPlayer.resume();
+  }
+
+  void stopBGM() {
+    _bgmPlayer.pause();
+    _bgmPlayer.release();
+  }
+
+  void playInstructionRecord(String path) async {
+    await _audioPlayer.pause();
+    await _audioPlayer.release();
     String language = getLanguage();
     _audioPlayer.play(AssetSource('instruction_record/$language/$path'));
   }
@@ -137,15 +160,19 @@ class AudioController {
 
   void playLotteryGameNumber(String path) {
     String language = getLanguage();
-    _audioPlayer.play(AssetSource('lottery_game_sound/$language/$path'));
+    _audioPlayer.play(AssetSource('lottery_game/sound/$language/$path'));
   }
 
   void playLotteryGameSoundEffect(String path) {
-    _audioPlayer.play(AssetSource('lottery_game_sound/$path'));
+    _audioPlayer.play(AssetSource('lottery_game/sound/$path'));
+  }
+
+  void playFishingGameSoundEffect(String path) {
+    _audioPlayer.play(AssetSource('fishing_game/sound/$path'));
   }
 
   void playPokerGameSoundEffect(String path) {
-    _audioPlayer.play(AssetSource('poker_game_sound/$path'));
+    _audioPlayer.play(AssetSource('poker_game/sound/$path'));
   }
 
   void playGameDescription(int index) {

@@ -132,7 +132,6 @@ class CheckinRewardState extends State<CheckinReward> {
   @override
   void dispose() {
     // TODO: implement dispose
-    Logger().d('disposed');
     super.dispose();
   }
 

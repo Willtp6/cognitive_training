@@ -87,6 +87,7 @@ class _FishingGameStateScene extends State<FishingGameScene> {
   @override
   void dispose() {
     cancelAllTimer();
+    _audioController.stopBGM();
     super.dispose();
   }
 
@@ -122,7 +123,7 @@ class _FishingGameStateScene extends State<FishingGameScene> {
             Duration(milliseconds: Random().nextInt(1000) + 1500), (timer) {
           //* activate the timer
           _riveControllers[timerInList].isActive = true;
-          //* cancel it self
+          //* cancel itself
           if (_game.gameLevel > 1 &&
               --_game.remainingRepeatedTime[timerInList] == 0) {
             _timerList[timerInList]?.cancel();
@@ -131,13 +132,10 @@ class _FishingGameStateScene extends State<FishingGameScene> {
       });
       addCounter++;
     }
-    Logger().d(_timerList.length);
-    for (var rod in _game.rodList) {
-      Logger().i(rod.type);
-      Logger().i(rod.rank);
-      Logger().i(rod.id);
-    }
-    Logger().i(_game.rodWithFish);
+    Timer(const Duration(seconds: 1), () {
+      _audioController.playFishingGameSoundEffect('Bubbles.mp3');
+    });
+    _game.start = DateTime.now();
   }
 
   bool isTutorialModePop() {
@@ -149,6 +147,9 @@ class _FishingGameStateScene extends State<FishingGameScene> {
     Logger().d(rodNumber);
     //* cancel all timer first
     cancelAllTimer();
+    // TODO
+    //* set end record the game
+    _game.end = DateTime.now();
     //* change to result page
     setState(() {
       ansRod = rodNumber;
@@ -237,12 +238,15 @@ class _FishingGameStateScene extends State<FishingGameScene> {
                             widthFactor: i == ansRod ? 0.8 : 0.0,
                             duration: const Duration(milliseconds: 700),
                             child: Container(
-                              decoration: const BoxDecoration(
-                                image: DecorationImage(
-                                  image: AssetImage(
-                                      'assets/fishing_game/scene/reward_background.png'),
-                                ),
-                              ),
+                              decoration: _game.rodList[i].type == 'fish'
+                                  ? const BoxDecoration(
+                                      image: DecorationImage(
+                                        image: AssetImage(
+                                          'assets/fishing_game/scene/reward_background.png',
+                                        ),
+                                      ),
+                                    )
+                                  : null,
                               child: FractionallySizedBox(
                                 heightFactor: 0.9,
                                 child: Column(
@@ -251,7 +255,15 @@ class _FishingGameStateScene extends State<FishingGameScene> {
                                       flex: 1,
                                       child: FractionallySizedBox(
                                           widthFactor: 0.6,
-                                          child: Placeholder()),
+                                          child: AutoSizeText(
+                                            _game.rodList[i].type == 'fish'
+                                                ? '大 魚 入 場 !'
+                                                : '資源回收場...',
+                                            style: const TextStyle(
+                                                fontSize: 100,
+                                                fontFamily: 'GSR_B'),
+                                            textAlign: TextAlign.center,
+                                          )),
                                     ),
                                     Flexible(
                                       flex: 3,
@@ -689,7 +701,7 @@ class _RuleScreenState extends State<RuleScreen> {
                     widget.callback();
                   },
             child: Image.asset(
-              'assets/lottery_game_scene/start_button.png',
+              'assets/lottery_game/scene/start_button.png',
             ),
           ),
         ),

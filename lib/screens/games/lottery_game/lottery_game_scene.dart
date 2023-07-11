@@ -183,7 +183,7 @@ class _LotteryGameSceneState extends State<LotteryGameScene>
               userInfoProvider.coins += game.gameReward;
               audioController.playLotteryGameSoundEffect('Applause.mp3');
               audioController.playByExtraPlayer(
-                  'lottery_game_sound/Lotter_win_firework.wav');
+                  'lottery_game/sound/Lotter_win_firework.wav');
             } else {
               audioController.playLotteryGameSoundEffect('horror_lose.wav');
             }
@@ -298,7 +298,7 @@ class _LotteryGameSceneState extends State<LotteryGameScene>
                           child: FractionallySizedBox(
                             widthFactor: 0.25,
                             child: RiveAnimation.asset(
-                              'assets/lottery_game_scene/feedback/firework_1.riv',
+                              'assets/lottery_game/scene/feedback/firework_1.riv',
                               alignment: Alignment.topCenter,
                             ),
                           ),
@@ -310,7 +310,7 @@ class _LotteryGameSceneState extends State<LotteryGameScene>
                           child: FractionallySizedBox(
                             widthFactor: 0.4,
                             child: RiveAnimation.asset(
-                              'assets/lottery_game_scene/feedback/firework_2.riv',
+                              'assets/lottery_game/scene/feedback/firework_2.riv',
                               alignment: Alignment.bottomLeft,
                             ),
                           ),
@@ -322,7 +322,7 @@ class _LotteryGameSceneState extends State<LotteryGameScene>
                           child: FractionallySizedBox(
                             widthFactor: 0.3,
                             child: RiveAnimation.asset(
-                              'assets/lottery_game_scene/feedback/firework_3.riv',
+                              'assets/lottery_game/scene/feedback/firework_3.riv',
                             ),
                           ),
                         ),
@@ -333,7 +333,7 @@ class _LotteryGameSceneState extends State<LotteryGameScene>
                           child: FractionallySizedBox(
                             widthFactor: 0.3,
                             child: RiveAnimation.asset(
-                              'assets/lottery_game_scene/feedback/${game.gameReward}.riv',
+                              'assets/lottery_game/scene/feedback/${game.gameReward}.riv',
                             ),
                           ),
                         ),
@@ -344,7 +344,7 @@ class _LotteryGameSceneState extends State<LotteryGameScene>
                         child: FractionallySizedBox(
                           widthFactor: 0.35,
                           child: Image.asset(
-                              'assets/lottery_game_scene/feedback/leaf_with_wind.png'),
+                              'assets/lottery_game/scene/feedback/leaf_with_wind.png'),
                         ),
                       ),
                       Align(
@@ -352,12 +352,12 @@ class _LotteryGameSceneState extends State<LotteryGameScene>
                         child: FractionallySizedBox(
                           widthFactor: 0.25,
                           child: Image.asset(
-                              'assets/lottery_game_scene/feedback/leaf_with_wind.png'),
+                              'assets/lottery_game/scene/feedback/leaf_with_wind.png'),
                         ),
                       ),
                       const IgnorePointer(
                         child: RiveAnimation.asset(
-                          'assets/lottery_game_scene/feedback/fallen_leaf.riv',
+                          'assets/lottery_game/scene/feedback/fallen_leaf.riv',
                           alignment: Alignment.centerLeft,
                         ),
                       ),
@@ -457,7 +457,7 @@ class _LotteryGameSceneState extends State<LotteryGameScene>
                 child: AspectRatio(
                   aspectRatio: 902 / 710,
                   child:
-                      Image.asset('assets/lottery_game_scene/SpendMoney.png'),
+                      Image.asset('assets/lottery_game/scene/SpendMoney.png'),
                 ),
               ),
             ),
@@ -1465,7 +1465,7 @@ class _RuleScreenState extends State<RuleScreen> {
                     widget.callback();
                   },
             child: Image.asset(
-              'assets/lottery_game_scene/start_button.png',
+              'assets/lottery_game/scene/start_button.png',
             ),
           ),
         ),

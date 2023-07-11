@@ -20,6 +20,9 @@ class FishingGame {
 
   late int rodWithFish;
 
+  late DateTime start;
+  late DateTime end;
+
   void checkRodList() {
     //* check if any rods doesn't have fishing rod instance
     while (rodList.length < getNumOfRods()) {

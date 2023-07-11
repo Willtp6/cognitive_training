@@ -23,18 +23,18 @@ class LotteryGame {
   late List<int> userArray;
 
   final List<String> imagePath = [
-    'assets/lottery_game_scene/Temple2_withoutWord.png',
-    'assets/lottery_game_scene/Temple2_withoutWord.png',
-    'assets/lottery_game_scene/NumberInput_recognitionWithoutNum.png',
-    'assets/lottery_game_scene/BuyLotteryTickets.png',
-    'assets/lottery_game_scene/BuyLotter.png',
+    'assets/lottery_game/scene/Temple2_withoutWord.png',
+    'assets/lottery_game/scene/Temple2_withoutWord.png',
+    'assets/lottery_game/scene/NumberInput_recognitionWithoutNum.png',
+    'assets/lottery_game/scene/BuyLotteryTickets.png',
+    'assets/lottery_game/scene/BuyLotter.png',
   ];
   final String formPath =
-      'assets/lottery_game_scene/NumberInput_withoutWord.png';
+      'assets/lottery_game/scene/NumberInput_withoutWord.png';
   final String imagePathWin =
-      'assets/lottery_game_scene/feedback/BuyLotter_win_background.png';
+      'assets/lottery_game/scene/feedback/BuyLotter_win_background.png';
   final String imagePathLose =
-      'assets/lottery_game_scene/feedback/BuyLotter_lose_background.png';
+      'assets/lottery_game/scene/feedback/BuyLotter_lose_background.png';
   String rewardImagePath = '';
 
   int gameProgress = 0;
@@ -49,7 +49,7 @@ class LotteryGame {
   int specialRules = 0;
   String showNumber = '';
   int numOfCorrectAns = 0;
-  String currentImagePath = 'assets/lottery_game_scene/Temple2_withoutWord.png';
+  String currentImagePath = 'assets/lottery_game/scene/Temple2_withoutWord.png';
   List<int> coinReward = [200, 400, 800];
   int gameReward = 0;
   double correctRate = 0;

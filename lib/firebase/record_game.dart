@@ -51,14 +51,44 @@ class RecordLotteryGame {
   }
 }
 
-class RecordFishingGame {}
+class RecordFishingGame {
+  Future<void> recordGame({
+    required int gameLevel,
+    required DateTime start,
+    required DateTime end,
+    required String type,
+  }) {
+    User? user = FirebaseAuth.instance.currentUser;
+    //record the game info
+    DocumentReference reference = FirebaseFirestore.instance
+        .collection('user_game_info')
+        .doc(user?.uid)
+        .collection('fishing_game')
+        .doc(DateTime.now().toString());
+    return reference
+        .set({
+          'game_record': {
+            'gameDifficulties': gameLevel + 1,
+            'type': type,
+            'responseTime(Milliseconds)': end.difference(start).inMilliseconds,
+          }
+        })
+        .then((value) => Logger().d(user?.uid))
+        .catchError((error) => Logger().d(error.message));
+  }
+}
 
 class RecordPokerGame {
-  Future<void> recordGame(
-      {required int gameLevel,
-      required String result,
-      required DateTime end,
-      required DateTime start}) {
+  Future<void> recordGame({
+    required int gameLevel,
+    required String result,
+    required DateTime end,
+    required DateTime start,
+    required String computerRank,
+    required String playerRank,
+    required String computerSuit,
+    required String playerSuit,
+  }) {
     User? user = FirebaseAuth.instance.currentUser;
     //record the game info
     DocumentReference reference = FirebaseFirestore.instance
@@ -72,6 +102,8 @@ class RecordPokerGame {
             'gameDifficulties': gameLevel + 1,
             'result': result,
             'responseTime(Milliseconds)': end.difference(start).inMilliseconds,
+            'computerCard': computerSuit + computerRank,
+            'playererCard': playerSuit + playerRank,
           }
         })
         .then((value) => Logger().d(user?.uid))

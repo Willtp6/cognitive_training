@@ -69,7 +69,7 @@ class GameInstance {
   bool isTutorial;
 
   List<int> numberOfCards = [5, 6, 6, 8];
-  String backgroundPath = 'assets/poker_game_scene/play_board.png';
+  String backgroundPath = 'assets/poker_game/scene/play_board.png';
 
   Player player = Player();
   Player computer = Player();
@@ -234,6 +234,10 @@ class GameInstance {
               : 'Lose',
       start: start,
       end: end,
+      computerSuit: computerCard!.suit,
+      computerRank: computerCard!.rank.toString(),
+      playerSuit: playerCard?.suit ?? 'no card',
+      playerRank: playerCard?.rank.toString() ?? 'no card',
     );
   }
 

@@ -37,14 +37,10 @@ class _LotteryGameMenu extends State<LotteryGameMenu>
     super.dispose();
   }
 
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    _controller.reset();
-    // _controller.dispose();
-    // _controller =
-    //     AnimationController(duration: const Duration(seconds: 2), vsync: this);
-  }
+  // @override
+  // void didChangeDependencies() {
+  //   super.didChangeDependencies();
+  // }
 
   void startGame() {
     if (buttonEnabled) {
@@ -76,8 +72,10 @@ class _LotteryGameMenu extends State<LotteryGameMenu>
             },
           );
         }
-        _controller.reset();
         buttonEnabled = true;
+      });
+      Future.delayed(const Duration(seconds: 3, milliseconds: 500), () {
+        _controller.reset();
       });
     }
   }
@@ -87,7 +85,6 @@ class _LotteryGameMenu extends State<LotteryGameMenu>
       buttonEnabled = false;
       _controller.forward();
       Future.delayed(const Duration(seconds: 2), () {
-        _controller.reset();
         GoRouter.of(context).pushNamed(
           'lottery_game',
           queryParams: {
@@ -97,6 +94,9 @@ class _LotteryGameMenu extends State<LotteryGameMenu>
           },
         );
         buttonEnabled = true;
+      });
+      Future.delayed(const Duration(seconds: 3, milliseconds: 500), () {
+        _controller.reset();
       });
     }
   }
@@ -130,7 +130,7 @@ class _LotteryGameMenu extends State<LotteryGameMenu>
                     decoration: const BoxDecoration(
                       image: DecorationImage(
                         image: AssetImage(
-                            'assets/lottery_game_scene/Temple1_withoutWord.png'),
+                            'assets/lottery_game/scene/Temple1_withoutWord.png'),
                         fit: BoxFit.fill,
                       ),
                     ),

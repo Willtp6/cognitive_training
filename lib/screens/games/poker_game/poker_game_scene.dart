@@ -114,7 +114,7 @@ class _PokerGameStateScene extends State<PokerGameScene>
       setState(() {
         game.putBack();
         showWord = false;
-        game.backgroundPath = 'assets/poker_game_scene/play_board.png';
+        game.backgroundPath = 'assets/poker_game/scene/play_board.png';
         isPlayerTurn = false;
       });
       switch (game.gameLevelChange()) {
@@ -195,7 +195,7 @@ class _PokerGameStateScene extends State<PokerGameScene>
         game.recordGame();
         path = 'player_lose.mp3';
         audioController.playPokerGameSoundEffect(path);
-        game.backgroundPath = 'assets/poker_game_scene/player_lose.png';
+        game.backgroundPath = 'assets/poker_game/scene/player_lose.png';
         showWord = true;
       });
     });
@@ -214,14 +214,14 @@ class _PokerGameStateScene extends State<PokerGameScene>
           userInfoProvider.coins += game.coinWin[game.gameLevel];
           path = 'player_win.wav';
           audioController.playPokerGameSoundEffect(path);
-          game.backgroundPath = 'assets/poker_game_scene/player_win.png';
+          game.backgroundPath = 'assets/poker_game/scene/player_win.png';
           showWord = true;
         } else {
           if (!game.isTie) {
             userInfoProvider.coins -= game.coinLose[game.gameLevel];
             path = 'player_lose.mp3';
             audioController.playPokerGameSoundEffect(path);
-            game.backgroundPath = 'assets/poker_game_scene/player_lose.png';
+            game.backgroundPath = 'assets/poker_game/scene/player_lose.png';
             showWord = true;
           }
         }
@@ -355,7 +355,6 @@ class _PokerGameStateScene extends State<PokerGameScene>
               ),
               child: Stack(
                 children: [
-                  exitButton(),
                   opponentCoin(),
                   playerCoin(),
                   if (widget.isTutorial &&
@@ -405,6 +404,7 @@ class _PokerGameStateScene extends State<PokerGameScene>
                   if (showWord) ...[
                     responseWord(),
                   ],
+                  exitButton(),
                   if (widget.isTutorial &&
                       _pokerGameTutorial.tutorialProgress < 7) ...[
                     if (_pokerGameTutorial.tutorialProgress < 6) ...[
@@ -435,7 +435,7 @@ class _PokerGameStateScene extends State<PokerGameScene>
             ..rotateX(0.5)
             ..rotateZ(0.5),
           child: Image.asset(
-            'assets/poker_game_card/${card.suit}_${card.rank}.png',
+            'assets/poker_game/card/${card.suit}_${card.rank}.png',
           ),
         ),
       ),
@@ -453,7 +453,7 @@ class _PokerGameStateScene extends State<PokerGameScene>
             ..rotateX(0.5)
             ..rotateZ(-0.5),
           child: Image.asset(
-            'assets/poker_game_card/${card.suit}_${card.rank}.png',
+            'assets/poker_game/card/${card.suit}_${card.rank}.png',
           ),
         ),
       ),
@@ -511,8 +511,8 @@ class _PokerGameStateScene extends State<PokerGameScene>
         child: AspectRatio(
           aspectRatio: 1077 / 352,
           child: Image.asset(game.isPlayerWin
-              ? 'assets/poker_game_scene/win_word.png'
-              : 'assets/poker_game_scene/lose_word.png'),
+              ? 'assets/poker_game/scene/win_word.png'
+              : 'assets/poker_game/scene/lose_word.png'),
         ),
       ),
     );
@@ -560,7 +560,7 @@ class _PokerGameStateScene extends State<PokerGameScene>
                       }
                     },
                     child: Image.asset(
-                      'assets/poker_game_card/${game.player.hand[i].suit}_${game.player.hand[i].rank}.png',
+                      'assets/poker_game/card/${game.player.hand[i].suit}_${game.player.hand[i].rank}.png',
                       opacity: Tween(begin: 0.0, end: 1.0)
                           .chain(CurveTween(
                               curve: Interval(i / game.player.hand.length,
@@ -599,7 +599,7 @@ class _PokerGameStateScene extends State<PokerGameScene>
                               begin: const Offset(0.0, 0.0),
                               end: const Offset(0.0, -0.2))
                           .animate(_controllerChosenComputer),
-                  child: Image.asset('assets/poker_game_card/card_back.png',
+                  child: Image.asset('assets/poker_game/card/card_back.png',
                       opacity: Tween(begin: 0.0, end: 1.0)
                           .chain(CurveTween(
                               curve: Interval(i / game.computer.hand.length,
@@ -1042,6 +1042,10 @@ class _PokerGameStateScene extends State<PokerGameScene>
                     isTutorial: widget.isTutorial,
                   );
                 });
+                String path = game.gameLevel <= 1
+                    ? 'find_bigger.m4a'
+                    : 'find_the_same.m4a';
+                audioController.playInstructionRecord('poker_game/$path');
               },
             ),
             TextButton(
@@ -1166,7 +1170,7 @@ class _RuleScreenState extends State<RuleScreen> {
   }
 
   bool questionIconPressed = false;
-  String questionButtonPath = 'assets/poker_game_scene/question_light.png';
+  String questionButtonPath = 'assets/poker_game/scene/question_light.png';
 
   @override
   Widget build(BuildContext context) {
@@ -1283,7 +1287,7 @@ class _RuleScreenState extends State<RuleScreen> {
               }
             },
             child: Image.asset(
-              'assets/lottery_game_scene/start_button.png',
+              'assets/lottery_game/scene/start_button.png',
             ),
           ),
         ),
@@ -1345,15 +1349,15 @@ class _RuleScreenState extends State<RuleScreen> {
         widthFactor: 0.1,
         child: GestureDetector(
           onTapDown: (_) {
-            questionButtonPath = 'assets/poker_game_scene/question_dark.png';
+            questionButtonPath = 'assets/poker_game/scene/question_dark.png';
             setState(() => questionIconPressed = true);
           },
           onTapUp: (_) {
-            questionButtonPath = 'assets/poker_game_scene/question_light.png';
+            questionButtonPath = 'assets/poker_game/scene/question_light.png';
             setState(() => questionIconPressed = false);
           },
           onPanEnd: (_) {
-            questionButtonPath = 'assets/poker_game_scene/question_light.png';
+            questionButtonPath = 'assets/poker_game/scene/question_light.png';
             setState(() => questionIconPressed = false);
           },
           child: AspectRatio(
@@ -1496,7 +1500,7 @@ class _AlarmClockState extends State<AlarmClock>
                 child: Opacity(
                     opacity: animation.value > 0 ? 1 : 0,
                     child: Image.asset(
-                      'assets/poker_game_scene/AlarmClock.png',
+                      'assets/poker_game/scene/AlarmClock.png',
                     )),
               );
             },

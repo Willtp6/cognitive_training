@@ -1,4 +1,5 @@
 import 'package:auto_size_text/auto_size_text.dart';
+import 'package:cognitive_training/audio/audio_controller.dart';
 import 'package:cognitive_training/models/user_info_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -17,6 +18,7 @@ class _FishingGameMenuState extends State<FishingGameMenu>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late UserInfoProvider _userInfoProvider;
+  late AudioController _audioController;
   bool buttonEnabled = true;
 
   @override
@@ -34,23 +36,16 @@ class _FishingGameMenuState extends State<FishingGameMenu>
     super.dispose();
   }
 
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    // SystemChrome.setPreferredOrientations([
-    //   DeviceOrientation.landscapeRight,
-    //   DeviceOrientation.landscapeLeft,
-    // ]);
-    _controller.reset();
-    // _controller.dispose();
-    // _controller =
-    //     AnimationController(duration: const Duration(seconds: 2), vsync: this);
-  }
+  // @override
+  // void didChangeDependencies() {
+  //   super.didChangeDependencies();
+  // }
 
   void startGame() {
     if (buttonEnabled) {
       buttonEnabled = false;
       _controller.forward();
+      _audioController.playBGM('fishing_game/sound/bgm.mp3');
       Future.delayed(const Duration(milliseconds: 600), () {
         //final level = _userInfoProvider.lotteryGameDatabase.currentLevel;
         //final digit = _userInfoProvider.lotteryGameDatabase.currentDigit;
@@ -77,6 +72,9 @@ class _FishingGameMenuState extends State<FishingGameMenu>
           );
         }
         buttonEnabled = true;
+      });
+      Future.delayed(const Duration(milliseconds: 1000), () {
+        _controller.reset();
       });
     }
   }
@@ -106,6 +104,7 @@ class _FishingGameMenuState extends State<FishingGameMenu>
 
   @override
   Widget build(BuildContext context) {
+    _audioController = context.read<AudioController>();
     _userInfoProvider = context.read<UserInfoProvider>();
     return SafeArea(
       child: Scaffold(

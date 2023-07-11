@@ -54,7 +54,7 @@ class _PokerGameMenu extends State<PokerGameMenu>
                   decoration: const BoxDecoration(
                     image: DecorationImage(
                       image: AssetImage(
-                          'assets/poker_game_scene/Park1_witoutWalker.png'),
+                          'assets/poker_game/scene/Park1_witoutWalker.png'),
                       fit: BoxFit.fill,
                     ),
                   ),
@@ -114,8 +114,10 @@ class _PokerGameMenu extends State<PokerGameMenu>
             'responseTimeList': responseTimeList.toString(),
           },
         );
-        _controller.reset();
         buttonEnabled = true;
+      });
+      Future.delayed(const Duration(seconds: 2), () {
+        _controller.reset();
       });
     }
   }
@@ -128,8 +130,10 @@ class _PokerGameMenu extends State<PokerGameMenu>
         GoRouter.of(context).pushNamed('poker_game', queryParams: {
           'isTutorial': true.toString(),
         });
-        _controller.reset();
         buttonEnabled = true;
+      });
+      Future.delayed(const Duration(seconds: 2), () {
+        _controller.reset();
       });
     }
   }
