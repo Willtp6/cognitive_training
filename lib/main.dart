@@ -3,17 +3,23 @@ import 'package:cognitive_training/audio/audio_controller.dart';
 import 'package:cognitive_training/check_internet/check_connection_status.dart';
 import 'package:cognitive_training/models/user_info_provider.dart';
 import 'package:cognitive_training/models/user_checkin_provider.dart';
-import 'package:cognitive_training/screens/games/fishing_game/fishing_game_menu.dart';
-import 'package:cognitive_training/screens/games/fishing_game/fishing_game_scene.dart';
+// import 'package:cognitive_training/screens/games/fishing_game/fishing_game_menu.dart';
+// import 'package:cognitive_training/screens/games/fishing_game/fishing_game_scene.dart';
+import 'package:cognitive_training/screens/games/fishing_game/fishing_game_play.dart';
 import 'package:cognitive_training/screens/games/lottery_game/lottery_game_scene.dart';
 import 'package:cognitive_training/screens/games/lottery_game/lottery_game_menu.dart';
 import 'package:cognitive_training/screens/games/poker_game/poker_game_scene.dart';
 import 'package:cognitive_training/screens/games/poker_game/poker_game_menu.dart';
+import 'package:cognitive_training/screens/games/route_planning_game/route_planning_game.dart';
+import 'package:cognitive_training/screens/games/route_planning_game/route_planning_game_menu.dart';
+import 'package:cognitive_training/screens/games/route_planning_game/route_planning_game_play.dart';
 import 'package:cognitive_training/screens/home/reward_page.dart';
 import 'package:cognitive_training/settings/persistence/local_storage_settings_persistence.dart';
 import 'package:cognitive_training/settings/persistence/settings_persistence.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flame/game.dart';
+import 'package:flame_audio/flame_audio.dart';
 import 'package:flutter/material.dart';
 import 'package:cognitive_training/screens/home/home_page.dart';
 import 'package:cognitive_training/screens/login/login_page.dart';
@@ -22,6 +28,7 @@ import 'firebase_options.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 
+import 'screens/games/fishing_game/fishing_game_menu.dart';
 import 'settings/setting_controller.dart';
 
 void main() async {
@@ -93,7 +100,13 @@ class MyApp extends StatelessWidget {
                       name: 'fishing_game',
                       path: 'fishing_game',
                       builder: (context, state) {
-                        return FishingGameScene();
+                        final parameters = state.queryParams;
+                        final startLevel = parameters['startLevel'] ?? '0';
+                        final isTutorial = parameters['isTutorial'] ?? 'false';
+                        Logger().i(startLevel);
+                        return FishingGamePlay(
+                          gameLevel: int.tryParse(startLevel)!,
+                        );
                       }),
                 ],
               ),
@@ -124,6 +137,38 @@ class MyApp extends StatelessWidget {
                         isTutorial: isTutorial == 'true',
                         responseTimeList: myList,
                       );
+                    },
+                  ),
+                ],
+              ),
+              GoRoute(
+                name: 'route_planning_game_menu',
+                path: 'route_planning_game_menu',
+                builder: (context, state) => const RoutePlanningGameMenu(),
+                routes: [
+                  GoRoute(
+                    name: 'route_planning_game',
+                    path: 'route_planning_game',
+                    builder: (context, state) {
+                      // final parameters = state.queryParams;
+                      // final startLevel = parameters['startLevel'] ?? '0';
+                      // final isTutorial = parameters['isTutorial'] ?? 'false';
+                      // final responseTimeList =
+                      //     parameters['responseTimeList'] ?? '[]';
+                      // Logger().d(responseTimeList);
+                      // List<int> myList = responseTimeList.length >= 3
+                      //     ? responseTimeList
+                      //         .substring(1, responseTimeList.length - 1)
+                      //         .split(', ')
+                      //         .map<int>((item) => int.parse(item))
+                      //         .toList()
+                      //     : [10000, 10000, 10000, 10000, 10000];
+                      // return PokerGameScene(
+                      //   startLevel: int.tryParse(startLevel) ?? 0,
+                      //   isTutorial: isTutorial == 'true',
+                      //   responseTimeList: myList,
+                      // );
+                      return RoutePlanningGamePlay();
                     },
                   ),
                 ],

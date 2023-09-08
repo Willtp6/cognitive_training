@@ -187,11 +187,6 @@ class UserInfoProvider with ChangeNotifier {
 
   PokerGameDatabase get pokerGameDatabase => _pokerGameDatabase;
   set pokerGameDatabase(PokerGameDatabase database) {
-    // _pokerGameDatabase = PokerGameDatabase(
-    //   currentLevel: database.currentLevel,
-    //   doneTutorial: database.doneTutorial,
-    //   responseTimeList: database.responseTimeList,
-    // );
     _pokerGameDatabase = database;
     FirebaseFirestore.instance
         .collection('user_basic_info')

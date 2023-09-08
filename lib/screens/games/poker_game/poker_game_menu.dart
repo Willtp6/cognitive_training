@@ -1,7 +1,10 @@
 import 'dart:async';
 
 import 'package:auto_size_text/auto_size_text.dart';
+import 'package:cognitive_training/audio/audio_controller.dart';
+import 'package:cognitive_training/constants/globals.dart';
 import 'package:cognitive_training/models/user_info_provider.dart';
+import 'package:cognitive_training/shared/button_with_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
@@ -19,6 +22,7 @@ class _PokerGameMenu extends State<PokerGameMenu>
     with TickerProviderStateMixin {
   late AnimationController _controller;
   late UserInfoProvider userInfoProvider;
+  late AudioController _audioController;
   bool buttonEnabled = true;
 
   @override
@@ -39,6 +43,7 @@ class _PokerGameMenu extends State<PokerGameMenu>
   @override
   Widget build(BuildContext context) {
     userInfoProvider = context.read<UserInfoProvider>();
+    _audioController = context.read<AudioController>();
     return SafeArea(
       child: Scaffold(
         body: Stack(
@@ -79,9 +84,18 @@ class _PokerGameMenu extends State<PokerGameMenu>
                           widthFactor: 0.3,
                           child: Column(
                             children: [
-                              buttonWithText('進入遊戲', startGame),
-                              buttonWithText('教學模式', startTutorial),
-                              buttonWithText('返回', goBack),
+                              Flexible(
+                                child: ButtonWithText(
+                                    text: '進入遊戲', onTapFunction: startGame),
+                              ),
+                              Flexible(
+                                child: ButtonWithText(
+                                    text: '教學模式', onTapFunction: startTutorial),
+                              ),
+                              Flexible(
+                                child: ButtonWithText(
+                                    text: '返回', onTapFunction: goBack),
+                              ),
                             ],
                           ),
                         ),
@@ -119,6 +133,7 @@ class _PokerGameMenu extends State<PokerGameMenu>
       Future.delayed(const Duration(seconds: 2), () {
         _controller.reset();
       });
+      _audioController.playPathAudio(Globals.clickButtonSound);
     }
   }
 
@@ -135,11 +150,16 @@ class _PokerGameMenu extends State<PokerGameMenu>
       Future.delayed(const Duration(seconds: 2), () {
         _controller.reset();
       });
+      _audioController.playPathAudio(Globals.clickButtonSound);
     }
   }
 
   void goBack() {
-    if (buttonEnabled) context.pop();
+    if (buttonEnabled) {
+      _audioController.playPathAudio(Globals.clickButtonSound);
+
+      context.pop();
+    }
   }
 
   Align gameLabel() {
@@ -167,46 +187,6 @@ class _PokerGameMenu extends State<PokerGameMenu>
                     decoration: TextDecoration.none,
                   ),
                 ),
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Flexible buttonWithText(String text, Function onTapFunction) {
-    return Flexible(
-      child: AspectRatio(
-        aspectRatio: 835 / 353,
-        child: GestureDetector(
-          onTap: () {
-            onTapFunction();
-          },
-          child: Container(
-            decoration: const BoxDecoration(
-              image: DecorationImage(
-                image: AssetImage('assets/global/continue_button.png'),
-              ),
-            ),
-            child: FractionallySizedBox(
-              heightFactor: 0.5,
-              widthFactor: 0.8,
-              child: LayoutBuilder(
-                builder:
-                    (BuildContext buildContext, BoxConstraints boxConstraints) {
-                  double width = boxConstraints.maxWidth;
-                  return Center(
-                    child: AutoSizeText(
-                      text,
-                      style: TextStyle(
-                        fontSize: width / 4,
-                        color: Colors.white,
-                        fontFamily: 'GSR_B',
-                      ),
-                    ),
-                  );
-                },
               ),
             ),
           ),

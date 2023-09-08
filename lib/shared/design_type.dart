@@ -45,7 +45,7 @@ var buttonDecoration = ButtonStyle(
   shape: MaterialStateProperty.all<RoundedRectangleBorder>(
     RoundedRectangleBorder(
       borderRadius: BorderRadius.circular(18.0),
-      side: BorderSide(
+      side: const BorderSide(
         color: Colors.teal,
         width: 2.0,
       ),
@@ -57,7 +57,7 @@ var buttonDecorationWhite = ButtonStyle(
   shape: MaterialStateProperty.all<RoundedRectangleBorder>(
     RoundedRectangleBorder(
       borderRadius: BorderRadius.circular(18.0),
-      side: BorderSide(
+      side: const BorderSide(
         color: Colors.white54,
         width: 2.0,
       ),

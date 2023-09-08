@@ -54,6 +54,10 @@ dependencies:
   shared_preferences: ^2.1.1
   connectivity_plus: ^4.0.1
   path_provider: ^2.0.15
+  flame: ^1.7.3
+  flame_audio: ^1.4.1
+  flame_rive: ^1.7.1
+  flame_bloc: ^1.8.4
 
 dev_dependencies:
   flutter_test:
@@ -93,8 +97,11 @@ flutter:
     - assets/poker_game/scene/
     - assets/poker_game/sound/
     - assets/poker_game/card/
+    # - assets/route_planning_game/scene/
+    # - assets/route_planning_game/sound/
+    # - assets/route_planning_game/building/
     - assets/global/
-    - assets/home_page/
+    - assets/images/home_page/
     - assets/login_reward/
     - assets/login_page/
     - assets/instruction_record/chinese/lottery_game/
@@ -107,6 +114,20 @@ flutter:
     - assets/instruction_record/taiwanese/poker_game/
     - assets/instruction_record/taiwanese/routing_game/
     - assets/instruction_record/taiwanese/tutorial/
+    # flame part
+    - assets/images/
+    - assets/images/shared/
+    - assets/images/fishing_game/fish/
+    - assets/images/fishing_game/garbage/
+    - assets/images/fishing_game/ripple/
+    - assets/images/fishing_game/rod/
+    - assets/images/fishing_game/scene/
+    - assets/images/route_planning_game/scene/
+    - assets/images/route_planning_game/buildings/
+    - assets/audio/
+    - assets/audio/shared/
+    - assets/audio/fishing_game/sound/
+    - assets/audio/route_planning_game/sound/
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware
@@ -117,20 +138,7 @@ flutter:
   # To add custom fonts to your application, add a fonts section here,
   # in this "flutter" section. Each entry in this list should have a
   # "family" key with the font family name, and a "fonts" key with a
-  # list giving the asset and other descriptors for the font. For
-  # example:
-  # fonts:
-  #   - family: Schyler
-  #     fonts:
-  #       - asset: fonts/Schyler-Regular.ttf
-  #       - asset: fonts/Schyler-Italic.ttf
-  #         style: italic
-  #   - family: Trajan Pro
-  #     fonts:
-  #       - asset: fonts/TrajanPro.ttf
-  #       - asset: fonts/TrajanPro_Bold.ttf
-  #         weight: 700
-  #
+  # list giving the asset and other descriptors for the font. 
   fonts:
     - family: GSR_B
       fonts:

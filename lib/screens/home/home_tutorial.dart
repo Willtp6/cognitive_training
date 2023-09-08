@@ -131,7 +131,7 @@ class HomeTutorial {
             child: Stack(
               children: [
                 Center(
-                  child: Image.asset('assets/global/continue_button.png'),
+                  child: Image.asset('assets/global/orange_button.png'),
                 ),
                 const Center(
                   child: FractionallySizedBox(

@@ -10,9 +10,9 @@ import 'package:path_provider/path_provider.dart';
 class AudioController {
   final logger = Logger();
 
-  final AudioPlayer _audioPlayer;
-  final AudioPlayer _audioPlayer2;
-  final AudioPlayer _bgmPlayer;
+  final AudioPlayer audioPlayer;
+  final AudioPlayer audioPlayer2;
+  // final AudioPlayer _bgmPlayer;
 
   ValueNotifier<AppLifecycleState>? _lifecycleNotifier;
 
@@ -20,9 +20,9 @@ class AudioController {
 
   AudioController({int polyphony = 2})
       : assert(polyphony >= 1),
-        _audioPlayer = AudioPlayer(playerId: 'audioPlayer'),
-        _audioPlayer2 = AudioPlayer(playerId: 'audioPlayer2'),
-        _bgmPlayer = AudioPlayer(playerId: 'bgmPlayer');
+        audioPlayer = AudioPlayer(playerId: 'audioPlayer'),
+        audioPlayer2 = AudioPlayer(playerId: 'audioPlayer2');
+  // _bgmPlayer = AudioPlayer(playerId: 'bgmPlayer');
 
   /// Preloads all sound effects.
   Future<void> initialize() async {
@@ -31,10 +31,7 @@ class AudioController {
     // If there are hundreds of long sound effect files, it's better
     // to be more selective when preloading.
     // * this needs to be modified or skip this function
-    // await AudioCache.instance.loadAll(SfxType.values
-    //     .expand(soundTypeToFilename)
-    //     .map((path) => 'sfx/$path')
-    //     .toList());
+    await AudioCache.instance.loadAll(['audio/shared/click_button.wav']);
   }
 
   Future<void> loadLotteryGameAudio() async {
@@ -64,9 +61,9 @@ class AudioController {
   void dispose() {
     _lifecycleNotifier?.removeListener(_handleAppLifecycle);
     _stopAllSound();
-    _audioPlayer.dispose();
-    _audioPlayer2.dispose();
-    _bgmPlayer.dispose();
+    audioPlayer.dispose();
+    audioPlayer2.dispose();
+    // _bgmPlayer.dispose();
   }
 
   void attachLifecycleNotifier(
@@ -120,59 +117,59 @@ class AudioController {
 
   void _languageHandler() {}
 
-  void playBGM(String path) {
-    _bgmPlayer.setReleaseMode(ReleaseMode.loop);
-    _bgmPlayer.play(AssetSource(path));
-  }
+  // void playBGM(String path) {
+  //   _bgmPlayer.setReleaseMode(ReleaseMode.loop);
+  //   _bgmPlayer.play(AssetSource(path));
+  // }
 
-  void pauseBGM() {
-    _bgmPlayer.pause();
-  }
+  // void pauseBGM() {
+  //   _bgmPlayer.pause();
+  // }
 
-  void resumeBGM() {
-    _bgmPlayer.resume();
-  }
+  // void resumeBGM() {
+  //   _bgmPlayer.resume();
+  // }
 
-  void stopBGM() {
-    _bgmPlayer.pause();
-    _bgmPlayer.release();
-  }
+  // void stopBGM() {
+  //   _bgmPlayer.pause();
+  //   _bgmPlayer.release();
+  // }
 
   void playInstructionRecord(String path) async {
-    await _audioPlayer.pause();
-    await _audioPlayer.release();
+    await audioPlayer.pause();
+    await audioPlayer.release();
     String language = getLanguage();
-    _audioPlayer.play(AssetSource('instruction_record/$language/$path'));
+    audioPlayer.play(AssetSource('instruction_record/$language/$path'));
   }
 
   void pauseAudio() {
-    _audioPlayer.pause();
+    audioPlayer.pause();
   }
 
   void resumeAudio() {
-    _audioPlayer.resume();
+    audioPlayer.resume();
   }
 
   void stopAudio() {
-    _audioPlayer.pause();
-    _audioPlayer.release();
+    audioPlayer.pause();
+    audioPlayer.release();
   }
 
   void playLotteryGameNumber(String path) {
     String language = getLanguage();
-    _audioPlayer.play(AssetSource('lottery_game/sound/$language/$path'));
+    audioPlayer.play(AssetSource('lottery_game/sound/$language/$path'));
   }
 
   void playLotteryGameSoundEffect(String path) {
-    _audioPlayer.play(AssetSource('lottery_game/sound/$path'));
+    audioPlayer.play(AssetSource('lottery_game/sound/$path'));
   }
 
   void playFishingGameSoundEffect(String path) {
-    _audioPlayer.play(AssetSource('fishing_game/sound/$path'));
+    audioPlayer.play(AssetSource('fishing_game/sound/$path'));
   }
 
   void playPokerGameSoundEffect(String path) {
-    _audioPlayer.play(AssetSource('poker_game/sound/$path'));
+    audioPlayer.play(AssetSource('poker_game/sound/$path'));
   }
 
   void playGameDescription(int index) {
@@ -183,11 +180,17 @@ class AudioController {
       'routing_game'
     ];
     String language = getLanguage();
-    _audioPlayer.play(AssetSource(
+    audioPlayer.play(AssetSource(
         'instruction_record/$language/${game[index]}/game_description.m4a'));
   }
 
   void playByExtraPlayer(String path) {
-    _audioPlayer2.play(AssetSource(path));
+    audioPlayer2.play(AssetSource(path));
+  }
+
+  Future<void> playPathAudio(String path) async {
+    await audioPlayer.stop();
+    await audioPlayer.release();
+    await audioPlayer.play(AssetSource(path));
   }
 }

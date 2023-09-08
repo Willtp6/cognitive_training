@@ -173,7 +173,7 @@ class GameInstance {
         }
       }
     }
-    changeOpponentCoin();
+    // changeOpponentCoin();
     continuousWinLose();
     int resTime = end.difference(start).inMilliseconds;
     responseTimeList.add(resTime);
@@ -185,13 +185,13 @@ class GameInstance {
     recordGame();
   }
 
-  void changeOpponentCoin() {
-    if (isPlayerWin) {
-      opponentCoin -= coinLose[gameLevel];
-    } else {
-      if (!isTie) opponentCoin += coinWin[gameLevel];
-    }
-  }
+  // void changeOpponentCoin() {
+  //   if (isPlayerWin) {
+  //     opponentCoin -= coinLose[gameLevel];
+  //   } else {
+  //     if (!isTie) opponentCoin += coinWin[gameLevel];
+  //   }
+  // }
 
   void continuousWinLose() {
     if (isTie) {
@@ -225,6 +225,7 @@ class GameInstance {
   }
 
   void recordGame() {
+    end = DateTime.now();
     RecordPokerGame().recordGame(
       gameLevel: gameLevel,
       result: isTie

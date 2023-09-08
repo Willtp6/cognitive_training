@@ -2,9 +2,11 @@ import 'dart:async';
 import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cognitive_training/audio/audio_controller.dart';
+import 'package:cognitive_training/constants/globals.dart';
 import 'package:cognitive_training/firebase/record_game.dart';
 import 'package:cognitive_training/models/user_info_provider.dart';
 import 'package:cognitive_training/screens/games/lottery_game/lottery_game.dart';
+import 'package:cognitive_training/shared/button_with_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:audioplayers/audioplayers.dart';
@@ -361,7 +363,37 @@ class _LotteryGameSceneState extends State<LotteryGameScene>
                           alignment: Alignment.centerLeft,
                         ),
                       ),
-                    ]
+                    ],
+                    if (game.gameLevel <= 3 ||
+                        (game.gameLevel == 4 &&
+                            (game.specialRules == 0 ||
+                                game.specialRules == 3))) ...[
+                      Align(
+                        alignment: const Alignment(0.0, -0.5),
+                        child: FractionallySizedBox(
+                          widthFactor: 0.15,
+                          heightFactor: 0.15,
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.9),
+                              border: Border.all(
+                                color: Colors.grey,
+                                width: 5,
+                              ),
+                              borderRadius: const BorderRadius.all(
+                                Radius.circular(30),
+                              ),
+                            ),
+                            child: Center(
+                              child: AutoSizeText(
+                                  '正確率 ${game.numOfCorrectAns} / ${game.numberOfDigits}',
+                                  style: const TextStyle(
+                                      fontFamily: 'GSR_B', fontSize: 30)),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                   ],
                   //* tutorial part
                   if (widget.isTutorial &&
@@ -755,8 +787,7 @@ class _LotteryGameSceneState extends State<LotteryGameScene>
                                 child: Container(
                                   decoration: const BoxDecoration(
                                     image: DecorationImage(
-                                      image: AssetImage(
-                                          'assets/global/continue_button.png'),
+                                      image: AssetImage(Globals.orangeButton),
                                     ),
                                   ),
                                   child: const FractionallySizedBox(
@@ -815,8 +846,7 @@ class _LotteryGameSceneState extends State<LotteryGameScene>
                               child: Container(
                                 decoration: const BoxDecoration(
                                   image: DecorationImage(
-                                    image: AssetImage(
-                                        'assets/global/continue_button.png'),
+                                    image: AssetImage(Globals.orangeButton),
                                   ),
                                 ),
                                 child: FractionallySizedBox(
@@ -1297,6 +1327,36 @@ class _RuleScreenState extends State<RuleScreen> {
 
   List<String> difficulties = ['一', '二', '三', '四', '五'];
 
+  late StreamSubscription<PlayerState> listener;
+  bool isAudioOver = false;
+
+  @override
+  void initState() {
+    listener =
+        widget.audioController.audioPlayer.onPlayerStateChanged.listen((event) {
+      switch (event) {
+        case PlayerState.playing:
+          if (isAudioOver = true) {
+            setState(() => isAudioOver = false);
+          }
+          break;
+        case PlayerState.completed:
+          setState(() => isAudioOver = true);
+          break;
+        default:
+          break;
+      }
+    });
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    listener.cancel();
+
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Align(
@@ -1361,8 +1421,19 @@ class _RuleScreenState extends State<RuleScreen> {
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              _listenAgainButton(),
-                              _startGameButton(),
+                              Flexible(
+                                child: Center(
+                                  child: ButtonWithText(
+                                      text: '再聽一次', onTapFunction: listenAgain),
+                                ),
+                              ),
+                              Flexible(
+                                child: Center(
+                                  child: ButtonWithText(
+                                      text: isAudioOver ? '開始' : '跳過並開始',
+                                      onTapFunction: startGame),
+                                ),
+                              ),
                             ],
                           ),
                         ),
@@ -1451,69 +1522,22 @@ class _RuleScreenState extends State<RuleScreen> {
     );
   }
 
-  Flexible _startGameButton() {
-    return Flexible(
-      flex: 1,
-      child: Center(
-        child: AspectRatio(
-          aspectRatio: 835 / 353,
-          child: GestureDetector(
-            onTap: widget.game.isTutorial
-                ? null
-                : () {
-                    widget.audioController.stopAudio();
-                    widget.callback();
-                  },
-            child: Image.asset(
-              'assets/lottery_game/scene/start_button.png',
-            ),
-          ),
-        ),
-      ),
-    );
+  void startGame() async {
+    if (!widget.game.isTutorial) {
+      widget.audioController.stopAudio();
+      widget.callback();
+      widget.audioController.playPathAudio(Globals.clickButtonSound);
+    }
   }
 
-  Flexible _listenAgainButton() {
-    return Flexible(
-      flex: 1,
-      child: Center(
-        child: AspectRatio(
-          aspectRatio: 835 / 353,
-          child: GestureDetector(
-            onTap: widget.game.isTutorial
-                ? null
-                : () {
-                    String path = widget.game.getInstructionAudioPath();
-                    widget.audioController.playInstructionRecord(path);
-                  },
-            child: Stack(
-              children: [
-                Center(
-                  child: Image.asset(
-                    'assets/global/continue_button.png',
-                  ),
-                ),
-                const Center(
-                  child: FractionallySizedBox(
-                    heightFactor: 0.8,
-                    widthFactor: 0.8,
-                    child: Center(
-                      child: AutoSizeText(
-                        '再聽一次',
-                        style: TextStyle(
-                          fontFamily: 'GSR_B',
-                          fontSize: 100,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
-                  ),
-                )
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
+  void listenAgain() async {
+    if (!widget.game.isTutorial) {
+      await widget.audioController.playPathAudio(Globals.clickButtonSound);
+      Future.delayed(const Duration(milliseconds: 200), () {
+        String path = widget.game.getInstructionAudioPath();
+        widget.audioController.playInstructionRecord(path);
+        setState(() => isAudioOver = false);
+      });
+    }
   }
 }

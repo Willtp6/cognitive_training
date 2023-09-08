@@ -1,12 +1,13 @@
 import 'package:audioplayers/audioplayers.dart';
 import 'package:auto_size_text/auto_size_text.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cognitive_training/audio/audio_controller.dart';
+import 'package:cognitive_training/constants/globals.dart';
 import 'package:cognitive_training/models/user_checkin_provider.dart';
 import 'package:cognitive_training/models/user_info_provider.dart';
 import 'package:cognitive_training/screens/home/home_tutorial.dart';
 import 'package:cognitive_training/settings/setting_controller.dart';
 import 'package:cognitive_training/check_internet/check_connection_status.dart';
+import 'package:cognitive_training/shared/button_with_text.dart';
 import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/material.dart';
 import 'package:cognitive_training/firebase/auth.dart';
@@ -14,7 +15,6 @@ import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:logger/logger.dart';
 import 'package:provider/provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 
 class HomePage extends StatefulWidget {
@@ -30,7 +30,6 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   late UserInfoProvider userInfoProvider;
   late UserCheckinProvider userCheckinProvider;
   late AudioController _audioController;
-  AudioPlayer player = AudioPlayer();
 
   // // !
   // final checker = CheckConnectionStatus();
@@ -41,10 +40,10 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   int? chosenGame;
   String? chosenLanguage;
   List<String> gameImagePaths = [
-    'assets/home_page/choosing_game_lottery.png',
-    'assets/home_page/choosing_game_fishing.png',
-    'assets/home_page/choosing_game_poker.png',
-    'assets/home_page/choosing_game_route.png',
+    'assets/images/home_page/choosing_game_lottery.png',
+    'assets/images/home_page/choosing_game_fishing.png',
+    'assets/images/home_page/choosing_game_poker.png',
+    'assets/images/home_page/choosing_game_route.png',
   ];
   List<String> gameName = [
     '樂透彩券',
@@ -66,10 +65,10 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   ];
 
   List<String> gameRoutes = [
-    '/home/lottery_game_menu',
-    '/home/fishing_game_menu',
-    '/home/poker_game_menu',
-    '/home/route_game_menu',
+    'lottery_game_menu',
+    'fishing_game_menu',
+    'poker_game_menu',
+    'route_planning_game_menu',
   ];
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
@@ -85,7 +84,6 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
 
   @override
   void dispose() {
-    player.dispose();
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
@@ -106,6 +104,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     final settings = context.watch<SettingsController>();
     chosenLanguage = settings.language.value;
     _audioController = context.read<AudioController>();
+
     return SafeArea(
       child: Scaffold(
         key: _scaffoldKey,
@@ -123,7 +122,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
           ),
           child: Stack(
             children: [
-              title(),
+              const HomePageTitle(),
               settingAndCheckinReward(),
               GestureDetector(
                 onTap: () {
@@ -360,20 +359,6 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     );
   }
 
-  Align title() {
-    return Align(
-      alignment: const Alignment(0.0, -0.9),
-      child: FractionallySizedBox(
-        heightFactor: 0.15,
-        widthFactor: 0.5,
-        child: Image.asset(
-          'assets/home_page/choosing_game_title.png',
-          fit: BoxFit.contain,
-        ),
-      ),
-    );
-  }
-
   AnimatedAlign gameDescription() {
     return AnimatedAlign(
       key: const ValueKey('description'),
@@ -508,14 +493,10 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                 chosenGame = 0;
                 _audioController
                     .playInstructionRecord('tutorial/choose_game.m4a');
-                //player.play(AssetSource(
-                //    'instruction_record/chinese/tutorial/choose_game.m4a'));
               } else if (_homeTutorial.tutorialProgress == 2) {
                 isChosen[0] = true;
                 _audioController
                     .playInstructionRecord('tutorial/start_game.m4a');
-                //player.play(AssetSource(
-                //    'instruction_record/chinese/tutorial/start_game.m4a'));
               }
             } else {
               _audioController.stopAudio();
@@ -551,46 +532,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
           dashPattern: const [8, 4],
           padding: const EdgeInsets.all(1),
           strokeCap: StrokeCap.round,
-          child: AspectRatio(
-            aspectRatio: 835 / 353,
-            child: GestureDetector(
-              onTap: () {
-                final status = context.read<CheckConnectionStatus>();
-                if (status.connectionStatus.value == ConnectivityResult.none) {
-                  Logger().w('lost connection');
-                  lostConnectionDialog(context);
-                } else if (!_homeTutorial.isTutorial && (chosenGame! < 3)) {
-                  final audioController = context.read<AudioController>();
-                  audioController.stopAudio();
-                  String route = gameRoutes[isChosen.indexOf(true)];
-                  GoRouter.of(context).push(route);
-                }
-              },
-              child: Stack(
-                children: [
-                  Center(
-                    child: Image.asset('assets/global/continue_button.png'),
-                  ),
-                  const Center(
-                    child: FractionallySizedBox(
-                      heightFactor: 0.7,
-                      widthFactor: 0.6,
-                      child: FittedBox(
-                        child: Text(
-                          '開始遊戲',
-                          style: TextStyle(
-                            fontFamily: 'GSR_B',
-                            fontSize: 100,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
+          child: ButtonWithText(text: '開始遊戲', onTapFunction: checkForStartGame),
         ),
       ),
     );
@@ -640,8 +582,8 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
               child: Container(
                 decoration: const BoxDecoration(
                   image: DecorationImage(
-                    image:
-                        AssetImage('assets/home_page/choosing_game_banner.png'),
+                    image: AssetImage(
+                        'assets/images/home_page/choosing_game_banner.png'),
                     fit: BoxFit.contain,
                   ),
                 ),
@@ -652,7 +594,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                       child: FractionallySizedBox(
                         heightFactor: 0.2,
                         child: AutoSizeText(
-                          gameName[gameIndex],
+                          Globals.gameName[gameIndex],
                           textAlign: TextAlign.center,
                           style: const TextStyle(fontSize: 100),
                         ),
@@ -664,7 +606,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                         heightFactor: 0.44,
                         widthFactor: 0.885,
                         child: Image.asset(
-                          gameImagePaths[gameIndex],
+                          Globals.gameImagePaths[gameIndex],
                           fit: BoxFit.contain,
                         ),
                       ),
@@ -775,6 +717,41 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
           ],
         );
       },
+    );
+  }
+
+  void checkForStartGame() {
+    final status = context.read<CheckConnectionStatus>();
+    if (status.connectionStatus.value == ConnectivityResult.none) {
+      Logger().w('lost connection');
+      lostConnectionDialog(context);
+    } else if (!_homeTutorial.isTutorial && isChosen.indexOf(true) < 3) {
+      final audioController = context.read<AudioController>();
+      audioController.stopAudio();
+      String route = gameRoutes[isChosen.indexOf(true)];
+      GoRouter.of(context).pushNamed(route);
+    }
+    _audioController.playPathAudio(Globals.clickButtonSound);
+  }
+}
+
+class HomePageTitle extends StatelessWidget {
+  const HomePageTitle({
+    super.key,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Align(
+      alignment: const Alignment(0.0, -0.9),
+      child: FractionallySizedBox(
+        heightFactor: 0.15,
+        widthFactor: 0.5,
+        child: Image.asset(
+          'assets/images/home_page/choosing_game_title.png',
+          fit: BoxFit.contain,
+        ),
+      ),
     );
   }
 }
