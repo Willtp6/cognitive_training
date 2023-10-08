@@ -22,7 +22,7 @@ class _TopCoinsState extends State<TopCoins> {
     return Consumer<UserInfoProvider>(
       builder: (context, userInfo, child) {
         return Align(
-          alignment: Alignment(0.05, -0.925),
+          alignment: const Alignment(0.05, -0.925),
           child: FractionallySizedBox(
             widthFactor: 0.125,
             heightFactor: 0.075,

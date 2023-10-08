@@ -1,3 +1,4 @@
+import 'package:cognitive_training/models/global_info_provider.dart';
 import 'package:cognitive_training/models/user_info_provider.dart';
 import 'package:cognitive_training/screens/games/fishing_game/widgets/overlays/fishing_game_rule.dart';
 import 'package:provider/provider.dart';
@@ -11,27 +12,41 @@ import 'widgets/overlays/exit_button.dart';
 import 'widgets/overlays/top_coins.dart';
 import 'widgets/overlays/result_dialog.dart';
 import 'widgets/overlays/confirm_button.dart';
+import 'widgets/overlays/fishing_game_tutorial_mode.dart';
 
 class FishingGamePlay extends StatelessWidget {
-  FishingGamePlay({super.key, required this.gameLevel});
+  FishingGamePlay(
+      {super.key, required this.gameLevel, required this.isTutorial});
 
   late UserInfoProvider userInfoProvider;
+  late GlobalInfoProvider globalInfoProvider;
   int gameLevel;
+  bool isTutorial;
   // final FishingGame game = FishingGame(userInfoProvider: userInfoProvider);
 
   @override
   Widget build(BuildContext context) {
-    userInfoProvider = context.read();
+    userInfoProvider = context.read<UserInfoProvider>();
+    globalInfoProvider = context.read<GlobalInfoProvider>();
     return SafeArea(
       child: Scaffold(
         body: WillPopScope(
           child: GameWidget(
             game: FishingGame(
-                userInfoProvider: userInfoProvider, gameLevel: gameLevel),
-            initialActiveOverlays: const [
-              FishingGameRule.id,
-              ExitButton.id,
-            ],
+              gameLevel: gameLevel,
+              isTutorial: isTutorial,
+              userInfoProvider: userInfoProvider,
+              globalInfoProvider: globalInfoProvider,
+            ),
+            initialActiveOverlays: isTutorial
+                ? [
+                    FishingGameTutorialMode.id,
+                    ExitButton.id,
+                  ]
+                : const [
+                    FishingGameRule.id,
+                    ExitButton.id,
+                  ],
             overlayBuilderMap: {
               FishingGameRule.id: (BuildContext context, FishingGame game) =>
                   FishingGameRule(game: game),
@@ -45,6 +60,9 @@ class FishingGamePlay extends StatelessWidget {
                   ResultDialog(game: game),
               ConfirmButton.id: (BuildContext context, FishingGame game) =>
                   ConfirmButton(game: game),
+              FishingGameTutorialMode.id:
+                  (BuildContext context, FishingGame game) =>
+                      FishingGameTutorialMode(game: game),
             },
           ),
           onWillPop: () async => false,

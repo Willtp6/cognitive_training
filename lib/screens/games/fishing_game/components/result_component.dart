@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:math';
 
+import 'package:cognitive_training/constants/fishing_game_const.dart';
 import 'package:cognitive_training/constants/globals.dart';
 import 'package:flame/components.dart';
 import 'package:flame/effects.dart';
@@ -37,8 +38,9 @@ class ResultComponent extends SpriteGroupComponent<ResultType>
   FutureOr<void> onLoad() async {
     sprites = {
       ResultType.fish:
-          await gameRef.loadSprite(Globals.fishingResultBackGround),
-      ResultType.none: await gameRef.loadSprite(Globals.fishingResultEmptyRod),
+          await gameRef.loadSprite(FishingGameConst.fishingResultBackGround),
+      ResultType.none:
+          await gameRef.loadSprite(FishingGameConst.fishingResultEmptyRod),
     };
     current = ResultType.fish;
     position = gameRef.size / 2;
@@ -48,8 +50,8 @@ class ResultComponent extends SpriteGroupComponent<ResultType>
 
     getFish();
     fishComponent = SpriteComponent(
-      sprite:
-          await gameRef.loadSprite(Globals.fishesImages[fishType]![fishIndex]),
+      sprite: await gameRef
+          .loadSprite(FishingGameConst.fishesImages[fishType]![fishIndex]),
       size: Vector2.all(size.y * 0.6),
       position: Vector2(size.x * 0.5, size.y * 0.7),
       anchor: Anchor.center,
@@ -81,8 +83,8 @@ class ResultComponent extends SpriteGroupComponent<ResultType>
   void isFish() async {
     current = ResultType.fish;
     getFish();
-    fishComponent.sprite =
-        await gameRef.loadSprite(Globals.fishesImages[fishType]![fishIndex]);
+    fishComponent.sprite = await gameRef
+        .loadSprite(FishingGameConst.fishesImages[fishType]![fishIndex]);
     addAll([
       ScaleEffect.by(Vector2.all(8), EffectController(duration: 0.5)),
       OpacityEffect.to(1, EffectController(duration: 0.5)),

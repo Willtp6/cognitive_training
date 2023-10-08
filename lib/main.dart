@@ -1,25 +1,21 @@
 import 'package:cognitive_training/app_lifecycle/app_lifecycle.dart';
 import 'package:cognitive_training/audio/audio_controller.dart';
 import 'package:cognitive_training/check_internet/check_connection_status.dart';
+import 'package:cognitive_training/models/global_info_provider.dart';
 import 'package:cognitive_training/models/user_info_provider.dart';
 import 'package:cognitive_training/models/user_checkin_provider.dart';
-// import 'package:cognitive_training/screens/games/fishing_game/fishing_game_menu.dart';
-// import 'package:cognitive_training/screens/games/fishing_game/fishing_game_scene.dart';
 import 'package:cognitive_training/screens/games/fishing_game/fishing_game_play.dart';
 import 'package:cognitive_training/screens/games/lottery_game/lottery_game_scene.dart';
 import 'package:cognitive_training/screens/games/lottery_game/lottery_game_menu.dart';
 import 'package:cognitive_training/screens/games/poker_game/poker_game_scene.dart';
 import 'package:cognitive_training/screens/games/poker_game/poker_game_menu.dart';
-import 'package:cognitive_training/screens/games/route_planning_game/route_planning_game.dart';
-import 'package:cognitive_training/screens/games/route_planning_game/route_planning_game_menu.dart';
-import 'package:cognitive_training/screens/games/route_planning_game/route_planning_game_play.dart';
+import 'package:cognitive_training/screens/games/route_planning_game_forge2d/route_planning_game_forge2d_menu.dart';
+import 'package:cognitive_training/screens/games/route_planning_game_forge2d/route_planning_game_forge2d_play.dart';
 import 'package:cognitive_training/screens/home/reward_page.dart';
 import 'package:cognitive_training/settings/persistence/local_storage_settings_persistence.dart';
 import 'package:cognitive_training/settings/persistence/settings_persistence.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:flame/game.dart';
-import 'package:flame_audio/flame_audio.dart';
 import 'package:flutter/material.dart';
 import 'package:cognitive_training/screens/home/home_page.dart';
 import 'package:cognitive_training/screens/login/login_page.dart';
@@ -104,8 +100,10 @@ class MyApp extends StatelessWidget {
                         final startLevel = parameters['startLevel'] ?? '0';
                         final isTutorial = parameters['isTutorial'] ?? 'false';
                         Logger().i(startLevel);
+                        Logger().i(isTutorial);
                         return FishingGamePlay(
                           gameLevel: int.tryParse(startLevel)!,
+                          isTutorial: isTutorial == 'true',
                         );
                       }),
                 ],
@@ -144,7 +142,8 @@ class MyApp extends StatelessWidget {
               GoRoute(
                 name: 'route_planning_game_menu',
                 path: 'route_planning_game_menu',
-                builder: (context, state) => const RoutePlanningGameMenu(),
+                builder: (context, state) =>
+                    const RoutePlanningGameForge2dMenu(),
                 routes: [
                   GoRoute(
                     name: 'route_planning_game',
@@ -168,7 +167,7 @@ class MyApp extends StatelessWidget {
                       //   isTutorial: isTutorial == 'true',
                       //   responseTimeList: myList,
                       // );
-                      return RoutePlanningGamePlay();
+                      return RoutePlanningGameForge2dPlay();
                     },
                   ),
                 ],
@@ -194,8 +193,18 @@ class MyApp extends StatelessWidget {
             create: (context) => FirebaseAuth.instance.authStateChanges(),
             initialData: null,
           ),
-          ChangeNotifierProvider.value(value: UserInfoProvider()),
-          ChangeNotifierProvider.value(value: UserCheckinProvider()),
+          ChangeNotifierProvider(
+            lazy: false,
+            create: (_) => UserInfoProvider(),
+          ),
+          ChangeNotifierProvider(
+            lazy: false,
+            create: (_) => UserCheckinProvider(),
+          ),
+          ChangeNotifierProvider(
+            lazy: false,
+            create: (_) => GlobalInfoProvider(),
+          ),
           Provider<SettingsController>(
             lazy: false,
             create: (context) => SettingsController(

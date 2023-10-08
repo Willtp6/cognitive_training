@@ -4,6 +4,7 @@ import 'package:cognitive_training/audio/audio_controller.dart';
 import 'package:cognitive_training/constants/globals.dart';
 import 'package:cognitive_training/models/user_checkin_provider.dart';
 import 'package:cognitive_training/models/user_info_provider.dart';
+import 'package:cognitive_training/screens/games/shared/exit_button_template.dart';
 import 'package:cognitive_training/screens/home/home_tutorial.dart';
 import 'package:cognitive_training/settings/setting_controller.dart';
 import 'package:cognitive_training/check_internet/check_connection_status.dart';
@@ -383,33 +384,46 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
               children: [
                 Expanded(
                   flex: 3,
-                  child: Align(
-                    alignment: const Alignment(-0.95, 0.0),
-                    child: FractionallySizedBox(
-                      widthFactor: 0.3,
-                      heightFactor: 0.85,
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: Colors.blue[200],
-                          borderRadius:
-                              const BorderRadius.all(Radius.circular(10)),
-                        ),
-                        child: const FractionallySizedBox(
-                          widthFactor: 0.8,
-                          heightFactor: 0.9,
-                          child: Center(
-                            child: AutoSizeText(
-                              '遊戲介紹',
-                              maxLines: 1,
-                              style: TextStyle(
-                                  fontSize: 100,
-                                  color: Colors.white,
-                                  fontFamily: 'GSR_B'),
+                  child: Stack(
+                    children: [
+                      Align(
+                        alignment: const Alignment(-0.95, 0.0),
+                        child: FractionallySizedBox(
+                          widthFactor: 0.3,
+                          heightFactor: 0.85,
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: Colors.blue[200],
+                              borderRadius:
+                                  const BorderRadius.all(Radius.circular(10)),
+                            ),
+                            child: const FractionallySizedBox(
+                              widthFactor: 0.8,
+                              heightFactor: 0.9,
+                              child: Center(
+                                child: AutoSizeText(
+                                  '遊戲介紹',
+                                  maxLines: 1,
+                                  style: TextStyle(
+                                      fontSize: 100,
+                                      color: Colors.white,
+                                      fontFamily: 'GSR_B'),
+                                ),
+                              ),
                             ),
                           ),
                         ),
                       ),
-                    ),
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: ExitButton(callBackFunction: () {
+                          _audioController.stopAudio();
+                          setState(() {
+                            isChosen[isChosen.indexOf(true)] = false;
+                          });
+                        }),
+                      ),
+                    ],
                   ),
                 ),
                 Expanded(
@@ -725,7 +739,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     if (status.connectionStatus.value == ConnectivityResult.none) {
       Logger().w('lost connection');
       lostConnectionDialog(context);
-    } else if (!_homeTutorial.isTutorial && isChosen.indexOf(true) < 3) {
+    } else if (!_homeTutorial.isTutorial) {
       final audioController = context.read<AudioController>();
       audioController.stopAudio();
       String route = gameRoutes[isChosen.indexOf(true)];
@@ -750,6 +764,49 @@ class HomePageTitle extends StatelessWidget {
         child: Image.asset(
           'assets/images/home_page/choosing_game_title.png',
           fit: BoxFit.contain,
+        ),
+      ),
+    );
+  }
+}
+
+class ExitButton extends ExitButtonTemplate {
+  final Function callBackFunction;
+  const ExitButton({super.key, required this.callBackFunction});
+
+  @override
+  void onTapFunction() {
+    callBackFunction();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AspectRatio(
+      aspectRatio: 1,
+      child: GestureDetector(
+        onTap: () {
+          onTapFunction();
+        },
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.pink,
+            border: Border.all(color: Colors.black, width: 1),
+            shape: BoxShape.circle,
+          ),
+          child: FractionallySizedBox(
+            heightFactor: 0.8,
+            widthFactor: 0.8,
+            child: LayoutBuilder(
+              builder: (BuildContext context, BoxConstraints constraints) {
+                double iconSize = constraints.maxWidth;
+                return Icon(
+                  Icons.cancel,
+                  color: Colors.white,
+                  size: iconSize,
+                );
+              },
+            ),
+          ),
         ),
       ),
     );

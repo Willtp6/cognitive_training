@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:math';
 
+import 'package:cognitive_training/constants/fishing_game_const.dart';
 import 'package:cognitive_training/constants/globals.dart';
 import 'package:flame/components.dart';
 import 'package:flame/input.dart';
@@ -16,7 +17,8 @@ enum ChosenType {
 
 class RodComponent extends SpriteGroupComponent<ChosenType>
     with HasGameRef<FishingGame>, Tappable {
-  RodComponent({required this.rodId, required this.scaleLevel});
+  RodComponent(
+      {required this.rodId, required this.scaleLevel, super.priority = 0});
 
   static const List<double> aspectRatios = [
     386 / 888,
@@ -46,30 +48,41 @@ class RodComponent extends SpriteGroupComponent<ChosenType>
     Vector2(size.x * 0.05, size.y * 0.9),
   ];
 
+  final List<double> baseOfPower = [1.25, 1.2, 1.2, 1.15, 1.13];
+
   final int rodId;
   int scaleLevel;
+  bool isChosen = false;
 
   late RiveComponent rippleComponent;
 
-  late OneShotAnimation controller;
-
   late TimerComponent timerComponent;
 
-  bool isChosen = false;
+  late Artboard rippleArtboard;
+  OneShotAnimation controller = OneShotAnimation('animation', autoplay: false);
 
   @override
   FutureOr<void> onLoad() async {
     sprites = {
-      ChosenType.normal: await gameRef.loadSprite(Globals.rodList[rodId]),
-      ChosenType.chosen: await gameRef.loadSprite(Globals.rodLightList[rodId]),
+      ChosenType.normal:
+          await gameRef.loadSprite(FishingGameConst.rodList[rodId]),
+      ChosenType.chosen:
+          await gameRef.loadSprite(FishingGameConst.rodLightList[rodId]),
     };
     current = ChosenType.normal;
-
     size = sizeList[rodId];
     position = positionList[rodId];
     anchor = Anchor.center;
+    await initializeAnimation();
     await addRipple();
     return super.onLoad();
+  }
+
+  Future<void> initializeAnimation() async {
+    controller = OneShotAnimation('animation', autoplay: false);
+    rippleArtboard =
+        await loadArtboard(RiveFile.asset(FishingGameConst.rippleAnimation));
+    rippleArtboard.addController(controller);
   }
 
   @override
@@ -92,31 +105,25 @@ class RodComponent extends SpriteGroupComponent<ChosenType>
   }
 
   Future<void> addRipple() async {
-    final rippleArtboard =
-        await loadArtboard(RiveFile.asset(Globals.rippleAnimation));
-
-    controller = OneShotAnimation('animation', autoplay: false);
-
-    rippleArtboard.addController(controller);
-
     rippleComponent = RiveComponent(
       artboard: rippleArtboard,
       position: rippleCenters[rodId],
       size: Vector2(gameRef.size.x * 0.1, gameRef.size.x * 0.1 / 2),
-      scale: Vector2.all(pow(1.2, scaleLevel).toDouble()),
+      scale: Vector2.all(
+          pow(baseOfPower[gameRef.gameLevel], scaleLevel).toDouble()),
       anchor: Anchor.center,
     );
 
-    add(rippleComponent);
+    await add(rippleComponent);
   }
 
   void removeRipple() {
     remove(rippleComponent);
   }
 
-  void setRippleSize(int newScaleLevel) {
-    rippleComponent.scale = Vector2.all(pow(1.2, scaleLevel).toDouble());
-  }
+  // void setRippleSize(int newScaleLevel) {
+  //   rippleComponent.scale = Vector2.all(pow(1.2, scaleLevel).toDouble());
+  // }
 
   void setImageToLight() {
     current = ChosenType.chosen;

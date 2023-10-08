@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 
-class ExitButtonTemplate extends StatelessWidget {
-  static const String id = 'ExitButton';
+abstract class ExitButtonTemplate extends StatelessWidget {
   const ExitButtonTemplate({super.key});
 
-  void onTapFunction() {}
+  void onTapFunction();
 
   @override
   Widget build(BuildContext context) {

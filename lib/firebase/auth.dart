@@ -2,8 +2,6 @@ import 'package:cognitive_training/firebase/user_database_service.dart';
 import 'package:cognitive_training/models/user_checkin_provider.dart';
 import 'package:cognitive_training/models/user_info_provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cognitive_training/models/user_model.dart';
-import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 
 class AuthService {

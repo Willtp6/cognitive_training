@@ -44,7 +44,6 @@ class _FishingGameMenuState extends State<FishingGameMenu>
     if (buttonEnabled) {
       buttonEnabled = false;
       _controller.forward().whenComplete(() {
-        buttonEnabled = true;
         final db = _userInfoProvider.fishingGameDatabase;
         context.pushNamed(
           'fishing_game',
@@ -52,10 +51,10 @@ class _FishingGameMenuState extends State<FishingGameMenu>
             'startLevel': db.currentLevel.toString(),
             'isTutorial': (!db.doneTutorial).toString(),
           },
-        ).whenComplete(() {
-          _controller.reset();
-          buttonEnabled = true;
-        });
+        );
+      }).whenComplete(() {
+        _controller.reset();
+        buttonEnabled = true;
       });
       _audioController.playPathAudio(Globals.clickButtonSound);
     }
@@ -64,13 +63,13 @@ class _FishingGameMenuState extends State<FishingGameMenu>
   void startTutorial() {
     if (buttonEnabled) {
       buttonEnabled = false;
-      _controller.forward();
-      Future.delayed(const Duration(seconds: 2), () {
-        _controller.reset();
-        GoRouter.of(context).pushNamed(
+      _controller.forward().whenComplete(() {
+        context.pushNamed(
           'fishing_game',
           queryParams: {'startLevel': 0.toString(), 'isTutorial': 'true'},
         );
+      }).whenComplete(() {
+        _controller.reset();
         buttonEnabled = true;
       });
       _audioController.playPathAudio(Globals.clickButtonSound);

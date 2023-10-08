@@ -114,7 +114,7 @@ class UserInfoProvider with ChangeNotifier {
     FirebaseFirestore.instance
         .collection('user_basic_info')
         .doc(_user?.uid)
-        .update({'coins': _coins}).then((value) {
+        .update({'coins': _coins}).whenComplete(() {
       notifyListeners();
     });
   }
@@ -160,14 +160,16 @@ class UserInfoProvider with ChangeNotifier {
         .collection('user_basic_info')
         .doc(_user?.uid)
         .update({
-      'fishingGameDatabase': {
-        'level': database.currentLevel,
-        'doneTutorial': database.doneTutorial,
-      }
-    }).then((value) {
-      Logger().d('complete');
-      notifyListeners();
-    });
+          'fishingGameDatabase': {
+            'level': database.currentLevel,
+            'doneTutorial': database.doneTutorial,
+          }
+        })
+        .onError((error, stackTrace) => Logger().d(error))
+        .then((value) {
+          Logger().d('complete');
+          notifyListeners();
+        });
   }
 
   void fishingGameDoneTutorial() {
@@ -176,11 +178,12 @@ class UserInfoProvider with ChangeNotifier {
         .collection('user_basic_info')
         .doc(_user?.uid)
         .update({
-      'lotteryGameDatabase': {
+      'fishingGameDatabase': {
         'level': _fishingGameDatabase.currentLevel,
         'doneTutorial': true,
       }
     }).then((value) {
+      Logger().d('complete');
       notifyListeners();
     });
   }

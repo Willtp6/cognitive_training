@@ -36,6 +36,16 @@ class ResultDialog extends StatelessWidget {
       actions: <Widget>[
         TextButton(
           child: const Text(
+            '離開遊戲',
+            style: TextStyle(fontFamily: 'GSR_B', fontSize: 30),
+          ),
+          onPressed: () {
+            game.overlays.remove(ResultDialog.id);
+            context.pop();
+          },
+        ),
+        TextButton(
+          child: const Text(
             '繼續遊戲',
             style: TextStyle(fontFamily: 'GSR_B', fontSize: 30),
           ),
@@ -51,16 +61,6 @@ class ResultDialog extends StatelessWidget {
               game.resetGame();
               game.resumeEngine();
             }
-          },
-        ),
-        TextButton(
-          child: const Text(
-            '離開遊戲',
-            style: TextStyle(fontFamily: 'GSR_B', fontSize: 30),
-          ),
-          onPressed: () {
-            game.overlays.remove(ResultDialog.id);
-            context.pop();
           },
         ),
       ],

@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import 'package:audioplayers/audioplayers.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cognitive_training/settings/setting_controller.dart';
 import 'package:flutter/widgets.dart';
 import 'package:logger/logger.dart';

@@ -369,23 +369,24 @@ class _BonusRewardState extends State<BonusReward> {
         ),
         Expanded(
           flex: 2,
-          child: FractionallySizedBox(
-            widthFactor: 0.8,
-            heightFactor: 0.8,
-            child: Column(
-              children: [
-                Expanded(
-                  flex: 3,
-                  child: Image.asset('assets/login_reward/Mystery_gift.png'),
-                ),
-                Expanded(
-                  flex: 2,
-                  child:
-                      Image.asset('assets/login_reward/Mystery_gift_title.png'),
-                ),
-              ],
-            ),
-          ),
+          // child: FractionallySizedBox(
+          //   widthFactor: 0.8,
+          //   heightFactor: 0.8,
+          //   child: Column(
+          //     children: [
+          //       Expanded(
+          //         flex: 3,
+          //         child: Image.asset('assets/login_reward/Mystery_gift.png'),
+          //       ),
+          //       Expanded(
+          //         flex: 2,
+          //         child:
+          //             Image.asset('assets/login_reward/Mystery_gift_title.png'),
+          //       ),
+          //     ],
+          //   ),
+          // ),
+          child: Container(),
         ),
       ],
     );

@@ -2,8 +2,10 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:audioplayers/audioplayers.dart';
+import 'package:cognitive_training/constants/fishing_game_const.dart';
 import 'package:cognitive_training/constants/globals.dart';
 import 'package:cognitive_training/firebase/record_game.dart';
+import 'package:cognitive_training/models/global_info_provider.dart';
 import 'package:cognitive_training/models/user_info_provider.dart';
 import 'package:cognitive_training/models/user_model.dart';
 import 'components/rod_component.dart';
@@ -18,35 +20,51 @@ import 'widgets/overlays/result_dialog.dart';
 import 'widgets/overlays/exit_button.dart';
 import 'widgets/overlays/top_coins.dart';
 
-List<List<int>> possibleRippleList = [
-  [0, 3],
-  [0, 1, 3],
-  [0, 1, 3],
-  [0, 1, 2, 3],
-  [0, 1, 2, 3],
-];
-
 class FishingGame extends FlameGame with HasCollisionDetection, HasTappables {
   FishingGame({
     this.gameLevel = 0,
+    this.isTutorial = false,
     required this.userInfoProvider,
+    required this.globalInfoProvider,
   });
+  final List<List<int>> possibleRippleList = [
+    [0, 3],
+    [0, 1, 3],
+    [0, 1, 2],
+    [0, 1, 2, 3],
+    [0, 1, 2, 3],
+  ];
+
+  final Map<String, int> fishReward = {'A': 1000, 'B': 800, 'C': 300};
+
+  final List<Map<int, int>> penalty = [
+    {0: 150, 1: 100, 2: 50},
+    {0: 150, 1: 100, 2: 50},
+    {0: 150, 1: 100, 2: 50},
+    {0: 150, 1: 100, 2: 50},
+    {0: 150, 1: 100, 2: 50},
+  ];
 
   int gameLevel;
+  bool isTutorial;
   int continuousWin = 0;
   int continuousLose = 0;
   UserInfoProvider userInfoProvider;
+  GlobalInfoProvider globalInfoProvider;
 
   late BackGroundComponent backGroundComponent;
   late List<TimerComponent> rippleTimers;
   late TimerComponent resultDialogTimer;
   late List<RodComponent> rodComponents;
   late ResultComponent resultComponent;
-  late AudioPlayer _audioPlayer;
+  List<int> scaleList = [];
+  // late AudioPlayer _audioPlayer;
+  AudioPlayer? bubbleAudioPlayer;
   // late FishComponent fishComponent;
 
   late int ansRod;
   late int playerChosenRod;
+  late int playerChosenRodRipple;
   int reachedAnimationCounter = 0;
   int repeatTime = 0;
   bool rodTappable = false;
@@ -59,15 +77,14 @@ class FishingGame extends FlameGame with HasCollisionDetection, HasTappables {
   @override
   void onAttach() {
     FlameAudio.bgm.initialize();
-    FlameAudio.bgm.play('fishing_game/sound/bgm.mp3', volume: 0.7);
     super.onAttach();
-    Logger().d('attach complete');
+    // Logger().d('attach complete');
   }
 
   @override
   void onDetach() {
     FlameAudio.bgm.stop();
-    _audioPlayer.dispose();
+    bubbleAudioPlayer?.dispose();
     super.onDetach();
   }
 
@@ -75,77 +92,83 @@ class FishingGame extends FlameGame with HasCollisionDetection, HasTappables {
   FutureOr<void> onLoad() async {
     //!!! run as debug mode
     //debugMode = true;
+
     backGroundComponent = BackGroundComponent();
     resultDialogTimer = TimerComponent(
-        period: 2.5,
-        autoStart: false,
-        onTick: () {
-          resultComponent.reset();
-          overlays.remove(ExitButton.id);
-          overlays.add(ResultDialog.id);
-        });
+      period: 2.5,
+      autoStart: false,
+      onTick: () {
+        resultComponent.reset();
+        overlays.remove(ExitButton.id);
+        overlays.add(ResultDialog.id);
+      },
+    );
     resultComponent = ResultComponent();
-    // fishComponent = FishComponent();
     await addAll([
       backGroundComponent,
       resultDialogTimer,
       resultComponent,
-      // fishComponent,
     ]);
-    _audioPlayer = AudioPlayer();
     super.onLoad();
-    Logger().d('load complete');
+    // Logger().d('load complete');
+    // Logger().d(isTutorial);
   }
 
-  void startGame() {
+  Future<void> startGame() async {
+    FlameAudio.bgm.play(FishingGameConst.bgmAudio, volume: 0.7);
+
     //* reset
     reachedAnimationCounter = 0;
     repeatTime = 0;
     rodTappable = false;
     gameLevelChanged = false;
     //* initialize rods and timers
-    generateRods();
+    await generateRods();
     generateRippleTimers();
   }
 
-  void generateRods() {
-    List<int> scaleList = possibleRippleList[gameLevel];
+  Future<void> generateRods() async {
+    scaleList = possibleRippleList[gameLevel];
     scaleList.shuffle();
     ansRod = scaleList.indexOf(3);
     Logger().d(ansRod);
     rodComponents = List.generate(
-      Globals.numOfRods[gameLevel],
+      FishingGameConst.numOfRods[gameLevel],
       (index) => RodComponent(rodId: index, scaleLevel: scaleList[index])
         ..add(OpacityEffect.to(1, EffectController(duration: 0.5))),
     );
-    addAll(rodComponents);
+    await addAll(rodComponents);
   }
 
   //! startTime is count from here because here is the place which all timer start
-  void generateRippleTimers() {
+  void generateRippleTimers() async {
     rippleTimers = List.generate(
-      Globals.numOfRods[gameLevel],
+      FishingGameConst.numOfRods[gameLevel],
       (index) => TimerComponent(
         period: Random().nextDouble() * 4 + 1,
         autoStart: true,
+        // onTick: () {
+        //   rodComponents[index].controller.isActive = true;
+        //   reachedAnimationCounter++;
+        //   checkCounterNumbers();
+        // },
         onTick: () {
-          rodComponents[index].controller.isActive = true;
-          reachedAnimationCounter++;
-          checkCounterNumbers();
+          rippleTimerUp(index);
         },
       ),
     );
     addAll(rippleTimers);
-    // FlameAudio.play('fishing_game/sound/Bubbles.wav');
-    _audioPlayer.play(AssetSource('audio/fishing_game/sound/Bubbles.wav'));
+    bubbleAudioPlayer = await FlameAudio.loop(FishingGameConst.bubbleAudio);
     startTime = DateTime.now();
   }
 
-  void checkCounterNumbers() {
-    if (reachedAnimationCounter == Globals.numOfRods[gameLevel]) {
+  void rippleTimerUp(int index) {
+    rodComponents[index].controller.isActive = true;
+    reachedAnimationCounter++;
+    if (reachedAnimationCounter == FishingGameConst.numOfRods[gameLevel]) {
       //* all animation have been pleyed once
       rodTappable = true;
-      Logger().d(rodTappable);
+      reachedAnimationCounter = 0;
       switch (gameLevel) {
         case 0:
         case 1:
@@ -159,27 +182,62 @@ class FishingGame extends FlameGame with HasCollisionDetection, HasTappables {
           } else {
             //* reset for next game but do not repeat animation
             repeatTime = 0;
-            reachedAnimationCounter = 0;
+            Future.delayed(const Duration(seconds: 1, milliseconds: 500), () {
+              bubbleAudioPlayer?.pause();
+            });
           }
           break;
-        case 4:
-          reachedAnimationCounter = 0;
-          break;
+        // case 4:
+        //   Future.delayed(const Duration(seconds: 1, milliseconds: 500), () {
+        //     bubbleAudioPlayer?.pause();
+        //   });
+        //   break;
         default:
+          Future.delayed(const Duration(seconds: 1, milliseconds: 500), () {
+            bubbleAudioPlayer?.pause();
+          });
           break;
       }
     }
   }
 
-  void resetTimers() {
-    // FlameAudio.play('fishing_game/sound/Bubbles.wav');
-    _audioPlayer.play(AssetSource('audio/fishing_game/sound/Bubbles.wav'));
+  // void checkCounterNumbers() {
+  //   if (reachedAnimationCounter == Globals.numOfRods[gameLevel]) {
+  //     //* all animation have been pleyed once
+  //     rodTappable = true;
+  //     reachedAnimationCounter = 0;
+  //     switch (gameLevel) {
+  //       case 0:
+  //       case 1:
+  //         resetTimers();
+  //         break;
+  //       case 2:
+  //       case 3:
+  //         if (repeatTime < 1) {
+  //           repeatTime++;
+  //           resetTimers();
+  //         } else {
+  //           //* reset for next game but do not repeat animation
+  //           repeatTime = 0;
+  //         }
+  //         break;
+  //       case 4:
+  //         break;
+  //       default:
+  //         break;
+  //     }
+  //   }
+  // }
 
+  void resetTimers() {
+    // _audioPlayer.play(AssetSource('audio/fishing_game/sound/Bubbles.wav'));
+    // FlameAudio.loop(FishingGameConst.bubbleAudio).then((value) => value.pause());
+    //* delay for next bubble loop
     add(TimerComponent(
       period: 1.5,
       removeOnFinish: true,
       onTick: () {
-        reachedAnimationCounter = 0;
+        // reachedAnimationCounter = 0;
         for (var item in rippleTimers) {
           item.timer.start();
         }
@@ -198,7 +256,10 @@ class FishingGame extends FlameGame with HasCollisionDetection, HasTappables {
     for (var item in rodComponents) {
       item.add(OpacityEffect.to(0, EffectController(duration: 0.3)));
       item.removeRipple();
-      if (item.isChosen) playerChosenRod = item.rodId;
+      if (item.isChosen) {
+        playerChosenRod = item.rodId;
+        playerChosenRodRipple = item.scaleLevel;
+      }
       item.isChosen = false;
     }
     for (var item in rippleTimers) {
@@ -222,27 +283,82 @@ class FishingGame extends FlameGame with HasCollisionDetection, HasTappables {
   }
 
   void getResult() {
-    _audioPlayer.stop();
+    //* stop bubble audio
+    bubbleAudioPlayer?.pause();
+    //*
     overlays.remove(TopCoins.id);
     backGroundComponent.changeToResult();
-    endTime = DateTime.now();
-    if (ansRod == playerChosenRod) {
+    bool isPlayerWin = false;
+    bool isNotBiggestRipple = false;
+    switch (gameLevel) {
+      case 0:
+        isPlayerWin = playerChosenRod == scaleList.indexOf(3);
+        break;
+      case 1:
+        isPlayerWin = playerChosenRod == scaleList.indexOf(3) ||
+            playerChosenRod == scaleList.indexOf(2);
+        isNotBiggestRipple = playerChosenRod != scaleList.indexOf(3);
+        break;
+      case 2:
+        isPlayerWin = playerChosenRod == scaleList.indexOf(2) ||
+            playerChosenRod == scaleList.indexOf(1);
+        isNotBiggestRipple = playerChosenRod != scaleList.indexOf(2);
+
+        break;
+      case 3:
+        isPlayerWin = playerChosenRod == scaleList.indexOf(3) ||
+            playerChosenRod == scaleList.indexOf(2);
+        isNotBiggestRipple = playerChosenRod != scaleList.indexOf(3);
+
+        break;
+      case 4:
+        isPlayerWin = playerChosenRod == scaleList.indexOf(3);
+        isNotBiggestRipple = playerChosenRod != scaleList.indexOf(3);
+
+        break;
+    }
+
+    if (isPlayerWin) {
       resultComponent.isFish();
-      FlameAudio.play('fishing_game/sound/fishing_win.mp3');
+      FlameAudio.play(FishingGameConst.winAudio);
+      int coinChangeValue = 0;
+      if (isNotBiggestRipple) {
+        coinChangeValue -= penalty[gameLevel][playerChosenRodRipple]!;
+      }
+      coinChangeValue += fishReward[resultComponent.fishType]!;
+      //* random size
+      if (resultComponent.fishType == 'A' || resultComponent.fishType == 'B') {
+        List<int> possibleSizeReward = [0, 100, 250];
+        coinChangeValue +=
+            possibleSizeReward[Random().nextInt(possibleSizeReward.length)];
+      }
+      userInfoProvider.coins += coinChangeValue;
+      //* set for change level
       continuousWin++;
       continuousLose = 0;
     } else {
       resultComponent.isEmpty();
-      FlameAudio.play('fishing_game/sound/fishing_lose.mp3');
+      FlameAudio.play(FishingGameConst.loseAudio);
+      // todo minus coins
+      userInfoProvider.coins -= penalty[gameLevel][playerChosenRodRipple]!;
+      //* set for change level
       continuousWin = 0;
       continuousLose++;
     }
+    globalInfoProvider.uploadRanking(
+      userInfoProvider.userName,
+      userInfoProvider.usr!.uid,
+      userInfoProvider.coins,
+    );
+    //* get end time
+    endTime = DateTime.now();
     RecordFishingGame().recordGame(
       gameLevel: gameLevel,
       start: startTime,
       end: endTime,
       type: ansRod == playerChosenRod ? "fish" : "none",
     );
+
     if (continuousWin == 5 && gameLevel < 4) {
       gameLevel++;
       continuousWin = 0;
@@ -282,7 +398,7 @@ class FishingGame extends FlameGame with HasCollisionDetection, HasTappables {
   }
 
   bool checkNumOfRods() {
-    if (rodComponents.length != Globals.numOfRods[gameLevel]) {
+    if (rodComponents.length != FishingGameConst.numOfRods[gameLevel]) {
       regenerateRods();
       return false;
     }

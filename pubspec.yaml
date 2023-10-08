@@ -58,6 +58,7 @@ dependencies:
   flame_audio: ^1.4.1
   flame_rive: ^1.7.1
   flame_bloc: ^1.8.4
+  flame_forge2d: ^0.13.0+1
 
 dev_dependencies:
   flutter_test:
@@ -88,18 +89,9 @@ flutter:
     - assets/lottery_game/sound/
     - assets/lottery_game/sound/chinese/
     - assets/lottery_game/sound/taiwanese/
-    - assets/fishing_game/fish/
-    - assets/fishing_game/garbage/
-    - assets/fishing_game/ripple/
-    - assets/fishing_game/rod/
-    - assets/fishing_game/scene/
-    - assets/fishing_game/sound/
     - assets/poker_game/scene/
     - assets/poker_game/sound/
     - assets/poker_game/card/
-    # - assets/route_planning_game/scene/
-    # - assets/route_planning_game/sound/
-    # - assets/route_planning_game/building/
     - assets/global/
     - assets/images/home_page/
     - assets/login_reward/
@@ -122,8 +114,9 @@ flutter:
     - assets/images/fishing_game/ripple/
     - assets/images/fishing_game/rod/
     - assets/images/fishing_game/scene/
-    - assets/images/route_planning_game/scene/
     - assets/images/route_planning_game/buildings/
+    - assets/images/route_planning_game/hints/
+    - assets/images/route_planning_game/scene/
     - assets/audio/
     - assets/audio/shared/
     - assets/audio/fishing_game/sound/

@@ -1,5 +1,6 @@
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
+import 'package:logger/logger.dart';
 
 class Globals {
   Globals._();
@@ -9,6 +10,55 @@ class Globals {
   static const String starLight = 'assets/images/shared/star_light.png';
   static const String starDark = 'assets/images/shared/star_dark.png';
   static const String clickButtonSound = 'audio/shared/click_button.wav';
+
+  static AlertDialog exitDialog(
+      {required Function continueCallback,
+      required Function exitCallback,
+      required bool isTutorialMode}) {
+    Logger().d(isTutorialMode);
+    return AlertDialog(
+      title: const Center(
+        child: Text(
+          '確定要離開嗎?',
+          style: TextStyle(fontFamily: 'GSR_B', fontSize: 40),
+        ),
+      ),
+      // this part can put multiple messages
+      content: SingleChildScrollView(
+        child: ListBody(
+          children: <Widget>[
+            Center(
+              child: Text(
+                isTutorialMode ? '直接離開會跳過教學模式喔!!!' : '遊戲將不會被記錄下來喔!!!',
+                style: const TextStyle(fontFamily: 'GSR_B', fontSize: 30),
+              ),
+            ),
+          ],
+        ),
+      ),
+      actionsAlignment: MainAxisAlignment.center,
+      actions: <Widget>[
+        TextButton(
+          child: const Text(
+            '確定離開',
+            style: TextStyle(fontFamily: 'GSR_B', fontSize: 30),
+          ),
+          onPressed: () {
+            exitCallback();
+          },
+        ),
+        TextButton(
+          child: Text(
+            isTutorialMode ? '繼續教學' : '繼續遊戲',
+            style: const TextStyle(fontFamily: 'GSR_B', fontSize: 30),
+          ),
+          onPressed: () {
+            continueCallback();
+          },
+        ),
+      ],
+    );
+  }
 
   //* home page
   static const List<String> gameImagePaths = [
@@ -49,22 +99,7 @@ class Globals {
       'fishing_game/scene/rocky_shore.png';
   static const String fishingGameResult =
       'fishing_game/scene/menu_and_result.png';
-  static const List<int> numOfRods = [2, 3, 3, 4, 4];
 
-  static const List<String> rodList = [
-    'fishing_game/rod/rod1.png',
-    'fishing_game/rod/rod2.png',
-    'fishing_game/rod/rod3.png',
-    'fishing_game/rod/rod4.png',
-  ];
-  static const List<String> rodLightList = [
-    'fishing_game/rod/rod1_L.png',
-    'fishing_game/rod/rod2_L.png',
-    'fishing_game/rod/rod3_L.png',
-    'fishing_game/rod/rod4_L.png',
-  ];
-  static const String rippleAnimation =
-      'assets/images/fishing_game/ripple/ripple_animation.riv';
   static const AutoSizeText fishingGameRule = AutoSizeText.rich(
     TextSpan(
       children: [
@@ -77,39 +112,6 @@ class Globals {
     maxLines: 1,
     style: TextStyle(fontSize: 100, fontFamily: 'GSR_B'),
   );
-  static const Map<String, List<String>> fishesImages = {
-    "C": [
-      'fishing_game/fish/Fish_rankC1.png',
-      'fishing_game/fish/Fish_rankC2.png',
-      'fishing_game/fish/Fish_rankC3.png',
-      'fishing_game/fish/Fish_rankC4.png',
-      'fishing_game/fish/Fish_rankC5.png',
-      'fishing_game/fish/Fish_rankC6.png',
-      'fishing_game/fish/Fish_rankC7.png',
-      'fishing_game/fish/Fish_rankC8.png',
-    ],
-    "B": [
-      'fishing_game/fish/Fish_rankB1.png',
-      'fishing_game/fish/Fish_rankB2.png',
-      'fishing_game/fish/Fish_rankB3.png',
-      'fishing_game/fish/Fish_rankB4.png',
-      'fishing_game/fish/Fish_rankB5.png',
-      'fishing_game/fish/Fish_rankB6.png',
-      'fishing_game/fish/Fish_rankB7.png',
-    ],
-    "A": [
-      'fishing_game/fish/Fish_rankA1.png',
-      'fishing_game/fish/Fish_rankA2.png',
-      'fishing_game/fish/Fish_rankA3.png',
-      'fishing_game/fish/Fish_rankA4.png',
-      'fishing_game/fish/Fish_rankA5.png',
-      'fishing_game/fish/Fish_rankA6.png',
-      'fishing_game/fish/Fish_rankA7.png',
-    ],
-  };
-  static const String fishingResultBackGround =
-      "fishing_game/scene/reward_background.png";
-  static const String fishingResultEmptyRod = "fishing_game/rod/rod_empty.png";
 
   //* route planning game menu
   static const menuBackground =
@@ -122,64 +124,7 @@ class Globals {
       'assets/images/route_planning_game/scene/dialog_box_mom.png';
   static const riderInMenu =
       'assets/images/route_planning_game/scene/rider_left.png';
-  //* route planning game
-  static const targetList = 'route_planning_game/scene/targetLabel.png';
-  static const riderLeft = 'route_planning_game/scene/rider_left.png';
-  static const riderRight = 'route_planning_game/scene/rider_right.png';
-  static const List<String> buildings = [
-    'route_planning_game/buildings/Building01.png',
-    'route_planning_game/buildings/Building02.png',
-    'route_planning_game/buildings/Building03.png',
-    'route_planning_game/buildings/Building04.png',
-    'route_planning_game/buildings/Building05.png',
-    'route_planning_game/buildings/Building06.png',
-    'route_planning_game/buildings/Building07.png',
-    'route_planning_game/buildings/Building08.png',
-    'route_planning_game/buildings/Building09.png',
-    'route_planning_game/buildings/Building10.png',
-    'route_planning_game/buildings/Building11.png',
-    'route_planning_game/buildings/Building12.png',
-    'route_planning_game/buildings/Building13.png',
-    'route_planning_game/buildings/Building14.png',
-    'route_planning_game/buildings/Building15.png',
-    'route_planning_game/buildings/Building16.png',
-    'route_planning_game/buildings/Building17.png',
-    'route_planning_game/buildings/Building18.png',
-    'route_planning_game/buildings/Building19.png',
-    'route_planning_game/buildings/Building20.png',
-    'route_planning_game/buildings/Building21.png',
-    'route_planning_game/buildings/Building22.png',
-    'route_planning_game/buildings/Building23.png',
-    'route_planning_game/buildings/Building24.png',
-    'route_planning_game/buildings/Building25.png',
-    'route_planning_game/buildings/Building26.png',
-    'route_planning_game/buildings/Building27.png',
-    'route_planning_game/buildings/Building28.png',
-    'route_planning_game/buildings/Building29.png',
-    'route_planning_game/buildings/Building30.png',
-    'route_planning_game/buildings/Building31.png',
-    'route_planning_game/buildings/Building32.png',
-    'route_planning_game/buildings/Building33.png',
-    'route_planning_game/buildings/Building34.png',
-    'route_planning_game/buildings/Building35.png',
-    'route_planning_game/buildings/Building36.png',
-    'route_planning_game/buildings/Building37.png',
-    'route_planning_game/buildings/Building38.png',
-    'route_planning_game/buildings/Building39.png',
-    'route_planning_game/buildings/Building40.png',
-  ];
-  static const Map<int, int> numberOfBuildings = {
-    1: 6,
-    2: 8,
-    3: 8,
-    4: 8,
-    5: 10,
-  };
-  static const Map<int, int> numberOfTargets = {
-    1: 3,
-    2: 3,
-    3: 4,
-    4: 4,
-    5: 4,
-  };
+
+  //* tutorial mode
+  static const tutorialDoctor = 'assets/login_page/tutorial_doctors.png';
 }
