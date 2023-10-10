@@ -1,14 +1,18 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class UserDatabaseService {
+  final String emailId;
   final String docId;
   final String userName;
-  UserDatabaseService({required this.docId, required this.userName});
+  UserDatabaseService(
+      {required this.docId, required this.userName, required this.emailId});
 
   final CollectionReference userInfoCollection =
       FirebaseFirestore.instance.collection('user_basic_info');
   final CollectionReference userCheckinCollection =
       FirebaseFirestore.instance.collection('user_checkin_info');
+  final CollectionReference searchingInfoCollection =
+      FirebaseFirestore.instance.collection('searching_info');
 
   Future<void> createUserBasicInfo() async {
     await userInfoCollection.doc(docId).set({
@@ -42,5 +46,9 @@ class UserDatabaseService {
       'accumulatePlayTime': List.generate(7, (index) => 0),
       'currentWeek': 0,
     });
+  }
+
+  Future<void> createSearchingInfo() async {
+    await searchingInfoCollection.doc(emailId).set({'uid': docId});
   }
 }

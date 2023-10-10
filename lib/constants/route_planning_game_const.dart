@@ -125,9 +125,9 @@ class RoutePlanningGameConst {
   };
 
   static const routeWin =
-      'assets/images/route_planning_game/scene/route_win.png';
+      'assets/images/route_planning_game/scene/Route_Win.png';
   static const routeLose =
-      'assets/images/route_planning_game/scene/route_lose.png';
+      'assets/images/route_planning_game/scene/Route_Lose.png';
 
   //* audio
   static const pickFlagAudio = 'route_planning_game/sound/pick_flag.mp3';

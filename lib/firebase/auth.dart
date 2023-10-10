@@ -7,19 +7,8 @@ import 'package:logger/logger.dart';
 class AuthService {
   // create an Auth instance
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  var logger = Logger();
-  final UserInfoProvider userInfoProvider = UserInfoProvider();
-  final UserCheckinProvider userCheckinProvider = UserCheckinProvider();
-
-  // // create user obj on FirebaseUser
-  // LocalUser? _userFromFirebaseUser(User? user) {
-  //   return user != null ? LocalUser(uid: user.uid) : null;
-  // }
-
-  // // auth change user stream in main defined stream provider
-  // Stream<LocalUser?> get userStream {
-  //   return _auth.authStateChanges().map(_userFromFirebaseUser);
-  // }
+  // final UserInfoProvider userInfoProvider = UserInfoProvider();
+  // final UserCheckinProvider userCheckinProvider = UserCheckinProvider();
 
   // sign in with email & passwd
   // code in here have some loophole because the gmail account is not really exists
@@ -40,11 +29,12 @@ class AuthService {
               email: email, password: passwd);
           result.user!.updateDisplayName(userName);
           // create new user info database
-          await UserDatabaseService(docId: result.user!.uid, userName: userName)
+          UserDatabaseService(
+              docId: result.user!.uid, userName: userName, emailId: uid)
             ..createUserBasicInfo()
-            ..createUserCheckinInfo();
-          //userInfoProvider.updateUserData(result.user);
-          //userCheckinProvider.updateData(result.user);
+            ..createUserCheckinInfo()
+            ..createSearchingInfo();
+
           return result.user?.uid;
         } catch (error) {
           return error;
@@ -75,10 +65,10 @@ class AuthService {
   // sign out
   Future signOut() async {
     try {
-      logger.v('signed out');
+      Logger().i('signed out');
       return await _auth.signOut();
     } catch (e) {
-      logger.v(e.toString());
+      Logger().i(e.toString());
       return null;
     }
   }

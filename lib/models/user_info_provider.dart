@@ -97,7 +97,10 @@ class UserInfoProvider with ChangeNotifier {
 
         //* maybe just create a new one
         // create new user info database
-        UserDatabaseService(docId: newUser!.uid, userName: userName)
+        UserDatabaseService(
+                docId: newUser!.uid,
+                userName: userName,
+                emailId: newUser.email!.split(RegExp(r'@'))[0])
             .createUserBasicInfo();
       }
     });

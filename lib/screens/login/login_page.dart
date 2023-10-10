@@ -1,6 +1,6 @@
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:cognitive_training/firebase/auth.dart';
-import 'package:cognitive_training/screens/login/login_tutorial.dart';
+import 'package:cognitive_training/shared/button_with_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
@@ -19,8 +19,6 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
   final AuthService _auth = AuthService();
   final _formKey = GlobalKey<FormState>();
-
-  final LoginTutorial _loginTutorial = LoginTutorial();
 
   bool isLoading = false;
 
@@ -41,64 +39,35 @@ class _LoginPageState extends State<LoginPage> {
   Widget build(BuildContext context) {
     double height = MediaQuery.of(context).size.height;
     double width = MediaQuery.of(context).size.width;
+
     return SafeArea(
       child: Scaffold(
-        body: SingleChildScrollView(
-          child: Container(
-            height: height - MediaQuery.of(context).padding.top,
-            width: width,
-            decoration: BoxDecoration(
-              image: DecorationImage(
-                opacity: _loginTutorial.isTutorial ? 0.3 : 1,
-                image:
-                    const AssetImage('assets/global/login_background_1.jpeg'),
-                fit: BoxFit.fitWidth,
-              ),
+        body: Container(
+          decoration: const BoxDecoration(
+            image: DecorationImage(
+              image: AssetImage('assets/global/login_background_1.jpeg'),
+              fit: BoxFit.fitWidth,
             ),
-            child: Stack(
-              children: [
-                // main block of login
-                loginBlock(height, width),
-                // masked of login
-                if (_loginTutorial.isTutorial &&
-                    _loginTutorial.tutorialProgress < 1)
-                  _loginTutorial.mask(width, height),
-                loginLogo(),
-                _loginTutorial.tutorialDoctor(),
-                _loginTutorial.chatBubble(),
-                GestureDetector(
-                  onTap: () {
-                    setState(() {
-                      if (_loginTutorial.tutorialProgress < 5) {
-                        _loginTutorial.tutorialProgress++;
-                      } else {
-                        Future.delayed(const Duration(milliseconds: 500), () {
-                          _loginTutorial.tutorialProgress = 0;
-                        });
-                        _loginTutorial.isTutorial = false;
-                      }
-                    });
-                  },
-                  child: _loginTutorial.getContinueButton(),
-                ),
-                GestureDetector(
-                  onTap: () {
-                    setState(() {
-                      _loginTutorial.isTutorial = true;
-                    });
-                  },
-                  child: _loginTutorial.tutorialButton(),
-                ),
-                if (_loginTutorial.isTutorial &&
-                    _loginTutorial.tutorialProgress >= 3)
-                  _loginTutorial.hintArrow(),
-                // loading animation
-                if (isLoading)
-                  const SpinKitCircle(
-                    color: Colors.blue,
-                    duration: Duration(milliseconds: 1500),
-                  )
-              ],
+          ),
+          child: SingleChildScrollView(
+            //* set for dismiss keyboard when drag event
+            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+            child: SizedBox(
+              height: height - MediaQuery.of(context).padding.top,
+              width: width,
+              child: Stack(
+                children: [
+                  // main block of login
+                  loginBlock(height, width),
+                  loginLogo(),
+                  // loading animation
+                  if (isLoading)
+                    const SpinKitCircle(
+                      color: Colors.blue,
+                      duration: Duration(milliseconds: 1500),
+                    )
+                ],
+              ),
             ),
           ),
         ),
@@ -136,39 +105,11 @@ class _LoginPageState extends State<LoginPage> {
         child: AspectRatio(
           aspectRatio: 1,
           child: Container(
-            decoration: BoxDecoration(
+            decoration: const BoxDecoration(
               image: DecorationImage(
-                opacity: _loginTutorial.isTutorial &&
-                        _loginTutorial.tutorialProgress < 1
-                    ? 0.3
-                    : 1,
-                image: const AssetImage('assets/login_page/login_logo.png'),
+                image: AssetImage('assets/login_page/login_logo.png'),
                 fit: BoxFit.contain,
               ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  AnimatedOpacity tutorialButton() {
-    return AnimatedOpacity(
-      opacity: _loginTutorial.isTutorial ? 0 : 1,
-      duration: const Duration(milliseconds: 500),
-      child: Align(
-        alignment: Alignment.centerRight,
-        child: GestureDetector(
-          onTap: () {
-            setState(() {
-              _loginTutorial.isTutorial = true;
-            });
-          },
-          child: FractionallySizedBox(
-            widthFactor: 0.15,
-            child: AspectRatio(
-              aspectRatio: 578 / 236,
-              child: Image.asset('assets/login_page/tutorial_button.png'),
             ),
           ),
         ),
@@ -199,58 +140,46 @@ class _LoginPageState extends State<LoginPage> {
             alignment: const Alignment(0.0, -0.3),
             child: FractionallySizedBox(
               heightFactor: 0.3,
-              child: DottedBorder(
-                color: _loginTutorial.isTutorial &&
-                        _loginTutorial.tutorialProgress == 3
-                    ? Colors.red
-                    : Colors.white.withOpacity(0),
-                borderType: BorderType.RRect,
-                radius: const Radius.circular(10),
-                strokeWidth: 2,
-                dashPattern: const [8, 4],
-                padding: const EdgeInsets.all(5),
-                borderPadding: const EdgeInsets.symmetric(vertical: 1),
-                strokeCap: StrokeCap.round,
-                child: Row(
-                  children: [
-                    Expanded(
-                      flex: 2,
-                      child: Center(
-                        child: Image.asset(
-                          'assets/login_page/login_id.png',
-                          fit: BoxFit.contain,
-                        ),
+              child: Row(
+                children: [
+                  Expanded(
+                    flex: 2,
+                    child: Center(
+                      child: Image.asset(
+                        'assets/login_page/login_id.png',
+                        fit: BoxFit.contain,
                       ),
                     ),
-                    const Expanded(
-                      flex: 4,
-                      child: Center(
-                        child: AutoSizeText(
-                          '使用者編號',
-                          maxLines: 1,
-                          style: TextStyle(fontSize: 100),
-                        ),
+                  ),
+                  const Expanded(
+                    flex: 4,
+                    child: Center(
+                      child: AutoSizeText(
+                        '使用者編號',
+                        maxLines: 1,
+                        style: TextStyle(fontSize: 100),
                       ),
                     ),
-                    Expanded(
-                      flex: 6,
-                      child: Center(
-                        child: TextFormField(
-                          enabled: !_loginTutorial.isTutorial,
-                          decoration: inputDecoration.copyWith(
-                            hintText: '輸入編號',
-                            contentPadding:
-                                const EdgeInsets.symmetric(horizontal: 8.0),
-                          ),
-                          validator: (val) => val!.isEmpty ? '不可為空' : null,
-                          onChanged: (val) {
-                            userId = val;
-                          },
+                  ),
+                  Expanded(
+                    flex: 6,
+                    child: Center(
+                      child: TextFormField(
+                        decoration: inputDecoration.copyWith(
+                          hintText: '輸入編號',
+                          contentPadding:
+                              const EdgeInsets.symmetric(horizontal: 8.0),
                         ),
+                        validator: (val) => val!.isEmpty ? '不可為空' : null,
+                        onChanged: (val) {
+                          userId = val;
+                        },
+                        onEditingComplete: () =>
+                            FocusManager.instance.primaryFocus?.unfocus(),
                       ),
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
           ),
@@ -258,53 +187,41 @@ class _LoginPageState extends State<LoginPage> {
             alignment: const Alignment(0.0, 0.5),
             child: FractionallySizedBox(
               heightFactor: 0.3,
-              child: DottedBorder(
-                color: _loginTutorial.isTutorial &&
-                        _loginTutorial.tutorialProgress == 4
-                    ? Colors.red
-                    : Colors.white.withOpacity(0),
-                borderType: BorderType.RRect,
-                radius: const Radius.circular(10),
-                strokeWidth: 2,
-                dashPattern: const [8, 4],
-                padding: const EdgeInsets.all(5),
-                borderPadding: const EdgeInsets.symmetric(vertical: 1),
-                strokeCap: StrokeCap.round,
-                child: Row(
-                  children: [
-                    Expanded(
-                      flex: 2,
-                      child: Image.asset(
-                        'assets/login_page/login_username.png',
-                        fit: BoxFit.contain,
-                      ),
+              child: Row(
+                children: [
+                  Expanded(
+                    flex: 2,
+                    child: Image.asset(
+                      'assets/login_page/login_username.png',
+                      fit: BoxFit.contain,
                     ),
-                    const Expanded(
-                      flex: 4,
-                      child: AutoSizeText(
-                        '使用者姓名',
-                        maxLines: 1,
-                        style: TextStyle(fontSize: 100),
-                      ),
+                  ),
+                  const Expanded(
+                    flex: 4,
+                    child: AutoSizeText(
+                      '使用者姓名',
+                      maxLines: 1,
+                      style: TextStyle(fontSize: 100),
                     ),
-                    Expanded(
-                      flex: 6,
-                      child: TextFormField(
-                        enabled: !_loginTutorial.isTutorial,
-                        decoration: inputDecoration.copyWith(
-                          hintText: '輸入姓名',
-                          contentPadding:
-                              const EdgeInsets.symmetric(horizontal: 8.0),
-                        ),
-                        keyboardType: TextInputType.text,
-                        validator: (val) => val!.isEmpty ? '不可為空' : null,
-                        onChanged: (val) {
-                          userName = val;
-                        },
+                  ),
+                  Expanded(
+                    flex: 6,
+                    child: TextFormField(
+                      decoration: inputDecoration.copyWith(
+                        hintText: '輸入姓名',
+                        contentPadding:
+                            const EdgeInsets.symmetric(horizontal: 8.0),
                       ),
+                      keyboardType: TextInputType.text,
+                      validator: (val) => val!.isEmpty ? '不可為空' : null,
+                      onChanged: (val) {
+                        userName = val;
+                      },
+                      onEditingComplete: () =>
+                          FocusManager.instance.primaryFocus?.unfocus(),
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
           ),
@@ -312,11 +229,11 @@ class _LoginPageState extends State<LoginPage> {
             alignment: const Alignment(0.0, 1.0),
             child: FractionallySizedBox(
               heightFactor: 0.2,
-              child: GestureDetector(
-                onTap: () async {
+              child: ButtonWithText(
+                text: '登入',
+                onTapFunction: () async {
                   FocusManager.instance.primaryFocus?.unfocus();
-                  if (!_loginTutorial.isTutorial &&
-                      _formKey.currentState!.validate()) {
+                  if (_formKey.currentState!.validate()) {
                     setState(() {
                       isLoading = true;
                     });
@@ -342,43 +259,6 @@ class _LoginPageState extends State<LoginPage> {
                     }
                   }
                 },
-                child: DottedBorder(
-                  color: _loginTutorial.isTutorial &&
-                          _loginTutorial.tutorialProgress == 5
-                      ? Colors.red
-                      : Colors.white.withOpacity(0),
-                  borderType: BorderType.RRect,
-                  radius: const Radius.circular(10),
-                  strokeWidth: 2,
-                  dashPattern: const [8, 4],
-                  padding: const EdgeInsets.all(3),
-                  borderPadding: const EdgeInsets.symmetric(vertical: 1),
-                  strokeCap: StrokeCap.round,
-                  child: Stack(
-                    children: [
-                      Image.asset('assets/login_page/continue_button.png'),
-                      const Positioned.fill(
-                        child: Center(
-                          child: FractionallySizedBox(
-                            heightFactor: 0.7,
-                            widthFactor: 0.7,
-                            child: FittedBox(
-                              //fit: BoxFit.contain,
-                              child: Text(
-                                '登入',
-                                style: TextStyle(
-                                  fontSize: 100,
-                                  fontFamily: 'GSR_R',
-                                  color: Colors.white,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
               ),
             ),
           )
