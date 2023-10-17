@@ -2,8 +2,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:logger/logger.dart';
 
-class RecordLotteryGame {
-  Future<void> recordGame({
+class RecordGame {
+  Future<void> recordLotteryGame({
     required int gameLevel,
     required int numberOfDigits,
     required int numOfCorrectAns,
@@ -22,14 +22,12 @@ class RecordLotteryGame {
         .doc(DateTime.now().toString());
     if (gameLevel < 2) {
       return reference.set({
-        'game_record': {
-          'gameDifficulties': gameLevel + 1,
-          'numOfDigits': numberOfDigits,
-          'accuracy': numOfCorrectAns / numberOfDigits,
-          'responseTime(Milliseconds)': end.difference(start).inMilliseconds,
-          'answer': answer,
-          'playerInput': playerInput,
-        }
+        'gameDifficulties': gameLevel + 1,
+        'numOfDigits': numberOfDigits,
+        'accuracy': numOfCorrectAns / numberOfDigits,
+        'responseTime(Milliseconds)': end.difference(start).inMilliseconds,
+        'answer': answer,
+        'playerInput': playerInput,
       });
     }
     // .then((value) => Logger().d(user?.uid))
@@ -49,10 +47,8 @@ class RecordLotteryGame {
       });
     }
   }
-}
 
-class RecordFishingGame {
-  Future<void> recordGame({
+  Future<void> recordFishingGame({
     required int gameLevel,
     required DateTime start,
     required DateTime end,
@@ -67,19 +63,15 @@ class RecordFishingGame {
         .doc(DateTime.now().toString());
     return reference
         .set({
-          'game_record': {
-            'gameDifficulties': gameLevel + 1,
-            'type': type,
-            'responseTime(Milliseconds)': end.difference(start).inMilliseconds,
-          }
+          'gameDifficulties': gameLevel + 1,
+          'type': type,
+          'responseTime(Milliseconds)': end.difference(start).inMilliseconds,
         })
         .then((value) => Logger().d(user?.uid))
         .catchError((error) => Logger().d(error.message));
   }
-}
 
-class RecordPokerGame {
-  Future<void> recordGame({
+  Future<void> recordPokerGame({
     required int gameLevel,
     required String result,
     required DateTime end,
@@ -98,15 +90,45 @@ class RecordPokerGame {
         .doc(DateTime.now().toString());
     return reference
         .set({
-          'game_record': {
-            'gameDifficulties': gameLevel + 1,
-            'result': result,
-            'responseTime(Milliseconds)': end.difference(start).inMilliseconds,
-            'computerCard': computerSuit + computerRank,
-            'playererCard': playerSuit + playerRank,
-          }
+          'gameDifficulties': gameLevel + 1,
+          'result': result,
+          'responseTime(Milliseconds)': end.difference(start).inMilliseconds,
+          'computerCard': computerSuit + computerRank,
+          'playererCard': playerSuit + playerRank,
         })
         .then((value) => Logger().d(user?.uid))
         .catchError((error) => Logger().d(error.message));
+  }
+
+  Future<void> recordRoutePlanningGame({
+    required List<int> timeToEachHalfwayPoint,
+    required int nonTargetError,
+    required int repeatedError,
+    required int numOfTargets,
+    required int mapIndex,
+    required int gameDifficulties,
+    required DateTime start,
+    required DateTime end,
+    required String result,
+  }) {
+    User? user = FirebaseAuth.instance.currentUser;
+    DocumentReference reference = FirebaseFirestore.instance
+        .collection('user_game_info')
+        .doc(user?.uid)
+        .collection('route_planning_game')
+        .doc(DateTime.now().toString());
+    return reference
+        .set({
+          'timeToEachHalfwayPoint': timeToEachHalfwayPoint,
+          'nonTargetError': nonTargetError,
+          'repeatedError': repeatedError,
+          'numOfTargets': numOfTargets,
+          'mapIndex': mapIndex,
+          'gameDifficulties': gameDifficulties,
+          'responseTime(Milliseconds)': end.difference(start).inMilliseconds,
+          'result': result,
+        })
+        .whenComplete(() => Logger().d(user?.uid))
+        .catchError((error) => Logger().d(error));
   }
 }

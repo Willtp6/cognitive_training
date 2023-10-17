@@ -94,6 +94,7 @@ flutter:
     - assets/poker_game/card/
     - assets/global/
     - assets/images/home_page/
+    - assets/images/home_page/ranking_page/
     - assets/login_reward/
     - assets/login_page/
     - assets/instruction_record/chinese/lottery_game/

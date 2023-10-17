@@ -55,18 +55,21 @@ class Player {
   void addCard(PokerCard card) {
     hand.add(card);
   }
+}
 
-  void showHand() {
-    for (var card in hand) {
-      print('${card.rank} of ${card.suit}');
-    }
-  }
+enum ResultType {
+  none,
+  win,
+  tie,
+  lose,
 }
 
 class GameInstance {
   int gameLevel;
   List<int> responseTimeList;
   bool isTutorial;
+  int continuousWin;
+  int continuousLose;
 
   List<int> numberOfCards = [5, 6, 6, 8];
   String backgroundPath = 'assets/poker_game/scene/play_board.png';
@@ -82,22 +85,20 @@ class GameInstance {
 
   bool cardDealed = false;
   bool isPlayerTurn = false;
-  late bool isPlayerWin;
-  late bool isTie;
+  ResultType resultType = ResultType.none;
 
   PokerCard? playerCard;
   PokerCard? computerCard;
   late List<bool> isChosen;
   late List<bool> isChosenComputer;
 
-  int continuousWin = 0;
-  int continuousLose = 0;
-
   List<int> coinWin = [100, 200, 250, 300];
   List<int> coinLose = [100, 100, 150, 150];
 
   GameInstance(
       {required this.gameLevel,
+      required this.continuousWin,
+      required this.continuousLose,
       required this.responseTimeList,
       required this.isTutorial}) {
     deck = Deck();
@@ -137,43 +138,58 @@ class GameInstance {
   void getResult() {
     end = DateTime.now();
     List<String> suits = ['Spades', 'Hearts', 'Diamonds', 'Clubs'];
-    // reset isTie and isPlayerWin
-    isTie = false;
-    isPlayerWin = false;
+    resultType = ResultType.none;
 
     if (playerCard != null) {
       if (gameLevel > 1) {
         // suit the same or rank the same
-        isPlayerWin = playerCard!.suit == computerCard!.suit ||
-            playerCard!.rank == computerCard!.rank;
+        if (playerCard!.rank == computerCard!.rank ||
+            playerCard!.suit == computerCard!.suit) {
+          resultType = ResultType.win;
+        } else {
+          resultType = ResultType.lose;
+        }
       } else {
         int playerRank = playerCard!.rank == 1 ? 14 : playerCard!.rank;
         int computerRank = computerCard!.rank == 1 ? 14 : computerCard!.rank;
-        isPlayerWin = playerRank > computerRank ||
+        int playerSuitIndex = suits.indexOf(playerCard!.suit);
+        int computerSuitIndex = suits.indexOf(computerCard!.suit);
+        if (playerRank > computerRank ||
             (playerRank == computerRank &&
-                suits.indexOf(playerCard!.suit) <
-                    suits.indexOf(computerCard!.suit));
+                playerSuitIndex < computerSuitIndex)) {
+          resultType = ResultType.win;
+        } else {
+          resultType = ResultType.lose;
+        }
       }
     } else {
       // check if any of card in hand is winable
       for (PokerCard card in player.hand) {
         if (gameLevel > 1) {
           // suit the same or rank the same
-          isTie = !(card.suit == computerCard!.suit ||
-              card.rank == computerCard!.rank);
-          if (!isTie) break;
+          if (card.suit == computerCard!.suit ||
+              card.rank == computerCard!.rank) {
+            resultType = ResultType.lose;
+            break;
+          } else {
+            resultType = ResultType.tie;
+          }
         } else {
           int cardRank = card.rank == 1 ? 14 : card.rank;
           int computerRank = computerCard!.rank == 1 ? 14 : computerCard!.rank;
-          isTie = !(cardRank > computerRank ||
+          int playerSuitIndex = suits.indexOf(card.suit);
+          int computerSuitIndex = suits.indexOf(computerCard!.suit);
+          if (cardRank > computerRank ||
               (cardRank == computerRank &&
-                  suits.indexOf(card.suit) <
-                      suits.indexOf(computerCard!.suit)));
-          if (!isTie) break;
+                  playerSuitIndex < computerSuitIndex)) {
+            resultType = ResultType.lose;
+            break;
+          } else {
+            resultType = ResultType.tie;
+          }
         }
       }
     }
-    // changeOpponentCoin();
     continuousWinLose();
     int resTime = end.difference(start).inMilliseconds;
     responseTimeList.add(resTime);
@@ -185,22 +201,20 @@ class GameInstance {
     recordGame();
   }
 
-  // void changeOpponentCoin() {
-  //   if (isPlayerWin) {
-  //     opponentCoin -= coinLose[gameLevel];
-  //   } else {
-  //     if (!isTie) opponentCoin += coinWin[gameLevel];
-  //   }
-  // }
-
   void continuousWinLose() {
-    if (isTie) {
-    } else if (isPlayerWin) {
-      continuousLose = 0;
-      continuousWin++;
-    } else {
-      continuousWin = 0;
-      continuousLose++;
+    switch (resultType) {
+      case ResultType.none:
+        break;
+      case ResultType.win:
+        continuousLose = 0;
+        continuousWin++;
+        break;
+      case ResultType.tie:
+        break;
+      case ResultType.lose:
+        continuousWin = 0;
+        continuousLose++;
+        break;
     }
   }
 
@@ -226,13 +240,14 @@ class GameInstance {
 
   void recordGame() {
     end = DateTime.now();
-    RecordPokerGame().recordGame(
+    final results = {
+      ResultType.win: 'Win',
+      ResultType.tie: 'Tie',
+      ResultType.lose: 'Lose',
+    };
+    RecordGame().recordPokerGame(
       gameLevel: gameLevel,
-      result: isTie
-          ? 'Tie'
-          : isPlayerWin
-              ? 'Win'
-              : 'Lose',
+      result: results[resultType] ?? 'error',
       start: start,
       end: end,
       computerSuit: computerCard!.suit,
@@ -245,8 +260,12 @@ class GameInstance {
   int getTimeLimit() {
     switch (gameLevel) {
       case 0:
-        return 10000;
+        return 20000;
       case 1:
+        return responseTimeList[responseTimeList.length ~/ 2] + 8000;
+      case 2:
+        return responseTimeList[responseTimeList.length ~/ 2] + 5000;
+      case 3:
         return responseTimeList[responseTimeList.length ~/ 2] + 3000;
       default:
         return responseTimeList[responseTimeList.length ~/ 2];

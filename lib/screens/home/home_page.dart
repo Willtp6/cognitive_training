@@ -274,7 +274,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       alignment: const Alignment(-0.9, -0.9),
       child: FractionallySizedBox(
         heightFactor: 0.15,
-        widthFactor: 0.15,
+        widthFactor: 0.2,
         child: Container(
           decoration: const BoxDecoration(
             color: Colors.white,
@@ -352,6 +352,26 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                     ),
                   );
                 }),
+              ),
+              Expanded(
+                child: Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(2.0),
+                    child: FittedBox(
+                      fit: BoxFit.fitHeight,
+                      child: IconButton(
+                        iconSize: 100,
+                        onPressed: () {
+                          context.pushNamed('ranking');
+                        },
+                        icon: const Icon(
+                          Icons.emoji_events,
+                          color: Colors.yellow,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
               ),
             ],
           ),
@@ -644,7 +664,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
           title: const Center(
             child: Text(
               '登出帳號',
-              style: TextStyle(fontFamily: 'GSR_R', fontSize: 40),
+              style: TextStyle(fontFamily: 'GSR_B', fontSize: 40),
             ),
           ),
           // this part can put multiple messages
@@ -653,7 +673,8 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
               children: const <Widget>[
                 Text(
                   '確定要登出嗎?\n登出後需要重新登入',
-                  style: TextStyle(fontFamily: 'GSR_R', fontSize: 40),
+                  style: TextStyle(fontFamily: 'GSR_B', fontSize: 40),
+                  textAlign: TextAlign.center,
                 ),
               ],
             ),
@@ -663,7 +684,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
             TextButton(
               child: const Text(
                 '否',
-                style: TextStyle(fontFamily: 'GSR_R', fontSize: 40),
+                style: TextStyle(fontFamily: 'GSR_B', fontSize: 40),
               ),
               onPressed: () {
                 GoRouter.of(context).pop();
@@ -672,7 +693,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
             TextButton(
               child: const Text(
                 '是',
-                style: TextStyle(fontFamily: 'GSR_R', fontSize: 40),
+                style: TextStyle(fontFamily: 'GSR_B', fontSize: 40),
               ),
               onPressed: () async {
                 await _authService.signOut();

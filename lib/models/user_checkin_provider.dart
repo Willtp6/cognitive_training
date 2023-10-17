@@ -5,7 +5,6 @@ import 'package:logger/logger.dart';
 
 class UserCheckinProvider extends ChangeNotifier {
   User? _user;
-  int _test = 0;
   int _currentWeek = 0;
   bool _isReady = false;
   DateTime _cycleStartDay = DateTime.now();

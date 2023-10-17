@@ -75,7 +75,7 @@ class Rider extends BodyComponent<RoutePlanningGameForge2d>
 
   Rider()
       : super(
-          renderBody: true,
+          renderBody: false,
           paint: BasicPalette.pink.withAlpha(100).paint(),
         );
 
@@ -111,22 +111,6 @@ class Rider extends BodyComponent<RoutePlanningGameForge2d>
     joystick = gameRef.joystick;
 
     _width = _height = riderScale[gameRef.chosenMap] * gameRef.size.y * 0.9;
-    // joystick = JoystickComponent(
-    //   knob: CircleComponent(
-    //     radius: 10 / 2,
-    //     paint: BasicPalette.red.withAlpha(150).paint(),
-    //   ),
-    //   background: CircleComponent(
-    //     radius: 10,
-    //     paint: BasicPalette.red.withAlpha(100).paint(),
-    //   ),
-    //   margin: const EdgeInsets.all(0),
-    //   // size: 10,
-    //   // margin: EdgeInsets.only(
-    //   //     left: (_width.y / 10 + 215 / 720 * _width) * 10, bottom: _width),
-    //   // position: Vector2(size.y, size.y),
-    // );
-    // add(joystick);
     speed = gameRef.size.x / 10;
     riderSpriteComponent = SpriteGroupComponent<MoveType>(
       sprites: {

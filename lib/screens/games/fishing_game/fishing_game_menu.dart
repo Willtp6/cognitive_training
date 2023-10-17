@@ -1,4 +1,5 @@
 import 'package:cognitive_training/audio/audio_controller.dart';
+import 'package:cognitive_training/constants/fishing_game_const.dart';
 import 'package:cognitive_training/constants/globals.dart';
 import 'package:cognitive_training/models/user_info_provider.dart';
 import 'package:cognitive_training/screens/games/shared/game_label.dart';
@@ -49,6 +50,8 @@ class _FishingGameMenuState extends State<FishingGameMenu>
           'fishing_game',
           queryParams: {
             'startLevel': db.currentLevel.toString(),
+            'historyContinuousWin': db.historyContinuousWin.toString(),
+            'historyContinuousLose': db.historyContinuousLose.toString(),
             'isTutorial': (!db.doneTutorial).toString(),
           },
         );
@@ -98,7 +101,7 @@ class _FishingGameMenuState extends State<FishingGameMenu>
               child: Container(
                 decoration: const BoxDecoration(
                   image: DecorationImage(
-                    image: AssetImage(Globals.fishingGameMenu),
+                    image: AssetImage(FishingGameConst.fishingGameMenu),
                     fit: BoxFit.fill,
                   ),
                 ),

@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:cognitive_training/constants/globals.dart';
+import 'package:cognitive_training/constants/fishing_game_const.dart';
 import 'package:cognitive_training/screens/games/fishing_game/fishing_game.dart';
 import 'package:flame/components.dart';
 
@@ -13,12 +13,11 @@ class BackGroundComponent extends SpriteGroupComponent<BackGoundImage>
     with HasGameRef<FishingGame> {
   @override
   FutureOr<void> onLoad() async {
-    // sprite = await gameRef.loadSprite(Globals.fishingGameBackground);
     sprites = {
       BackGoundImage.fishing:
-          await gameRef.loadSprite(Globals.fishingGameBackground),
+          await gameRef.loadSprite(FishingGameConst.fishingGameBackground),
       BackGoundImage.result:
-          await gameRef.loadSprite(Globals.fishingGameResult),
+          await gameRef.loadSprite(FishingGameConst.fishingGameResult),
     };
     current = BackGoundImage.fishing;
     size = gameRef.size;

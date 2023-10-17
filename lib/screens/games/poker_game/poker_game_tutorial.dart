@@ -1,4 +1,5 @@
 import 'package:auto_size_text/auto_size_text.dart';
+import 'package:cognitive_training/shared/button_with_text.dart';
 import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
@@ -18,6 +19,23 @@ class PokerGameTutorial {
           TextSpan(text: '按照這關的指示', style: TextStyle(color: Colors.black)),
           TextSpan(text: '\n'),
           TextSpan(text: '完成遊戲!', style: TextStyle(color: Colors.black)),
+        ],
+      ),
+      softWrap: true,
+      maxLines: 4,
+      textAlign: TextAlign.center,
+      style: TextStyle(fontSize: 100, fontFamily: 'GSR_B'),
+    ),
+    const AutoSizeText.rich(
+      TextSpan(
+        children: [
+          TextSpan(text: '點選右上方的問', style: TextStyle(color: Colors.black)),
+          TextSpan(text: '\n'),
+          TextSpan(text: '號後，可以得到', style: TextStyle(color: Colors.black)),
+          TextSpan(text: '\n'),
+          TextSpan(text: '比大小遊戲更詳', style: TextStyle(color: Colors.black)),
+          TextSpan(text: '\n'),
+          TextSpan(text: '細的說明', style: TextStyle(color: Colors.black)),
         ],
       ),
       softWrap: true,
@@ -117,15 +135,24 @@ class PokerGameTutorial {
     ),
   ];
 
+  static const List<Alignment> doctorAlignment = [
+    Alignment.bottomRight,
+    Alignment.bottomLeft,
+    Alignment.bottomRight,
+    Alignment.bottomRight,
+    Alignment.bottomRight,
+    Alignment.bottomRight,
+    Alignment.bottomLeft,
+    Alignment.bottomLeft,
+  ];
+
   IgnorePointer tutorialDoctor() {
     return IgnorePointer(
       child: AnimatedOpacity(
         opacity: isTutorial ? 1 : 1,
         duration: const Duration(milliseconds: 500),
         child: Align(
-          alignment: tutorialProgress < 5
-              ? Alignment.bottomRight
-              : Alignment.bottomLeft,
+          alignment: doctorAlignment[tutorialProgress],
           child: FractionallySizedBox(
             heightFactor: 0.45,
             child: AspectRatio(
@@ -148,15 +175,24 @@ class PokerGameTutorial {
     );
   }
 
+  static const List<Alignment> bubbleAlignment = [
+    Alignment(1, -0.9),
+    Alignment(-1, -0.9),
+    Alignment(1, -0.9),
+    Alignment(1, -0.9),
+    Alignment(1, -0.9),
+    Alignment(1, -0.9),
+    Alignment(-1, -0.9),
+    Alignment(-1, -0.9),
+  ];
+
   IgnorePointer chatBubble() {
     return IgnorePointer(
       child: AnimatedOpacity(
         opacity: isTutorial ? 1 : 1,
         duration: const Duration(milliseconds: 500),
         child: Align(
-          alignment: tutorialProgress < 5
-              ? const Alignment(1, -0.9)
-              : const Alignment(-1, -0.9),
+          alignment: bubbleAlignment[tutorialProgress],
           child: FractionallySizedBox(
             heightFactor: 0.65,
             child: AspectRatio(
@@ -191,6 +227,7 @@ class PokerGameTutorial {
 
   final List<Alignment> _dottedLineContainerAlignment = [
     const Alignment(0.0, 0.15),
+    const Alignment(0.0, 0.15),
     const Alignment(0.0, -0.85),
     const Alignment(0.4, 0.825),
     const Alignment(0.0, -0.2),
@@ -198,6 +235,7 @@ class PokerGameTutorial {
     const Alignment(0.85, -0.25),
   ];
   final List<double?> _dottedLineContainerWFactor = [
+    0.65,
     0.65,
     0.6,
     null,
@@ -207,6 +245,7 @@ class PokerGameTutorial {
   ];
   final List<double> _dottedLineContainerHFactor = [
     0.4,
+    0.4,
     0.25,
     0.15,
     0.25,
@@ -214,6 +253,7 @@ class PokerGameTutorial {
     0.3,
   ];
   final List<double> _dottedLineContainerASRatio = [
+    1,
     1,
     1,
     835 / 353,
@@ -247,6 +287,7 @@ class PokerGameTutorial {
 
   final List<Alignment> _hintArrowAlignment = [
     const Alignment(-0.95, 0.15),
+    const Alignment(-0.95, 0.15),
     const Alignment(-0.9, -0.85),
     const Alignment(0.0, 0.9),
     const Alignment(-0.8, -0.2),
@@ -272,6 +313,7 @@ class PokerGameTutorial {
     const Alignment(0.9, 0.9),
     const Alignment(0.9, 0.9),
     const Alignment(0.9, 0.9),
+    const Alignment(0.9, 0.9),
     const Alignment(-0.9, 0.9),
     const Alignment(-0.9, 0.9),
   ];
@@ -284,37 +326,12 @@ class PokerGameTutorial {
         alignment: _continueButtonAlignment[tutorialProgress],
         child: FractionallySizedBox(
           widthFactor: 0.15,
-          child: GestureDetector(
-            onTap: () {
+          child: ButtonWithText(
+            text: tutorialProgress < 6 ? '點我繼續' : '結束教學',
+            onTapFunction: () {
               tutorialProgress++;
               callback();
             },
-            child: AspectRatio(
-              aspectRatio: 835 / 373,
-              child: Stack(
-                children: [
-                  Center(
-                    child: Image.asset('assets/global/continue_button.png'),
-                  ),
-                  Center(
-                    child: FractionallySizedBox(
-                      heightFactor: 0.7,
-                      widthFactor: 0.7,
-                      child: Center(
-                        child: AutoSizeText(
-                          tutorialProgress < 6 ? '點我繼續' : '結束教學',
-                          style: const TextStyle(
-                            fontFamily: 'GSR_B',
-                            fontSize: 100,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
           ),
         ),
       ),

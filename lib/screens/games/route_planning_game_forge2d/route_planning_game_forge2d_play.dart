@@ -1,3 +1,6 @@
+import 'package:cognitive_training/models/user_info_provider.dart';
+import 'package:provider/provider.dart';
+
 import 'widgets/overlays/exit_button.dart';
 import 'route_planning_game_forge2d.dart';
 import 'package:flame/game.dart';
@@ -11,14 +14,18 @@ import 'widgets/overlays/game_win.dart';
 import 'widgets/overlays/game_lose.dart';
 
 class RoutePlanningGameForge2dPlay extends StatelessWidget {
-  RoutePlanningGameForge2dPlay({Key? key}) : super(key: key);
+  bool isTutorial;
+  RoutePlanningGameForge2dPlay({Key? key, required this.isTutorial})
+      : super(key: key);
 
+  late UserInfoProvider userInfoProvider;
   // final RoutePlanningGame _routePlanningGame = RoutePlanningGame();
-  final RoutePlanningGameForge2d _routePlanningGameForge2d =
-      RoutePlanningGameForge2d();
+  // final RoutePlanningGameForge2d _routePlanningGameForge2d =
+  //     RoutePlanningGameForge2d();
 
   @override
   Widget build(BuildContext context) {
+    userInfoProvider = context.read<UserInfoProvider>();
     return SafeArea(
       child: Scaffold(
         body: WillPopScope(
@@ -26,12 +33,25 @@ class RoutePlanningGameForge2dPlay extends StatelessWidget {
           // GameWidget is useful to inject the underlying
           // widget of any class extending from Flame's Game class.
           child: GameWidget(
-            game: _routePlanningGameForge2d,
+            game: RoutePlanningGameForge2d(
+              gameLevel:
+                  userInfoProvider.routePlanningGameDatabase.currentLevel,
+              continuousWin: userInfoProvider
+                  .routePlanningGameDatabase.historyContinuousWin,
+              continuousLose: userInfoProvider
+                  .routePlanningGameDatabase.historyContinuousLose,
+              userInfoProvider: userInfoProvider,
+            ),
             // Initially only menu overlay will be visible.
-            initialActiveOverlays: const [
-              RoutePlanningGameRule.id,
-              ExitButton.id,
-            ],
+            initialActiveOverlays: isTutorial
+                ? const [
+                    RoutePlanningGameRule.id,
+                    ExitButton.id,
+                  ]
+                : const [
+                    RoutePlanningGameRule.id,
+                    ExitButton.id,
+                  ],
             overlayBuilderMap: {
               ExitButton.id:
                   (BuildContext context, RoutePlanningGameForge2d game) =>

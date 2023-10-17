@@ -1,4 +1,5 @@
 import 'package:cognitive_training/audio/audio_controller.dart';
+import 'package:cognitive_training/constants/fishing_game_const.dart';
 import 'package:cognitive_training/constants/globals.dart';
 import 'package:cognitive_training/shared/button_with_text.dart';
 import 'package:flutter/material.dart';
@@ -151,7 +152,7 @@ class GameRule extends StatelessWidget {
         child: FractionallySizedBox(
           widthFactor: 0.8,
           child: Center(
-            child: Globals.fishingGameRule,
+            child: FishingGameConst.fishingGameRule,
           ),
         ),
       ),

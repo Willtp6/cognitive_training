@@ -1,11 +1,8 @@
 import 'dart:async';
-
-import 'package:cognitive_training/audio/audio_controller.dart';
 import 'package:cognitive_training/constants/globals.dart';
 import 'package:cognitive_training/models/user_info_provider.dart';
-import 'package:cognitive_training/screens/games/route_planning_game_toremove/route_planning_game.dart';
-import 'package:cognitive_training/screens/games/route_planning_game_toremove/widgets/overlays/exit_button.dart';
 import 'package:cognitive_training/screens/games/shared/game_label.dart';
+import 'package:flame_audio/flame_audio.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -26,8 +23,7 @@ class _RoutePlanningGameForge2dMenuState
     extends State<RoutePlanningGameForge2dMenu>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
-  late UserInfoProvider _userInfoProvider;
-  late AudioController _audioController;
+  late UserInfoProvider userInfoProvider;
   bool buttonEnabled = true;
 
   @override
@@ -49,14 +45,19 @@ class _RoutePlanningGameForge2dMenuState
     if (buttonEnabled) {
       buttonEnabled = false;
       _controller.forward().whenComplete(() {
-        context.pushNamed('route_planning_game').whenComplete(() {
+        String isTutorial =
+            (!userInfoProvider.routePlanningGameDatabase.doneTutorial)
+                .toString();
+        context.pushNamed(
+          'route_planning_game',
+          queryParams: {'isTutorial': isTutorial},
+        ).whenComplete(() {
           _controller.reset();
           buttonEnabled = true;
         });
       });
       Timer(Duration(milliseconds: (8000 * 0.2).toInt()), () {
-        _audioController.playPathAudio(
-            'audio/route_planning_game/sound/phone_vibration2.mp3');
+        FlameAudio.play('route_planning_game/sound/phone_vibration2.mp3');
       });
     }
   }
@@ -64,18 +65,17 @@ class _RoutePlanningGameForge2dMenuState
   void startTutorial() {
     if (buttonEnabled) {
       buttonEnabled = false;
-      _controller.forward();
-      Future.delayed(const Duration(seconds: 2), () {
-        _controller.reset();
-        GoRouter.of(context).pushNamed(
+      _controller.forward().whenComplete(() {
+        context.pushNamed(
           'route_planning_game',
-          // queryParams: {
-          //   'startLevel': 0.toString(),
-          //   'startDigit': 1.toString(),
-          //   'isTutorial': 'true'
-          // },
-        );
-        buttonEnabled = true;
+          queryParams: {'isTutorial': true.toString()},
+        ).whenComplete(() {
+          _controller.reset();
+          buttonEnabled = true;
+        });
+      });
+      Timer(Duration(milliseconds: (8000 * 0.2).toInt()), () {
+        FlameAudio.play('route_planning_game/sound/phone_vibration2.mp3');
       });
     }
   }
@@ -86,8 +86,7 @@ class _RoutePlanningGameForge2dMenuState
 
   @override
   Widget build(BuildContext context) {
-    _audioController = context.read<AudioController>();
-    _userInfoProvider = context.read<UserInfoProvider>();
+    userInfoProvider = context.read<UserInfoProvider>();
     return SafeArea(
       child: Scaffold(
         body: Stack(

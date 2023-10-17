@@ -12,10 +12,14 @@ class LotteryGame {
   int gameLevel;
   int numberOfDigits;
   bool isTutorial;
+  int loseInCurrentDigits;
+  int continuousCorrectRateBiggerThan50;
 
   LotteryGame({
     required this.gameLevel,
     required this.numberOfDigits,
+    required this.continuousCorrectRateBiggerThan50,
+    required this.loseInCurrentDigits,
     required this.isTutorial,
   });
 
@@ -44,8 +48,7 @@ class LotteryGame {
   bool isCaseFunctioned = false;
   int numOfChosen = 0;
   int currentIndex = 0;
-  int loseInCurrentDigits = 0;
-  int continuousCorrectRateBiggerThan50 = 0;
+
   int specialRules = 0;
   String showNumber = '';
   int numOfCorrectAns = 0;
@@ -135,7 +138,7 @@ class LotteryGame {
     } else {
       userArray.remove(-1);
     }
-    RecordLotteryGame().recordGame(
+    RecordGame().recordLotteryGame(
       gameLevel: gameLevel,
       numberOfDigits: numberOfDigits,
       numOfCorrectAns: numOfCorrectAns,

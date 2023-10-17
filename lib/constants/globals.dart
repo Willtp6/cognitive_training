@@ -92,27 +92,6 @@ class Globals {
     '/home/route_planning_game_menu',
   ];
 
-  //* fishing game
-  static const String fishingGameMenu =
-      'assets/fishing_game/scene/menu_and_result.png';
-  static const String fishingGameBackground =
-      'fishing_game/scene/rocky_shore.png';
-  static const String fishingGameResult =
-      'fishing_game/scene/menu_and_result.png';
-
-  static const AutoSizeText fishingGameRule = AutoSizeText.rich(
-    TextSpan(
-      children: [
-        TextSpan(text: '請找出', style: TextStyle(color: Colors.black)),
-        TextSpan(text: '「最大」', style: TextStyle(color: Colors.red)),
-        TextSpan(text: '的水波紋，釣到大魚！', style: TextStyle(color: Colors.black)),
-      ],
-    ),
-    softWrap: true,
-    maxLines: 1,
-    style: TextStyle(fontSize: 100, fontFamily: 'GSR_B'),
-  );
-
   //* route planning game menu
   static const menuBackground =
       'assets/images/route_planning_game/scene/at_home01.png';

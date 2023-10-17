@@ -117,6 +117,10 @@ class _PokerGameMenu extends State<PokerGameMenu>
       _controller.forward();
       Future.delayed(const Duration(seconds: 1), () {
         final level = userInfoProvider.pokerGameDatabase.currentLevel;
+        final historyContinuousWin =
+            userInfoProvider.pokerGameDatabase.historyContinuousWin;
+        final historyContinuousLose =
+            userInfoProvider.pokerGameDatabase.historyContinuousLose;
         final doneTutorial = userInfoProvider.pokerGameDatabase.doneTutorial;
         final responseTimeList =
             userInfoProvider.pokerGameDatabase.responseTimeList.cast<int>();
@@ -124,6 +128,8 @@ class _PokerGameMenu extends State<PokerGameMenu>
           'poker_game',
           queryParams: {
             'startLevel': level.toString(),
+            'historyContinuousWin': historyContinuousWin.toString(),
+            'historyContinuousLose': historyContinuousLose.toString(),
             'isTutorial': (!doneTutorial).toString(),
             'responseTimeList': responseTimeList.toString(),
           },

@@ -25,11 +25,15 @@ class LotteryGameScene extends StatefulWidget {
   final int startLevel;
   final int startDigit;
   final bool isTutorial;
+  final int historyContinuousWin;
+  final int historyContinuousLose;
 
   const LotteryGameScene({
     super.key,
     required this.startLevel,
     required this.startDigit,
+    required this.historyContinuousWin,
+    required this.historyContinuousLose,
     required this.isTutorial,
   });
 
@@ -58,6 +62,8 @@ class _LotteryGameSceneState extends State<LotteryGameScene>
     game = LotteryGame(
       gameLevel: widget.startLevel,
       numberOfDigits: widget.startDigit,
+      continuousCorrectRateBiggerThan50: widget.historyContinuousWin,
+      loseInCurrentDigits: widget.historyContinuousLose,
       isTutorial: widget.isTutorial,
     );
 
@@ -194,6 +200,8 @@ class _LotteryGameSceneState extends State<LotteryGameScene>
           userInfoProvider.lotteryGameDatabase = LotteryGameDatabase(
             currentLevel: game.gameLevel,
             currentDigit: game.numberOfDigits,
+            historyContinuousWin: game.continuousCorrectRateBiggerThan50,
+            historyContinuousLose: game.loseInCurrentDigits,
             doneTutorial: userInfoProvider.lotteryGameDatabase.doneTutorial ||
                 game.isTutorial,
           );

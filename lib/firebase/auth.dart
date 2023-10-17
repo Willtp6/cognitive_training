@@ -29,11 +29,9 @@ class AuthService {
               email: email, password: passwd);
           result.user!.updateDisplayName(userName);
           // create new user info database
-          UserDatabaseService(
-              docId: result.user!.uid, userName: userName, emailId: uid)
+          UserDatabaseService(docId: result.user!.uid, userName: userName)
             ..createUserBasicInfo()
-            ..createUserCheckinInfo()
-            ..createSearchingInfo();
+            ..createUserCheckinInfo();
 
           return result.user?.uid;
         } catch (error) {

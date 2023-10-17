@@ -20,9 +20,14 @@ class PokerGameScene extends StatefulWidget {
   PokerGameScene(
       {super.key,
       required this.startLevel,
+      required this.historyContinuousWin,
+      required this.historyContinuousLose,
       required this.isTutorial,
       required this.responseTimeList});
   final int startLevel;
+  final int historyContinuousWin;
+  final int historyContinuousLose;
+
   bool isTutorial;
   var responseTimeList;
   @override
@@ -67,6 +72,8 @@ class _PokerGameStateScene extends State<PokerGameScene>
     );
     game = GameInstance(
       gameLevel: widget.startLevel,
+      continuousWin: widget.historyContinuousWin,
+      continuousLose: widget.historyContinuousLose,
       responseTimeList: widget.responseTimeList,
       isTutorial: widget.isTutorial,
     );
@@ -150,6 +157,8 @@ class _PokerGameStateScene extends State<PokerGameScene>
     }
     userInfoProvider.pokerGameDatabase = PokerGameDatabase(
       currentLevel: game.gameLevel,
+      historyContinuousWin: game.continuousWin,
+      historyContinuousLose: game.continuousLose,
       doneTutorial: true,
       responseTimeList: game.responseTimeList,
     );
@@ -185,16 +194,13 @@ class _PokerGameStateScene extends State<PokerGameScene>
       playerCoinChange = "-${game.coinLose[game.gameLevel]}";
       opponentCoinChange = "+${game.coinWin[game.gameLevel]}";
     });
-    // _controller.forward();
     _controllerChangeMoney.reset();
     _controllerChangeMoney.forward();
     Future.delayed(const Duration(milliseconds: 750), () {
       setState(() {
-        game.isTie = false;
-        game.isPlayerWin = false;
+        game.resultType = ResultType.none;
         userInfoProvider.coins -= game.coinLose[game.gameLevel];
         game.opponentCoin += game.coinWin[game.gameLevel];
-        // game.changeOpponentCoin();
         game.continuousWinLose();
         game.recordGame();
         audioController.playPokerGameSoundEffect('player_lose.mp3');
@@ -211,38 +217,37 @@ class _PokerGameStateScene extends State<PokerGameScene>
     audioController.stopAudio();
     game.getResult();
     setState(() {
-      if (game.isPlayerWin) {
+      if (game.resultType == ResultType.win) {
         playerCoinChange = "+${game.coinWin[game.gameLevel]}";
         opponentCoinChange = "-${game.coinLose[game.gameLevel]}";
-        _controllerChangeMoney.reset();
-        _controllerChangeMoney.forward();
-      } else if (!game.isTie) {
+      } else if (game.resultType == ResultType.lose) {
         playerCoinChange = "-${game.coinLose[game.gameLevel]}";
         opponentCoinChange = "+${game.coinWin[game.gameLevel]}";
-        _controllerChangeMoney.reset();
-        _controllerChangeMoney.forward();
+      } else if (game.resultType == ResultType.tie) {
+        playerCoinChange = "+0";
+        opponentCoinChange = "-0";
       }
+      _controllerChangeMoney.reset();
+      _controllerChangeMoney.forward();
     });
 
     Future.delayed(const Duration(milliseconds: 750), () {
       setState(() {
         String path;
-        if (game.isPlayerWin) {
+        if (game.resultType == ResultType.win) {
           userInfoProvider.coins += game.coinWin[game.gameLevel];
           game.opponentCoin -= game.coinLose[game.gameLevel];
           path = 'player_win.wav';
           audioController.playPokerGameSoundEffect(path);
           game.backgroundPath = 'assets/poker_game/scene/player_win.png';
           showWord = true;
-        } else {
-          if (!game.isTie) {
-            userInfoProvider.coins -= game.coinLose[game.gameLevel];
-            game.opponentCoin += game.coinWin[game.gameLevel];
-            path = 'player_lose.mp3';
-            audioController.playPokerGameSoundEffect(path);
-            game.backgroundPath = 'assets/poker_game/scene/player_lose.png';
-            showWord = true;
-          }
+        } else if (game.resultType == ResultType.lose) {
+          userInfoProvider.coins -= game.coinLose[game.gameLevel];
+          game.opponentCoin += game.coinWin[game.gameLevel];
+          path = 'player_lose.mp3';
+          audioController.playPokerGameSoundEffect(path);
+          game.backgroundPath = 'assets/poker_game/scene/player_lose.png';
+          showWord = true;
         }
       });
     });
@@ -257,8 +262,9 @@ class _PokerGameStateScene extends State<PokerGameScene>
         case 0:
         case 1:
         case 2:
-          break;
         case 3:
+          break;
+        case 4:
           setState(() {
             game.dealCards();
             game.cardDealed = true;
@@ -266,30 +272,28 @@ class _PokerGameStateScene extends State<PokerGameScene>
             _controller.forward();
           });
           break;
-        case 4:
+        case 5:
           setState(() {
             isPlayerTurn = true;
             game.computerCard = game.computer.hand.removeAt(0);
           });
           break;
-        case 5:
+        case 6:
           setState(() {
             game.playerCard = game.player.hand.removeAt(0);
           });
           break;
-        case 6:
+        case 7:
           setState(() {
             isPlayerTurn = false;
           });
           break;
-        case 7:
+        case 8:
           _showTutorialEndDialog();
           break;
       }
     });
   }
-
-  void emptyFunction() {}
 
   bool isTutorialModePop() {
     return game.isTutorial;
@@ -323,7 +327,7 @@ class _PokerGameStateScene extends State<PokerGameScene>
                   opponentCoin(),
                   playerCoin(),
                   if (widget.isTutorial &&
-                      _pokerGameTutorial.tutorialProgress <= 3) ...[
+                      _pokerGameTutorial.tutorialProgress <= 4) ...[
                     Container(
                       color: Colors.white.withOpacity(0.7),
                     )
@@ -344,8 +348,8 @@ class _PokerGameStateScene extends State<PokerGameScene>
                   if (isPlayerTurn) ...[
                     noCardButton(),
                     if (widget.isTutorial &&
-                        (_pokerGameTutorial.tutorialProgress == 4 ||
-                            _pokerGameTutorial.tutorialProgress == 5)) ...[
+                        (_pokerGameTutorial.tutorialProgress == 5 ||
+                            _pokerGameTutorial.tutorialProgress == 6)) ...[
                       Container(
                         color: Colors.white.withOpacity(0.7),
                       )
@@ -355,8 +359,7 @@ class _PokerGameStateScene extends State<PokerGameScene>
                           game.isTutorial ? 2000 : game.getTimeLimit(),
                       audioController: audioController,
                       isTutorial: game.isTutorial,
-                      callback:
-                          game.isTutorial ? emptyFunction : timeLimitExceeded,
+                      callback: game.isTutorial ? () {} : timeLimitExceeded,
                     ),
                     if (game.isChosen.contains(true))
                       Align(
@@ -371,7 +374,7 @@ class _PokerGameStateScene extends State<PokerGameScene>
                   ],
                   playerHandCard(),
                   if (widget.isTutorial &&
-                      _pokerGameTutorial.tutorialProgress == 6) ...[
+                      _pokerGameTutorial.tutorialProgress == 7) ...[
                     Container(
                       color: Colors.white.withOpacity(0.7),
                     )
@@ -387,8 +390,8 @@ class _PokerGameStateScene extends State<PokerGameScene>
                       string: playerCoinChange),
                   exitButton(),
                   if (widget.isTutorial &&
-                      _pokerGameTutorial.tutorialProgress < 7) ...[
-                    if (_pokerGameTutorial.tutorialProgress < 6) ...[
+                      _pokerGameTutorial.tutorialProgress < 8) ...[
+                    if (_pokerGameTutorial.tutorialProgress < 7) ...[
                       _pokerGameTutorial.dottedLineContainer(),
                       _pokerGameTutorial.hintArrow(),
                     ],
@@ -475,7 +478,7 @@ class _PokerGameStateScene extends State<PokerGameScene>
         widthFactor: 0.3,
         child: AspectRatio(
           aspectRatio: 1077 / 352,
-          child: Image.asset(game.isPlayerWin
+          child: Image.asset(game.resultType == ResultType.win
               ? 'assets/poker_game/scene/win_word.png'
               : 'assets/poker_game/scene/lose_word.png'),
         ),
@@ -661,55 +664,6 @@ class _PokerGameStateScene extends State<PokerGameScene>
       ),
     );
   }
-
-  // Future<void> _showRoundDialog() async {
-  //   return showDialog<void>(
-  //     context: context,
-  //     barrierDismissible: false, // user must tap button!
-  //     builder: (BuildContext context) {
-  //       return AlertDialog(
-  //         title: const Center(
-  //           child: Text(
-  //             '結果發表',
-  //             style: TextStyle(fontFamily: 'GSR_B', fontSize: 40),
-  //           ),
-  //         ),
-  //         // this part can put multiple messages
-  //         content: SingleChildScrollView(
-  //           child: Center(
-  //             child: game.isTie
-  //                 ? const Text(
-  //                     '本局平手',
-  //                     style: TextStyle(fontFamily: 'GSR_B', fontSize: 30),
-  //                   )
-  //                 : game.isPlayerWin
-  //                     ? const Text(
-  //                         '你贏得本輪!!!',
-  //                         style: TextStyle(fontFamily: 'GSR_B', fontSize: 30),
-  //                       )
-  //                     : const Text(
-  //                         '你在本輪落敗',
-  //                         style: TextStyle(fontFamily: 'GSR_B', fontSize: 30),
-  //                       ),
-  //           ),
-  //         ),
-  //         actions: <Widget>[
-  //           Center(
-  //             child: TextButton(
-  //               child: const Text(
-  //                 '繼續下一輪',
-  //                 style: TextStyle(fontFamily: 'GSR_B', fontSize: 30),
-  //               ),
-  //               onPressed: () {
-  //                 Navigator.of(context).pop();
-  //               },
-  //             ),
-  //           ),
-  //         ],
-  //       );
-  //     },
-  //   );
-  // }
 
   Future<void> _showGameEndDialog() async {
     return showDialog<void>(
@@ -956,11 +910,7 @@ class _PokerGameStateScene extends State<PokerGameScene>
   }
 
   Future<void> _showTutorialEndDialog() async {
-    userInfoProvider.pokerGameDatabase = PokerGameDatabase(
-      currentLevel: 0,
-      doneTutorial: true,
-      responseTimeList: [],
-    );
+    userInfoProvider.pokerGameDoneTutorial();
     return showDialog<void>(
       context: context,
       barrierDismissible: false, // user must tap button!
@@ -989,6 +939,16 @@ class _PokerGameStateScene extends State<PokerGameScene>
           actions: <Widget>[
             TextButton(
               child: const Text(
+                '暫時離開',
+                style: TextStyle(fontFamily: 'GSR_B', fontSize: 30),
+              ),
+              onPressed: () {
+                Navigator.of(context).pop();
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: const Text(
                 '開始遊戲',
                 style: TextStyle(fontFamily: 'GSR_B', fontSize: 30),
               ),
@@ -1000,6 +960,8 @@ class _PokerGameStateScene extends State<PokerGameScene>
                   widget.isTutorial = false;
                   game = GameInstance(
                     gameLevel: widget.startLevel,
+                    continuousWin: widget.historyContinuousWin,
+                    continuousLose: widget.historyContinuousLose,
                     responseTimeList: widget.responseTimeList,
                     isTutorial: widget.isTutorial,
                   );
@@ -1008,16 +970,6 @@ class _PokerGameStateScene extends State<PokerGameScene>
                     ? 'find_bigger.m4a'
                     : 'find_the_same.m4a';
                 audioController.playInstructionRecord('poker_game/$path');
-              },
-            ),
-            TextButton(
-              child: const Text(
-                '暫時離開',
-                style: TextStyle(fontFamily: 'GSR_B', fontSize: 30),
-              ),
-              onPressed: () {
-                Navigator.of(context).pop();
-                Navigator.of(context).pop();
               },
             ),
           ],
@@ -1186,7 +1138,7 @@ class _RuleScreenState extends State<RuleScreen> {
                   children: [
                     Opacity(
                       opacity: widget.game.isTutorial &&
-                              widget.pokerGameTutorial.tutorialProgress != 1
+                              widget.pokerGameTutorial.tutorialProgress != 2
                           ? 0.3
                           : 1,
                       child: difficultyStars(),
@@ -1199,7 +1151,7 @@ class _RuleScreenState extends State<RuleScreen> {
                     ],
                     Opacity(
                       opacity: widget.game.isTutorial &&
-                              widget.pokerGameTutorial.tutorialProgress != 2
+                              widget.pokerGameTutorial.tutorialProgress != 3
                           ? 0.3
                           : 1,
                       child: Align(
@@ -1229,7 +1181,9 @@ class _RuleScreenState extends State<RuleScreen> {
                     ),
                     Opacity(
                       opacity: widget.game.isTutorial &&
-                              widget.pokerGameTutorial.tutorialProgress != 0
+                              (widget.pokerGameTutorial.tutorialProgress != 0 &&
+                                  widget.pokerGameTutorial.tutorialProgress !=
+                                      1)
                           ? 0.3
                           : 1,
                       child: ruleText(),
@@ -1318,7 +1272,9 @@ class _RuleScreenState extends State<RuleScreen> {
       child: FractionallySizedBox(
         heightFactor: 0.5,
         widthFactor: 0.9,
-        child: questionIconPressed
+        child: questionIconPressed ||
+                (widget.game.isTutorial &&
+                    widget.pokerGameTutorial.tutorialProgress == 1)
             ? Center(
                 child: FractionallySizedBox(
                   heightFactor: 0.7,

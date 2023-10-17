@@ -33,7 +33,8 @@ class BuildingComponent extends BodyComponent<RoutePlanningGameForge2d>
     required this.bodyAngle,
     this.flagDirection = "",
     this.isHome = false,
-  }) : super(renderBody: true, paint: BasicPalette.blue.withAlpha(100).paint());
+  }) : super(
+            renderBody: false, paint: BasicPalette.blue.withAlpha(100).paint());
 
   late SpriteGroupComponent buildingSprite;
   late SpriteComponent flagSprite;
@@ -155,6 +156,9 @@ class BuildingComponent extends BodyComponent<RoutePlanningGameForge2d>
             repeatedSprite.add(OpacityEffect.to(
                 0, EffectController(duration: 0.3, startDelay: 2.4)));
           }
+          gameRef.repeatedError++;
+          //* penalty time
+          if (gameRef.gameLevel > 0) gameRef.remainTime -= 3;
           FlameAudio.play(RoutePlanningGameConst.tapWrongBuilding);
         }
         //* first tapped
@@ -170,6 +174,9 @@ class BuildingComponent extends BodyComponent<RoutePlanningGameForge2d>
                   }),
             ));
           }
+          //* get every first reach time
+          gameRef.timeToEachHalfwayPoint
+              .add(DateTime.now().difference(gameRef.startTime).inMilliseconds);
           isTargetAchieved = true;
           FlameAudio.play(RoutePlanningGameConst.pickFlagAudio);
         }
@@ -180,6 +187,9 @@ class BuildingComponent extends BodyComponent<RoutePlanningGameForge2d>
           errorSprite.add(OpacityEffect.to(
               0, EffectController(duration: 0.3, startDelay: 2.4)));
         }
+        gameRef.nonTargetError++;
+        //* penalty time
+        if (gameRef.gameLevel > 0) gameRef.remainTime -= 3;
         FlameAudio.play(RoutePlanningGameConst.tapWrongBuilding);
       }
       //* delayed for next tap event

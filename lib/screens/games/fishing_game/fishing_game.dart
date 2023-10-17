@@ -22,7 +22,9 @@ import 'widgets/overlays/top_coins.dart';
 
 class FishingGame extends FlameGame with HasCollisionDetection, HasTappables {
   FishingGame({
-    this.gameLevel = 0,
+    required this.gameLevel,
+    required this.continuousWin,
+    required this.continuousLose,
     this.isTutorial = false,
     required this.userInfoProvider,
     required this.globalInfoProvider,
@@ -47,8 +49,8 @@ class FishingGame extends FlameGame with HasCollisionDetection, HasTappables {
 
   int gameLevel;
   bool isTutorial;
-  int continuousWin = 0;
-  int continuousLose = 0;
+  int continuousWin;
+  int continuousLose;
   UserInfoProvider userInfoProvider;
   GlobalInfoProvider globalInfoProvider;
 
@@ -78,7 +80,6 @@ class FishingGame extends FlameGame with HasCollisionDetection, HasTappables {
   void onAttach() {
     FlameAudio.bgm.initialize();
     super.onAttach();
-    // Logger().d('attach complete');
   }
 
   @override
@@ -110,8 +111,6 @@ class FishingGame extends FlameGame with HasCollisionDetection, HasTappables {
       resultComponent,
     ]);
     super.onLoad();
-    // Logger().d('load complete');
-    // Logger().d(isTutorial);
   }
 
   Future<void> startGame() async {
@@ -147,11 +146,6 @@ class FishingGame extends FlameGame with HasCollisionDetection, HasTappables {
       (index) => TimerComponent(
         period: Random().nextDouble() * 4 + 1,
         autoStart: true,
-        // onTick: () {
-        //   rodComponents[index].controller.isActive = true;
-        //   reachedAnimationCounter++;
-        //   checkCounterNumbers();
-        // },
         onTick: () {
           rippleTimerUp(index);
         },
@@ -345,14 +339,9 @@ class FishingGame extends FlameGame with HasCollisionDetection, HasTappables {
       continuousWin = 0;
       continuousLose++;
     }
-    globalInfoProvider.uploadRanking(
-      userInfoProvider.userName,
-      userInfoProvider.usr!.uid,
-      userInfoProvider.coins,
-    );
     //* get end time
     endTime = DateTime.now();
-    RecordFishingGame().recordGame(
+    RecordGame().recordFishingGame(
       gameLevel: gameLevel,
       start: startTime,
       end: endTime,
@@ -370,6 +359,8 @@ class FishingGame extends FlameGame with HasCollisionDetection, HasTappables {
     }
     userInfoProvider.fishingGameDatabase = FishingGameDatabase(
       currentLevel: gameLevel,
+      historyContinuousWin: continuousWin,
+      historyContinuousLose: continuousLose,
       doneTutorial: userInfoProvider.fishingGameDatabase.doneTutorial,
     );
     resultDialogTimer.timer.start();

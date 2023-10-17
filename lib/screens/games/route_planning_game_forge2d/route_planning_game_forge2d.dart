@@ -1,13 +1,17 @@
 import 'dart:async';
 import 'dart:math';
+import 'package:audioplayers/audioplayers.dart';
 import 'package:cognitive_training/constants/route_planning_game_const.dart';
-import 'package:flame/components.dart';
+import 'package:cognitive_training/firebase/record_game.dart';
+import 'package:cognitive_training/models/user_info_provider.dart';
+import 'package:cognitive_training/models/user_model.dart';
+import 'package:cognitive_training/screens/games/route_planning_game_forge2d/widgets/overlays/exit_button.dart';
+import 'package:flame/components.dart' hide Timer;
+import 'package:flame/effects.dart';
 import 'package:flame/game.dart';
 import 'package:flame/palette.dart';
-import 'package:flame/src/events/messages/drag_update_event.dart';
 import 'package:flame_audio/flame_audio.dart';
 import 'package:flame_forge2d/forge2d_game.dart';
-import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 import 'components/wall_component.dart';
 import 'components/background_component.dart';
@@ -21,10 +25,15 @@ import 'widgets/overlays/game_win.dart';
 class RoutePlanningGameForge2d extends Forge2DGame
     with HasTappables /*, HasDraggables*/ {
   int gameLevel;
-
+  int continuousWin;
+  int continuousLose;
+  UserInfoProvider userInfoProvider;
   RoutePlanningGameForge2d({
     this.gameLevel = 0,
-  }) : super(gravity: Vector2.all(0));
+    this.continuousWin = 0,
+    this.continuousLose = 0,
+    required this.userInfoProvider,
+  }) : super(gravity: Vector2.zero());
 
   static const List<int> numOfBuildings = [6, 8, 8, 8, 10];
 
@@ -49,7 +58,19 @@ class RoutePlanningGameForge2d extends Forge2DGame
   late double remainRepeatedHintShowTime;
   late double remainErrorHintShowTime;
 
-  late TimerComponent countDownTimer;
+  // late TimerComponent countDownTimer;
+  Timer? countDownTimer;
+  late int remainTime;
+  late SpriteComponent alarmClock;
+  bool alarmClockAdded = false;
+  AudioPlayer? alarmClockAudio;
+
+  //* record data
+  late DateTime startTime;
+  late DateTime endTime;
+  List<int> timeToEachHalfwayPoint = [];
+  int nonTargetError = 0;
+  int repeatedError = 0;
 
   @override
   void onAttach() {
@@ -60,6 +81,7 @@ class RoutePlanningGameForge2d extends Forge2DGame
   @override
   void onDetach() {
     FlameAudio.bgm.stop();
+    countDownTimer?.cancel();
   }
 
   @override
@@ -72,11 +94,11 @@ class RoutePlanningGameForge2d extends Forge2DGame
     joystick = JoystickComponent(
       knob: CircleComponent(
         radius: size.y / 5,
-        paint: BasicPalette.red.withAlpha(150).paint(),
+        paint: BasicPalette.red.withAlpha(0).paint(),
       ),
       background: CircleComponent(
         radius: size.y / 2,
-        paint: BasicPalette.red.withAlpha(100).paint(),
+        paint: BasicPalette.red.withAlpha(0).paint(),
       ),
       // margin: EdgeInsets.only(
       //     left: (size.y / 10 + 215 / 720 * size.y) * 10, bottom: size.y),
@@ -105,14 +127,25 @@ class RoutePlanningGameForge2d extends Forge2DGame
       targetList,
       // rider,
     ]);
-
+    alarmClock = SpriteComponent(
+      sprite: await loadSprite('route_planning_game/hints/alarm_clock.png'),
+      size: Vector2.all(size.y / 5),
+      position: Vector2(size.x * 0.8, size.y / 2),
+      angle: -pi / 16,
+      anchor: Anchor.center,
+    )..add(RotateEffect.by(
+        pi / 8,
+        EffectController(
+          duration: 0.4,
+          reverseDuration: 0.4,
+          infinite: true,
+        )));
     return super.onLoad();
   }
 
   void startGame() async {
-    // FlameAudio.bgm.play(RoutePlanningGameConst.bgm);
+    FlameAudio.bgm.play(RoutePlanningGameConst.bgm);
     //* get a new map index
-    // chosenMap = 9;
     int numOfPossibleMap = possibleMapIndex[gameLevel].length;
     chosenMap = possibleMapIndex[gameLevel][Random().nextInt(numOfPossibleMap)];
     //* set hint image show time
@@ -120,18 +153,9 @@ class RoutePlanningGameForge2d extends Forge2DGame
     remainErrorHintShowTime = hintImageShowTime[gameLevel];
     //* add rider
     rider = Rider();
-    if (gameLevel > 0) {
-      countDownTimer = TimerComponent(
-        period: 30,
-        removeOnFinish: true,
-        onTick: () {
-          gameLose();
-        },
-      );
-      add(countDownTimer);
-    }
-
-    await addAll([rider]);
+    add(rider);
+    //* add countdown timer
+    addAlarm();
     generateBuildings();
     targetList.addBuildings(buildings: buildings);
 
@@ -139,6 +163,7 @@ class RoutePlanningGameForge2d extends Forge2DGame
     //! test for all block
     // map.addAllBuildingsAsHome();
     map.addBuildings(buildings: buildings);
+    startTime = DateTime.now();
   }
 
   /// remove all added dynamic components
@@ -168,17 +193,115 @@ class RoutePlanningGameForge2d extends Forge2DGame
   }
 
   void gameWin() {
+    recordGame('Win');
     FlameAudio.bgm.stop();
-    if (gameLevel > 0) {
-      remove(countDownTimer);
-    }
+    overlays.remove(ExitButton.id);
     overlays.add(GameWin.id);
+    overlays.add(ExitButton.id);
     resetGame();
   }
 
   void gameLose() {
+    recordGame('Lose');
     FlameAudio.bgm.stop();
+    overlays.remove(ExitButton.id);
     overlays.add(GameLose.id);
+    overlays.add(ExitButton.id);
     resetGame();
+  }
+
+  void recordGame(String result) {
+    endTime = DateTime.now();
+    //* record game result
+    RecordGame().recordRoutePlanningGame(
+      end: endTime,
+      gameDifficulties: gameLevel,
+      mapIndex: chosenMap,
+      nonTargetError: nonTargetError,
+      numOfTargets: numOfTarget[gameLevel],
+      repeatedError: repeatedError,
+      result: result,
+      start: startTime,
+      timeToEachHalfwayPoint: timeToEachHalfwayPoint,
+    );
+    //* reset data
+    nonTargetError = 0;
+    repeatedError = 0;
+    timeToEachHalfwayPoint.clear();
+    checkContinuousWinLose(result);
+    updateDatabase();
+  }
+
+  /// update game level
+  void checkContinuousWinLose(String result) {
+    if (result == 'Win') {
+      continuousWin++;
+      continuousLose = 0;
+    } else {
+      continuousLose++;
+      continuousWin = 0;
+    }
+    //* change game level
+    if (continuousWin >= 5) {
+      continuousWin = 0;
+      gameLevel = gameLevel < 4 ? gameLevel++ : gameLevel;
+    } else if (continuousLose >= 5) {
+      continuousLose = 0;
+      gameLevel = gameLevel > 0 ? gameLevel-- : gameLevel;
+    }
+  }
+
+  /// Update database info about gameLevel...
+  void updateDatabase() {
+    //* update list of response time
+    RoutePlanningGameDatabase database =
+        userInfoProvider.routePlanningGameDatabase;
+    database.responseTimeList
+      ..add(endTime.difference(startTime).inMilliseconds)
+      ..sort();
+    if (database.responseTimeList.length > 100) {
+      database.responseTimeList
+        ..removeAt(0)
+        ..removeLast();
+    }
+    userInfoProvider.routePlanningGameDatabase = RoutePlanningGameDatabase(
+      currentLevel: gameLevel,
+      historyContinuousWin: continuousWin,
+      historyContinuousLose: continuousLose,
+      doneTutorial: database.doneTutorial,
+      responseTimeList: database.responseTimeList,
+    );
+  }
+
+  /// add countdown timer
+  void addAlarm() {
+    if (gameLevel > 0) {
+      final List<int> addedTime = [0, 10, 8, 5, 3];
+      final responseTimeList =
+          userInfoProvider.routePlanningGameDatabase.responseTimeList;
+      remainTime =
+          (responseTimeList[responseTimeList.length ~/ 2] / 1000).ceil() +
+              addedTime[gameLevel];
+      countDownTimer =
+          Timer.periodic(const Duration(seconds: 1), (timer) async {
+        Logger().d(timer.tick);
+        remainTime--;
+        //* start alarm clock animation
+        if (remainTime <= 5 && !alarmClockAdded) {
+          add(alarmClock);
+          alarmClockAdded = true;
+          alarmClockAudio =
+              await FlameAudio.loop('route_planning_game/sound/tictoc.mp3');
+        }
+        if (remainTime <= 0) {
+          Logger().d('Cancel timer');
+          alarmClock.removeFromParent();
+          alarmClockAdded = false;
+          alarmClockAudio?.pause();
+          timer.cancel();
+          gameLose();
+        }
+      });
+    }
   }
 }

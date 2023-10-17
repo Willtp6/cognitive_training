@@ -41,11 +41,6 @@ class _LotteryGameMenu extends State<LotteryGameMenu>
     super.dispose();
   }
 
-  // @override
-  // void didChangeDependencies() {
-  //   super.didChangeDependencies();
-  // }
-
   void startGame() {
     if (buttonEnabled) {
       buttonEnabled = false;
@@ -54,6 +49,10 @@ class _LotteryGameMenu extends State<LotteryGameMenu>
         _controller.reset();
         final level = userInfoProvider.lotteryGameDatabase.currentLevel;
         final digit = userInfoProvider.lotteryGameDatabase.currentDigit;
+        final historyWin =
+            userInfoProvider.lotteryGameDatabase.historyContinuousWin;
+        final historyLose =
+            userInfoProvider.lotteryGameDatabase.historyContinuousLose;
         final doneTutorial = userInfoProvider.lotteryGameDatabase.doneTutorial;
         if (doneTutorial) {
           Logger().i('continue game');
@@ -62,6 +61,8 @@ class _LotteryGameMenu extends State<LotteryGameMenu>
             queryParams: {
               'startLevel': level.toString(),
               'startDigit': digit.toString(),
+              'historyContinuousWin': historyWin.toString(),
+              'historyContinuousLose': historyLose.toString(),
               'isTutorial': (!doneTutorial).toString(),
             },
           );

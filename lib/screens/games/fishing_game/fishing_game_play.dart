@@ -34,6 +34,10 @@ class FishingGamePlay extends StatelessWidget {
           child: GameWidget(
             game: FishingGame(
               gameLevel: gameLevel,
+              continuousWin:
+                  userInfoProvider.fishingGameDatabase.historyContinuousWin,
+              continuousLose:
+                  userInfoProvider.fishingGameDatabase.historyContinuousLose,
               isTutorial: isTutorial,
               userInfoProvider: userInfoProvider,
               globalInfoProvider: globalInfoProvider,

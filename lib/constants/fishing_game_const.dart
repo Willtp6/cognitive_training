@@ -1,3 +1,4 @@
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 
 class FishingGameConst {
@@ -6,6 +7,26 @@ class FishingGameConst {
   static const List<int> numOfRods = [2, 3, 3, 4, 4];
 
   //* images
+  static const String fishingGameMenu =
+      'assets/images/fishing_game/scene/menu_and_result.png';
+  static const String fishingGameBackground =
+      'fishing_game/scene/rocky_shore.png';
+  static const String fishingGameResult =
+      'fishing_game/scene/menu_and_result.png';
+
+  static const AutoSizeText fishingGameRule = AutoSizeText.rich(
+    TextSpan(
+      children: [
+        TextSpan(text: '請找出', style: TextStyle(color: Colors.black)),
+        TextSpan(text: '「最大」', style: TextStyle(color: Colors.red)),
+        TextSpan(text: '的水波紋，釣到大魚！', style: TextStyle(color: Colors.black)),
+      ],
+    ),
+    softWrap: true,
+    maxLines: 1,
+    style: TextStyle(fontSize: 100, fontFamily: 'GSR_B'),
+  );
+
   static const List<String> rodList = [
     'fishing_game/rod/rod1.png',
     'fishing_game/rod/rod2.png',
