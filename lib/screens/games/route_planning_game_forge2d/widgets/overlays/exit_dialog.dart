@@ -3,8 +3,6 @@ import 'package:cognitive_training/screens/games/route_planning_game_forge2d/rou
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../route_planning_game_forge2d.dart';
-
 class ExitDialog extends StatelessWidget {
   static const id = "ExitDialog";
   const ExitDialog({super.key, required this.game});

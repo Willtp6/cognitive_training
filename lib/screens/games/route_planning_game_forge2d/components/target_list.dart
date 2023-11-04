@@ -1,11 +1,9 @@
 import 'dart:async';
 
-import 'package:cognitive_training/constants/globals.dart';
 import 'package:cognitive_training/constants/route_planning_game_const.dart';
 import 'package:cognitive_training/screens/games/route_planning_game_forge2d/route_planning_game_forge2d.dart';
 import 'package:flame/components.dart';
 import 'package:flame/palette.dart';
-import 'package:logger/logger.dart';
 import '../models/building.dart';
 
 class TargetList extends SpriteComponent

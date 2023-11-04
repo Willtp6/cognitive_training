@@ -3,11 +3,10 @@ import 'dart:async';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:cognitive_training/audio/audio_controller.dart';
 import 'package:cognitive_training/constants/globals.dart';
+import 'package:cognitive_training/constants/lottery_game_const.dart';
 import 'package:cognitive_training/models/user_info_provider.dart';
-import 'package:cognitive_training/screens/games/lottery_game/lottery_game_scene.dart';
 import 'package:cognitive_training/shared/button_with_text.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:logger/logger.dart';
 import 'package:provider/provider.dart';
@@ -47,34 +46,28 @@ class _LotteryGameMenu extends State<LotteryGameMenu>
       _controller.forward();
       Future.delayed(const Duration(seconds: 2), () {
         _controller.reset();
-        final level = userInfoProvider.lotteryGameDatabase.currentLevel;
-        final digit = userInfoProvider.lotteryGameDatabase.currentDigit;
-        final historyWin =
-            userInfoProvider.lotteryGameDatabase.historyContinuousWin;
-        final historyLose =
-            userInfoProvider.lotteryGameDatabase.historyContinuousLose;
+        // final level = userInfoProvider.lotteryGameDatabase.currentLevel;
+        // final digit = userInfoProvider.lotteryGameDatabase.currentDigit;
+        // final historyWin =
+        //     userInfoProvider.lotteryGameDatabase.historyContinuousWin;
+        // final historyLose =
+        //     userInfoProvider.lotteryGameDatabase.historyContinuousLose;
         final doneTutorial = userInfoProvider.lotteryGameDatabase.doneTutorial;
         if (doneTutorial) {
-          Logger().i('continue game');
           GoRouter.of(context).pushNamed(
             'lottery_game',
             queryParams: {
-              'startLevel': level.toString(),
-              'startDigit': digit.toString(),
-              'historyContinuousWin': historyWin.toString(),
-              'historyContinuousLose': historyLose.toString(),
+              // 'startLevel': level.toString(),
+              // 'startDigit': digit.toString(),
+              // 'historyContinuousWin': historyWin.toString(),
+              // 'historyContinuousLose': historyLose.toString(),
               'isTutorial': (!doneTutorial).toString(),
             },
           );
         } else {
-          Logger().i('tutorial');
           GoRouter.of(context).pushNamed(
             'lottery_game',
-            queryParams: {
-              'startLevel': 0.toString(),
-              'startDigit': 1.toString(),
-              'isTutorial': 'true'
-            },
+            queryParams: {'isTutorial': 'true'},
           );
         }
         buttonEnabled = true;
@@ -82,7 +75,7 @@ class _LotteryGameMenu extends State<LotteryGameMenu>
       Future.delayed(const Duration(seconds: 3, milliseconds: 500), () {
         _controller.reset();
       });
-      _audioController.playPathAudio(Globals.clickButtonSound);
+      _audioController.playSfx(Globals.clickButtonSound);
     }
   }
 
@@ -104,13 +97,14 @@ class _LotteryGameMenu extends State<LotteryGameMenu>
       Future.delayed(const Duration(seconds: 3, milliseconds: 500), () {
         _controller.reset();
       });
-      _audioController.playPathAudio(Globals.clickButtonSound);
+      _audioController.playSfx(Globals.clickButtonSound);
     }
   }
 
   void goBack() {
     if (buttonEnabled) {
-      _audioController.playPathAudio(Globals.clickButtonSound);
+      _audioController.playSfx(Globals.clickButtonSound);
+
       context.pop();
     }
   }
@@ -140,8 +134,7 @@ class _LotteryGameMenu extends State<LotteryGameMenu>
                   child: Container(
                     decoration: const BoxDecoration(
                       image: DecorationImage(
-                        image: AssetImage(
-                            'assets/lottery_game/scene/Temple1_withoutWord.png'),
+                        image: AssetImage(LotteryGameConst.menuBackground),
                         fit: BoxFit.fill,
                       ),
                     ),

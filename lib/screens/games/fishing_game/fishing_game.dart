@@ -3,7 +3,6 @@ import 'dart:math';
 
 import 'package:audioplayers/audioplayers.dart';
 import 'package:cognitive_training/constants/fishing_game_const.dart';
-import 'package:cognitive_training/constants/globals.dart';
 import 'package:cognitive_training/firebase/record_game.dart';
 import 'package:cognitive_training/models/global_info_provider.dart';
 import 'package:cognitive_training/models/user_info_provider.dart';
@@ -224,7 +223,7 @@ class FishingGame extends FlameGame with HasCollisionDetection, HasTappables {
   // }
 
   void resetTimers() {
-    // _audioPlayer.play(AssetSource('audio/fishing_game/sound/Bubbles.wav'));
+    // _audioPlayer.play(AssetSource('audio/fishing_game/sfx/Bubbles.wav'));
     // FlameAudio.loop(FishingGameConst.bubbleAudio).then((value) => value.pause());
     //* delay for next bubble loop
     add(TimerComponent(

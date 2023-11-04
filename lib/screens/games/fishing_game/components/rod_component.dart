@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:cognitive_training/constants/fishing_game_const.dart';
-import 'package:cognitive_training/constants/globals.dart';
 import 'package:flame/components.dart';
 import 'package:flame/input.dart';
 import 'package:flame_rive/flame_rive.dart';

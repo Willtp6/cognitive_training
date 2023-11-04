@@ -129,11 +129,14 @@ class RoutePlanningGameConst {
   static const routeLose =
       'assets/images/route_planning_game/scene/Route_Lose.png';
 
-  //* audio
-  static const pickFlagAudio = 'route_planning_game/sound/pick_flag.mp3';
-  static const bgm = 'route_planning_game/sound/bgm.mp3';
-  static const winAudio = 'route_planning_game/sound/win.mp3';
-  static const loseAudio = 'route_planning_game/sound/lose.mp3';
-  static const tapWrongBuilding =
-      'route_planning_game/sound/wrong_building.mp3';
+  //* sfx
+  static const pickFlagAudio = 'route_planning_game/sfx/pick_flag.mp3';
+  static const bgm = 'route_planning_game/sfx/bgm.mp3';
+  static const winAudio = 'route_planning_game/sfx/win.mp3';
+  static const loseAudio = 'route_planning_game/sfx/lose.mp3';
+  static const tapWrongBuilding = 'route_planning_game/sfx/wrong_building.mp3';
+  static const tictocAudio = 'route_planning_game/sfx/tictoc.mp3';
+  static const phoneVibration = 'route_planning_game/sfx/phone_vibration2.mp3';
+
+  //* instruction part
 }

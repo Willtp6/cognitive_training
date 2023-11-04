@@ -4,6 +4,7 @@ import 'package:cognitive_training/constants/globals.dart';
 import 'package:cognitive_training/shared/button_with_text.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../../shared/progress_bar.dart';
 import 'top_coins.dart';
 import '../../fishing_game.dart';
 
@@ -43,6 +44,9 @@ class _FishingGameRuleState extends State<FishingGameRule>
   void initState() {
     _controller = AnimationController(
         vsync: this, duration: const Duration(milliseconds: 500));
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _audioController.playInstructionRecord(FishingGameConst.gameRule);
+    });
     super.initState();
   }
 
@@ -91,6 +95,17 @@ class _FishingGameRuleState extends State<FishingGameRule>
                       ),
                     ),
                   ],
+                  Align(
+                    alignment: const Alignment(0.0, -0.1),
+                    child: FractionallySizedBox(
+                      widthFactor: 0.7,
+                      heightFactor: 0.2,
+                      child: ProgressBar(
+                        maxProgress: 5,
+                        continuousWin: widget.game.continuousWin,
+                      ),
+                    ),
+                  ),
                   const GameRule(),
                   Align(
                     alignment: const Alignment(0.0, 0.9),
@@ -124,12 +139,15 @@ class _FishingGameRuleState extends State<FishingGameRule>
     );
   }
 
-  void _listenAgain() {}
+  void _listenAgain() {
+    _audioController.playInstructionRecord(FishingGameConst.gameRule);
+  }
 
   void _startGame() {
     if (buttonEnabled) {
       buttonEnabled = false;
-      _audioController.playPathAudio(Globals.clickButtonSound);
+      _audioController.playSfx(Globals.clickButtonSound);
+
       _controller.forward().whenComplete(() {
         widget.game.overlays.remove(FishingGameRule.id);
         widget.game.overlays.add(TopCoins.id);
@@ -146,7 +164,7 @@ class GameRule extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const Align(
-      alignment: Alignment(0.0, 0.3),
+      alignment: Alignment(0.0, 0.4),
       child: FractionallySizedBox(
         heightFactor: 0.25,
         child: FractionallySizedBox(

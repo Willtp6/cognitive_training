@@ -3,12 +3,11 @@ import 'dart:async';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:cognitive_training/audio/audio_controller.dart';
 import 'package:cognitive_training/constants/globals.dart';
+import 'package:cognitive_training/constants/poker_game_const.dart';
 import 'package:cognitive_training/models/user_info_provider.dart';
 import 'package:cognitive_training/shared/button_with_text.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
-import 'package:logger/logger.dart';
 import 'package:provider/provider.dart';
 
 class PokerGameMenu extends StatefulWidget {
@@ -58,8 +57,7 @@ class _PokerGameMenu extends State<PokerGameMenu>
                 child: Container(
                   decoration: const BoxDecoration(
                     image: DecorationImage(
-                      image: AssetImage(
-                          'assets/poker_game/scene/Park1_witoutWalker.png'),
+                      image: AssetImage(PokerGameConst.menuBackground),
                       fit: BoxFit.fill,
                     ),
                   ),
@@ -116,22 +114,22 @@ class _PokerGameMenu extends State<PokerGameMenu>
       buttonEnabled = false;
       _controller.forward();
       Future.delayed(const Duration(seconds: 1), () {
-        final level = userInfoProvider.pokerGameDatabase.currentLevel;
-        final historyContinuousWin =
-            userInfoProvider.pokerGameDatabase.historyContinuousWin;
-        final historyContinuousLose =
-            userInfoProvider.pokerGameDatabase.historyContinuousLose;
+        // final level = userInfoProvider.pokerGameDatabase.currentLevel;
+        // final historyContinuousWin =
+        //     userInfoProvider.pokerGameDatabase.historyContinuousWin;
+        // final historyContinuousLose =
+        //     userInfoProvider.pokerGameDatabase.historyContinuousLose;
         final doneTutorial = userInfoProvider.pokerGameDatabase.doneTutorial;
-        final responseTimeList =
-            userInfoProvider.pokerGameDatabase.responseTimeList.cast<int>();
+        // final responseTimeList =
+        //     userInfoProvider.pokerGameDatabase.responseTimeList.cast<int>();
         GoRouter.of(context).pushNamed(
           'poker_game',
           queryParams: {
-            'startLevel': level.toString(),
-            'historyContinuousWin': historyContinuousWin.toString(),
-            'historyContinuousLose': historyContinuousLose.toString(),
+            // 'startLevel': level.toString(),
+            // 'historyContinuousWin': historyContinuousWin.toString(),
+            // 'historyContinuousLose': historyContinuousLose.toString(),
             'isTutorial': (!doneTutorial).toString(),
-            'responseTimeList': responseTimeList.toString(),
+            // 'responseTimeList': responseTimeList.toString(),
           },
         );
         buttonEnabled = true;
@@ -139,7 +137,7 @@ class _PokerGameMenu extends State<PokerGameMenu>
       Future.delayed(const Duration(seconds: 2), () {
         _controller.reset();
       });
-      _audioController.playPathAudio(Globals.clickButtonSound);
+      _audioController.playSfx(Globals.clickButtonSound);
     }
   }
 
@@ -156,13 +154,13 @@ class _PokerGameMenu extends State<PokerGameMenu>
       Future.delayed(const Duration(seconds: 2), () {
         _controller.reset();
       });
-      _audioController.playPathAudio(Globals.clickButtonSound);
+      _audioController.playSfx(Globals.clickButtonSound);
     }
   }
 
   void goBack() {
     if (buttonEnabled) {
-      _audioController.playPathAudio(Globals.clickButtonSound);
+      _audioController.playSfx(Globals.clickButtonSound);
 
       context.pop();
     }

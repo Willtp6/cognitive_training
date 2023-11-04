@@ -6,12 +6,10 @@ import 'package:flame/events.dart';
 import 'package:flame/palette.dart';
 import 'package:flame_audio/flame_audio.dart';
 import 'package:flame_forge2d/flame_forge2d.dart';
-import 'package:logger/logger.dart';
 
 import '../../../../constants/route_planning_game_const.dart';
 
 import '../models/building.dart';
-import '../widgets/overlays/game_win.dart';
 
 enum ImageType {
   normal,
@@ -126,9 +124,11 @@ class BuildingComponent extends BodyComponent<RoutePlanningGameForge2d>
     if (isHome) {
       if (gameRef.targetList.allVisited()) {
         buildingSprite.current = ImageType.light;
+        buildingSprite.size *= 2;
       }
     } else {
       buildingSprite.current = ImageType.light;
+      buildingSprite.size *= 2;
     }
     super.beginContact(other, contact);
   }
@@ -136,6 +136,8 @@ class BuildingComponent extends BodyComponent<RoutePlanningGameForge2d>
   @override
   void endContact(Object other, Contact contact) {
     isContactToRider = false;
+    //* only when previous state is lighted up
+    if (buildingSprite.current == ImageType.light) buildingSprite.size /= 2;
     buildingSprite.current = ImageType.normal;
     super.endContact(other, contact);
   }

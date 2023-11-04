@@ -1,6 +1,5 @@
 import 'package:flame/palette.dart';
 import 'package:flame_forge2d/flame_forge2d.dart';
-import 'package:logger/logger.dart';
 
 class StreetBlock extends BodyComponent {
   List<Vector2> vertices;

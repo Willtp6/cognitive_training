@@ -1,13 +1,8 @@
 import 'dart:async';
 import 'package:cognitive_training/screens/games/route_planning_game_forge2d/route_planning_game_forge2d.dart';
-import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
-import 'package:flame/experimental.dart';
 import 'package:flame/palette.dart';
-import 'package:flame/src/gestures/events.dart';
 import 'package:flame_forge2d/flame_forge2d.dart';
-import 'package:flutter/material.dart';
-import 'package:logger/logger.dart';
 
 import '../../../../constants/route_planning_game_const.dart';
 

@@ -1,11 +1,10 @@
 import 'dart:math';
 
 import 'package:auto_size_text/auto_size_text.dart';
-import 'package:cognitive_training/constants/globals.dart';
+import 'package:cognitive_training/constants/tutorial_mode_const.dart';
 import 'package:cognitive_training/models/user_info_provider.dart';
 import 'package:cognitive_training/screens/games/fishing_game/fishing_game.dart';
 import 'package:cognitive_training/screens/games/fishing_game/widgets/overlays/fishing_game_rule.dart';
-import 'package:cognitive_training/screens/games/shared/exit_button_template.dart';
 import 'package:cognitive_training/shared/button_with_text.dart';
 import 'package:dotted_border/dotted_border.dart';
 import 'package:flame/components.dart';
@@ -218,7 +217,7 @@ class TutorialDoctor extends StatelessWidget {
           child: Container(
             decoration: const BoxDecoration(
               image: DecorationImage(
-                image: AssetImage(Globals.tutorialDoctor),
+                image: AssetImage(TutorialModeConst.doctors),
                 fit: BoxFit.contain,
                 alignment: Alignment.bottomCenter,
               ),
@@ -341,7 +340,7 @@ class ChatBubble extends StatelessWidget {
               decoration: const BoxDecoration(
                 image: DecorationImage(
                   image: AssetImage(
-                    'assets/login_page/tutorial_chat_bubble.png',
+                    TutorialModeConst.chatBubble,
                   ),
                   fit: BoxFit.contain,
                 ),
@@ -437,7 +436,7 @@ class DottedContainer extends StatelessWidget {
 
 class HintArrow extends StatelessWidget {
   final int tutorialProgress;
-  HintArrow({super.key, required this.tutorialProgress});
+  const HintArrow({super.key, required this.tutorialProgress});
 
   static const List<Alignment> hintArrowAlignment = [
     Alignment.center,
@@ -449,10 +448,6 @@ class HintArrow extends StatelessWidget {
     Alignment(0.0, 0.225),
   ];
 
-  final Image leftArrow = Image.asset('assets/global/tutorial_left_arrow.png');
-  final Image downArrow = Image.asset('assets/global/tutorial_down_arrow.png');
-  final Image upArrow = Image.asset('assets/global/tutorial_up_arrow.png');
-
   @override
   Widget build(BuildContext context) {
     return Align(
@@ -462,11 +457,11 @@ class HintArrow extends StatelessWidget {
         child: AspectRatio(
           aspectRatio: 1,
           child: tutorialProgress == 2 || tutorialProgress == 3
-              ? downArrow
+              ? Image.asset(TutorialModeConst.downArrow)
               : tutorialProgress == 5
-                  ? leftArrow
+                  ? Image.asset(TutorialModeConst.leftArrow)
                   : tutorialProgress == 6
-                      ? upArrow
+                      ? Image.asset(TutorialModeConst.upArrow)
                       : Container(),
         ),
       ),

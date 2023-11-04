@@ -1,6 +1,5 @@
 import 'package:cognitive_training/constants/globals.dart';
 import 'package:cognitive_training/models/user_info_provider.dart';
-import 'package:cognitive_training/models/user_model.dart';
 import 'package:go_router/go_router.dart';
 import 'package:logger/logger.dart';
 import 'package:provider/provider.dart';

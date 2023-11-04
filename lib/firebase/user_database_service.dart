@@ -3,7 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 class UserDatabaseService {
   final String docId;
   final String userName;
-  UserDatabaseService({required this.docId, required this.userName});
+  UserDatabaseService({required this.docId, this.userName = ''});
 
   final CollectionReference userInfoCollection =
       FirebaseFirestore.instance.collection('user_basic_info');
@@ -48,11 +48,13 @@ class UserDatabaseService {
     await userCheckinCollection.doc(docId).set({
       'registerTime': DateTime.now(),
       'lastLoginTime': DateTime.now(),
-      'loginCycle': List.generate(7, (index) => false),
-      'loginRewardCycle': List.generate(7, (index) => false),
-      'weeklyRewardCycle': List.generate(4, (index) => false),
+      'lastUpdateTime': DateTime.now(),
+      'loginCycle': List.filled(7, false),
+      'loginRewardCycle': List.filled(7, false),
       'cycleStartDay': DateTime.now(),
-      'accumulatePlayTime': List.generate(7, (index) => 0),
+      'bonusRewardCycle': List.filled(3, 'unqualification'),
+      'maxPlayTime': List.filled(7, 0),
+      'accumulatePlayTime': List.filled(7, 0),
       'currentWeek': 0,
     });
   }

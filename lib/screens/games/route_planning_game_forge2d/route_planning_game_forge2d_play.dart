@@ -5,7 +5,6 @@ import 'widgets/overlays/exit_button.dart';
 import 'route_planning_game_forge2d.dart';
 import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
-import 'package:logger/logger.dart';
 
 import 'widgets/overlays/exit_dialog.dart';
 import 'widgets/overlays/route_planning_game_rule.dart';

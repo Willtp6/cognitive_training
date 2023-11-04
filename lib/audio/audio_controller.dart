@@ -1,68 +1,78 @@
-import 'dart:io';
-
 import 'package:audioplayers/audioplayers.dart';
+import 'package:cognitive_training/constants/home_page_const.dart';
 import 'package:cognitive_training/settings/setting_controller.dart';
 import 'package:flutter/widgets.dart';
 import 'package:logger/logger.dart';
-import 'package:path_provider/path_provider.dart';
 
 class AudioController {
-  final logger = Logger();
+  static final _log = Logger();
 
   final AudioPlayer audioPlayer;
-  final AudioPlayer audioPlayer2;
   // final AudioPlayer _bgmPlayer;
+  final AudioPlayer _instructionPlayer;
+
+  final List<AudioPlayer> _sfxPlayers;
+
+  int _currentSfxPlayer = 0;
 
   ValueNotifier<AppLifecycleState>? _lifecycleNotifier;
 
   SettingsController? _settings;
+  String _currentLanguage = 'chinese';
 
-  AudioController({int polyphony = 2})
+  AudioController({int polyphony = 3})
       : assert(polyphony >= 1),
         audioPlayer = AudioPlayer(playerId: 'audioPlayer'),
-        audioPlayer2 = AudioPlayer(playerId: 'audioPlayer2');
+        _instructionPlayer = AudioPlayer(playerId: 'instructionPlayer'),
+        _sfxPlayers = List.generate(
+            polyphony, (i) => AudioPlayer(playerId: 'sfxPlayer#$i'),
+            growable: false);
   // _bgmPlayer = AudioPlayer(playerId: 'bgmPlayer');
 
   /// Preloads all sound effects.
   Future<void> initialize() async {
-    logger.i('Preloading sound effects');
+    _log.i('Preloading sound effects');
     // This assumes there is only a limited number of sound effects in the game.
     // If there are hundreds of long sound effect files, it's better
     // to be more selective when preloading.
-    // * this needs to be modified or skip this function
+    //todo this needs to be modified or skip this function
+    //todo maybe load global first and load each game audio in game menu page ?
     await AudioCache.instance.loadAll(['audio/shared/click_button.wav']);
   }
 
-  Future<void> loadLotteryGameAudio() async {
-    logger.i('Loading lotteryGameAudio');
-    final tmpDir = await getTemporaryDirectory();
-    String tmpPath = tmpDir.path;
+  // Future<void> loadLotteryGameAudio() async {
+  //   logger.i('Loading lotteryGameAudio');
+  //   final tmpDir = await getTemporaryDirectory();
+  //   String tmpPath = tmpDir.path;
 
-    Directory audioDirectory = Directory('$tmpPath/lottery_game_sound');
-    logger.d(tmpPath);
-    if (await audioDirectory.exists()) {
-      // ! for cache the audio but this part is undone and have bugs
-      // List<FileSystemEntity> fileList =
-      //     audioDirectory.listSync(recursive: false);
-      // final audioFiles = fileList.where((element) =>
-      //     element.path.endsWith('.mp3') || element.path.endsWith('.wav'));
-      // logger.i(audioFiles);
-      // await Future.forEach(audioFiles, (file) async {
-      //   final filePath = file.path;
-      //   await AudioCache.instance.load(filePath);
-      // });
-    } else {
-      logger.i('path doesn\'t exists');
-    }
-    logger.i('Loading complete');
-  }
+  //   Directory audioDirectory = Directory('$tmpPath/lottery_game_sound');
+  //   logger.d(tmpPath);
+  //   if (await audioDirectory.exists()) {
+  //     // ! for cache the audio but this part is undone and have bugs
+  //     // List<FileSystemEntity> fileList =
+  //     //     audioDirectory.listSync(recursive: false);
+  //     // final audioFiles = fileList.where((element) =>
+  //     //     element.path.endsWith('.mp3') || element.path.endsWith('.wav'));
+  //     // logger.i(audioFiles);
+  //     // await Future.forEach(audioFiles, (file) async {
+  //     //   final filePath = file.path;
+  //     //   await AudioCache.instance.load(filePath);
+  //     // });
+  //   } else {
+  //     logger.i('path doesn\'t exists');
+  //   }
+  //   logger.i('Loading complete');
+  // }
 
   void dispose() {
     _lifecycleNotifier?.removeListener(_handleAppLifecycle);
     _stopAllSound();
     audioPlayer.dispose();
-    audioPlayer2.dispose();
     // _bgmPlayer.dispose();
+    _instructionPlayer.dispose();
+    for (final player in _sfxPlayers) {
+      player.dispose();
+    }
   }
 
   void attachLifecycleNotifier(
@@ -91,16 +101,27 @@ class AudioController {
     }
   }
 
-  String getLanguage() {
-    return _settings?.language.value == '國語' ? 'chinese' : 'taiwanese';
-  }
-
   void _stopAllSound() {
-    // * check template
+    _instructionPlayer.stop();
+    for (final player in _sfxPlayers) {
+      player.stop();
+    }
   }
 
   void _resumeMusic() {
     // * check template
+    if (_instructionPlayer.state == PlayerState.paused) {
+      _instructionPlayer.resume();
+    }
+    for (final player in _sfxPlayers) {
+      if (player.state == PlayerState.paused) {
+        try {
+          player.resume();
+        } catch (e) {
+          _log.d(e);
+        }
+      }
+    }
   }
 
   void attachSettings(SettingsController settingsController) {
@@ -114,82 +135,59 @@ class AudioController {
     settingsController.language.addListener(_languageHandler);
   }
 
-  void _languageHandler() {}
+  void _languageHandler() {
+    _currentLanguage =
+        _settings?.language.value == '國語' ? 'chinese' : 'taiwanese';
+    Logger().d(_currentLanguage);
+  }
 
-  // void playBGM(String path) {
-  //   _bgmPlayer.setReleaseMode(ReleaseMode.loop);
-  //   _bgmPlayer.play(AssetSource(path));
-  // }
-
-  // void pauseBGM() {
-  //   _bgmPlayer.pause();
-  // }
-
-  // void resumeBGM() {
-  //   _bgmPlayer.resume();
-  // }
-
-  // void stopBGM() {
-  //   _bgmPlayer.pause();
-  //   _bgmPlayer.release();
-  // }
-
-  void playInstructionRecord(String path) async {
-    await audioPlayer.pause();
-    await audioPlayer.release();
-    String language = getLanguage();
-    audioPlayer.play(AssetSource('instruction_record/$language/$path'));
+  void playInstructionRecord(Map<String, String> path) async {
+    // await audioPlayer.pause();
+    // await audioPlayer.release();
+    // audioPlayer.play(AssetSource('instruction_record/$language/$path'));
+    _instructionPlayer.play(AssetSource(path[_currentLanguage]!));
   }
 
   void pauseAudio() {
-    audioPlayer.pause();
+    _instructionPlayer.pause();
+    for (final player in _sfxPlayers) {
+      player.pause();
+    }
   }
 
   void resumeAudio() {
-    audioPlayer.resume();
+    if (_instructionPlayer.state == PlayerState.paused) {
+      _instructionPlayer.resume();
+    }
+    for (final player in _sfxPlayers) {
+      if (player.state == PlayerState.paused) {
+        try {
+          player.resume();
+        } catch (e) {
+          _log.d(e);
+        }
+      }
+    }
   }
 
-  void stopAudio() {
-    audioPlayer.pause();
-    audioPlayer.release();
+  void playSfx(String path) {
+    final currentPlayer = _sfxPlayers[_currentSfxPlayer];
+    currentPlayer.play(AssetSource(path));
+    _currentSfxPlayer = (_currentSfxPlayer + 1) % _sfxPlayers.length;
   }
 
-  void playLotteryGameNumber(String path) {
-    String language = getLanguage();
-    audioPlayer.play(AssetSource('lottery_game/sound/$language/$path'));
+  void stopAllSfx() {
+    for (final player in _sfxPlayers) {
+      player.stop();
+    }
   }
 
-  void playLotteryGameSoundEffect(String path) {
-    audioPlayer.play(AssetSource('lottery_game/sound/$path'));
-  }
-
-  void playFishingGameSoundEffect(String path) {
-    audioPlayer.play(AssetSource('fishing_game/sound/$path'));
-  }
-
-  void playPokerGameSoundEffect(String path) {
-    audioPlayer.play(AssetSource('poker_game/sound/$path'));
+  void stopPlayingInstruction() {
+    _instructionPlayer.stop();
   }
 
   void playGameDescription(int index) {
-    List<String> game = [
-      'lottery_game',
-      'fishing_game',
-      'poker_game',
-      'routing_game'
-    ];
-    String language = getLanguage();
-    audioPlayer.play(AssetSource(
-        'instruction_record/$language/${game[index]}/game_description.m4a'));
-  }
-
-  void playByExtraPlayer(String path) {
-    audioPlayer2.play(AssetSource(path));
-  }
-
-  Future<void> playPathAudio(String path) async {
-    await audioPlayer.stop();
-    await audioPlayer.release();
-    await audioPlayer.play(AssetSource(path));
+    _instructionPlayer.play(AssetSource(
+        HomePageConst.gameDescriptionAudio[index][_currentLanguage]!));
   }
 }

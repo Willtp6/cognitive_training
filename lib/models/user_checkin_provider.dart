@@ -1,33 +1,53 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cognitive_training/firebase/user_database_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/material.dart';
-import 'package:logger/logger.dart';
+import 'package:flutter/foundation.dart';
 
 class UserCheckinProvider extends ChangeNotifier {
   User? _user;
-  int _currentWeek = 0;
-  bool _isReady = false;
-  DateTime _cycleStartDay = DateTime.now();
-  DateTime _lastLoginTime = DateTime.now();
-  //late DateTime _lastUpdateTime;
-  List<bool> _loginCycle = List.generate(7, (index) => false);
-  List<bool> _loginRewardCycle = List.generate(7, (index) => false);
-  List<bool> _weeklyRewardCycle = [];
-  List<int> _accumulatePlayTime = [];
-  bool _haveCheckinReward = false;
-  bool _haveAccumulatePlayReward = false;
-
-  bool get haveAccumulatePlayReward => _haveAccumulatePlayReward;
-  set haveAccumulatePlayReward(bool value) {
-    _haveAccumulatePlayReward = value;
-    notifyListeners();
-  }
 
   UserCheckinProvider() {
     FirebaseAuth.instance.authStateChanges().listen((User? newUser) async {
       if (newUser != _user) {
-        await updateData(newUser);
         _user = newUser;
+        FirebaseFirestore.instance
+            .collection('user_checkin_info')
+            .doc(newUser?.uid)
+            .get()
+            .then((doc) {
+          if (doc.exists) {
+            //* shared info
+            _currentWeek = doc.data()!['currentWeek'] ?? 0;
+            if (doc.data()!['cycleStartDay'] != null) {
+              _cycleStartDay = doc.data()!['cycleStartDay'].toDate();
+            } else {
+              _cycleStartDay = DateTime.now();
+            }
+            //* for check in reward
+            _loginCycle = (doc.data()!['loginCycle'] ?? List.filled(7, false))
+                .cast<bool>();
+            _loginRewardCycle =
+                (doc.data()!['loginRewardCycle'] ?? List.filled(7, false))
+                    .cast<bool>();
+            //* for bonus reward
+            _bonusRewardCycle = (doc.data()!['bonusRewardCycle'] ??
+                    List.filled(3, 'unqualification'))
+                .cast<String>();
+            _maxPlayTime =
+                (doc.data()!['maxPlayTime'] ?? List.filled(7, 0)).cast<int>();
+            _accumulatePlayTime =
+                (doc.data()!['accumulatePlayTime'] ?? List.filled(7, 0))
+                    .cast<int>();
+            //* login record
+            lastLoginTime = DateTime.now();
+            lastUpdateTime = DateTime.now();
+            isHaveCheckinReward();
+            isHaveBonusReward();
+          } else {
+            //! this part should throw error about data missing
+            UserDatabaseService(docId: newUser!.uid).createUserCheckinInfo();
+          }
+        });
         Future.delayed(const Duration(milliseconds: 300), () {
           notifyListeners();
         });
@@ -35,159 +55,197 @@ class UserCheckinProvider extends ChangeNotifier {
     });
   }
 
-  updateData(User? newUser) {
-    FirebaseFirestore.instance
-        .collection('user_checkin_info')
-        .doc(newUser?.uid)
-        .get()
-        .then((doc) {
-      if (doc.exists) {
-        _currentWeek = doc.data()!['currentWeek'];
-        _cycleStartDay = doc.data()!['cycleStartDay'].toDate();
-        _lastLoginTime = doc.data()!['lastLoginTime'].toDate();
-        _loginCycle = doc.data()!['loginCycle'].cast<bool>();
-        _loginRewardCycle = doc.data()!['loginRewardCycle'].cast<bool>();
-        _weeklyRewardCycle = doc.data()!['weeklyRewardCycle'].cast<bool>();
-        _accumulatePlayTime = doc.data()!['accumulatePlayTime'].cast<int>();
-        _haveCheckinReward = false;
-        _isReady = true;
-        isHaveCheckinReward();
-      } else {
-        //! this part should throw error about data missing
-        //TODO add some function which will notice the user to developer or someone who can modify the database
-      }
-    });
-  }
-
-  bool get isReady => _isReady;
-
+  //* identify the week index range is from 0 ~ 3
+  int _currentWeek = 0;
   int get currentWeek => _currentWeek;
   set currentWeek(int newWeek) {
     _currentWeek = newWeek;
     FirebaseFirestore.instance
         .collection('user_checkin_info')
         .doc(_user?.uid)
-        .update({'currentWeek': newWeek}).then((value) {
-      notifyListeners();
-    });
+        .update({'currentWeek': newWeek, 'lastUpdateTime': DateTime.now()});
   }
 
-  bool get haveCheckinReward => _haveCheckinReward;
-  set haveCheckinReward(bool value) {
-    _haveCheckinReward = value;
-    notifyListeners();
-  }
-
+  DateTime _lastLoginTime = DateTime.now();
   DateTime get lastLoginTime => _lastLoginTime;
   set lastLoginTime(DateTime dateTime) {
     _lastLoginTime = dateTime;
     FirebaseFirestore.instance
         .collection('user_checkin_info')
         .doc(_user?.uid)
-        .update({'lastLoginTime': dateTime}).then((value) {
-      notifyListeners();
-    });
+        .update({'lastLoginTime': dateTime, 'lastUpdateTime': DateTime.now()});
   }
 
-  // DateTime get lastUpdateTime => _lastUpdateTime;
-  // set lastUpdateTime(DateTime dateTime) {
-  //   _lastUpdateTime = dateTime;
-  //   FirebaseFirestore.instance
-  //       .collection('user_checkin_info')
-  //       .doc(_user?.uid)
-  //       .update({'lastUpdateTime': dateTime}).then((value) {
-  //     notifyListeners();
-  //   });
-  // }
+  DateTime _lastUpdateTime = DateTime.now();
+  DateTime get lastUpdateTime => _lastUpdateTime;
+  set lastUpdateTime(DateTime dateTime) {
+    _lastUpdateTime = dateTime;
+    FirebaseFirestore.instance
+        .collection('user_checkin_info')
+        .doc(_user?.uid)
+        .update({'lastUpdateTime': dateTime});
+  }
 
+  DateTime _cycleStartDay = DateTime.now();
   DateTime get cycleStartDay => _cycleStartDay;
   set cycleStartDay(DateTime dateTime) {
     _cycleStartDay = dateTime;
     FirebaseFirestore.instance
         .collection('user_checkin_info')
         .doc(_user?.uid)
-        .update({'cycleStartDay': dateTime}).then((value) {
-      notifyListeners();
-    });
+        .update({'cycleStartDay': dateTime, 'lastUpdateTime': DateTime.now()});
   }
 
+  List<bool> _loginCycle = List.filled(7, false);
   List<bool> get loginCycle => _loginCycle;
   set loginCycle(List<bool> newList) {
     _loginCycle = newList;
     FirebaseFirestore.instance
         .collection('user_checkin_info')
         .doc(_user?.uid)
-        .update({'loginCycle': newList}).then((value) {
-      notifyListeners();
-    });
+        .update({'loginCycle': newList, 'lastUpdateTime': DateTime.now()});
   }
 
+  List<bool> _loginRewardCycle = List.filled(7, false);
   List<bool> get loginRewardCycle => _loginRewardCycle;
   set loginRewardCycle(List<bool> newList) {
     _loginRewardCycle = newList;
     FirebaseFirestore.instance
         .collection('user_checkin_info')
         .doc(_user?.uid)
-        .update({'loginRewardCycle': newList}).then((value) {
-      notifyListeners();
-    });
+        .update(
+            {'loginRewardCycle': newList, 'lastUpdateTime': DateTime.now()});
   }
 
-  void isHaveCheckinReward() {
-    haveCheckinReward = false;
-    DateTime startDay =
-        DateTime(_cycleStartDay.year, _cycleStartDay.month, _cycleStartDay.day);
-    int difference = DateTime.now().difference(startDay).inDays;
-
-    // is difference >= 28 is a new 4 week loop reset startday to now
-    if (difference >= 28) cycleStartDay = DateTime.now();
-    // if difference >= 7 is a new week
-    int newWeek = difference ~/ 7;
-    if (currentWeek != newWeek) {
-      loginCycle = List.generate(7, (index) => false);
-      loginRewardCycle = List.generate(7, (index) => false);
-      currentWeek = newWeek;
-    }
-
-    // set the cycle login day to true then check if have reward to get
-    _loginCycle[difference.remainder(7)] = true;
-    loginCycle = _loginCycle;
-    for (int i = 0; i < 7; i++) {
-      if (_loginCycle[i] && !loginRewardCycle[i]) {
-        haveCheckinReward = true;
-      }
-    }
+  bool _haveCheckinReward = false;
+  bool get haveCheckinReward => _haveCheckinReward;
+  set haveCheckinReward(bool value) {
+    _haveCheckinReward = value;
     notifyListeners();
   }
 
-  void isHaveAccumulatePlayReward() {
+  /// update checkin cycle also indicate that if there is any reward to receive
+  void isHaveCheckinReward() {
     DateTime startDay =
         DateTime(_cycleStartDay.year, _cycleStartDay.month, _cycleStartDay.day);
-    int diff = DateTime.now().difference(startDay).inDays;
-    if (_accumulatePlayTime[diff.remainder(7)] > 30) {
-      haveAccumulatePlayReward = true;
+    DateTime currentTime = DateTime.now();
+    int differenceInDays =
+        DateTime(currentTime.year, currentTime.month, currentTime.day)
+            .difference(startDay)
+            .inDays;
+
+    //* is difference >= 28 is a new 4 week loop reset startday to now
+    if (differenceInDays >= 28) _cycleStartDay = DateTime.now();
+
+    //* if difference >= 7 is a new week
+    int newWeek = differenceInDays ~/ 7;
+    if (_currentWeek != newWeek) {
+      //* reset week data because it is a new week
+      loginCycle = List.filled(7, false);
+      loginRewardCycle = List.filled(7, false);
+      currentWeek = newWeek;
     }
+
+    //* set the cycle login day to true then check if have reward to get
+    _loginCycle[differenceInDays.remainder(7)] = true;
+    loginCycle = _loginCycle;
+    if (listEquals(loginCycle, loginRewardCycle) == false) {
+      haveCheckinReward = true;
+    }
+    // notifyListeners();
   }
 
-  int calculateReward() {
-    int reward = 0;
-    for (int i = 0; i < 7; i++) {
-      if (_loginCycle[i] && !_loginRewardCycle[i]) {
-        reward += (i + 1) * 100;
-      }
-    }
-    return reward;
+  List<String> _bonusRewardCycle = List.filled(3, 'unqualification');
+  List<String> get bonusRewardCycle => _bonusRewardCycle;
+  set bonusRewardCycle(List<String> newList) {
+    _bonusRewardCycle = newList;
+    FirebaseFirestore.instance
+        .collection('user_checkin_info')
+        .doc(_user?.uid)
+        .update(
+            {'bonusRewardCycle': newList, 'lastUpdateTime': DateTime.now()});
   }
 
+  List<int> _maxPlayTime = List.filled(7, 0);
+  List<int> get maxPlayTime => _maxPlayTime;
+  set maxPlayTime(List<int> newList) {
+    _maxPlayTime = newList;
+    FirebaseFirestore.instance
+        .collection('user_checkin_info')
+        .doc(_user?.uid)
+        .update({'maxPlayTime': newList, 'lastUpdateTime': DateTime.now()});
+  }
+
+  List<int> _accumulatePlayTime = List.filled(7, 0);
+  List<int> get accumulatePlayTime => _accumulatePlayTime;
+  set accumulatePlayTime(List<int> newList) {
+    _accumulatePlayTime = newList;
+    FirebaseFirestore.instance
+        .collection('user_checkin_info')
+        .doc(_user?.uid)
+        .update(
+            {'accumulatePlayTime': newList, 'lastUpdateTime': DateTime.now()});
+  }
+
+  bool _haveBonusReward = false;
+  bool get haveBonusReward => _haveBonusReward;
+  set haveBonusReward(bool value) {
+    _haveBonusReward = value;
+    notifyListeners();
+  }
+
+  void isHaveBonusReward() {
+    DateTime startDay =
+        DateTime(_cycleStartDay.year, _cycleStartDay.month, _cycleStartDay.day);
+    DateTime currentTime = DateTime.now();
+    int differenceInDays =
+        DateTime(currentTime.year, currentTime.month, currentTime.day)
+            .difference(startDay)
+            .inDays;
+    //* if difference >= 7 is a new week
+    int newWeek = differenceInDays ~/ 7;
+    if (_currentWeek != newWeek) {
+      //* reset week data because it is a new week
+      bonusRewardCycle = List.filled(3, 'unqualification');
+      maxPlayTime = List.filled(7, 0);
+      accumulatePlayTime = List.filled(7, 0);
+    }
+    bool hasBonusReward = false;
+    if (maxPlayTime.any((element) => element >= 30) &&
+        bonusRewardCycle[0] == 'unqualification') {
+      bonusRewardCycle[0] = 'uncollected';
+      hasBonusReward = true;
+    }
+
+    if (accumulatePlayTime.where((element) => element >= 5).length >= 3 &&
+        bonusRewardCycle[1] == 'unqualification') {
+      bonusRewardCycle[1] = 'uncollected';
+      hasBonusReward = true;
+    }
+
+    if (maxPlayTime.where((element) => element >= 30).length >= 3 &&
+        bonusRewardCycle[2] == 'unqualification') {
+      bonusRewardCycle[2] = 'uncollected';
+      hasBonusReward = true;
+    }
+    if (hasBonusReward) haveBonusReward = true;
+  }
+
+  /// if user tapped the reward image it will call this functinon to handle
+  /// the change in database and return the reward user will get
   int updateRewardStatus(int index) {
     int reward = 0;
+    //* if user have logged in but have not claimed the reward
     if (_loginCycle[index] && !_loginRewardCycle[index]) {
-      dynamic tmp = _loginRewardCycle;
+      List<bool> tmp = List.from(_loginRewardCycle);
       tmp[index] = true;
       loginRewardCycle = tmp;
       reward = (index + 1) * 100;
     }
-    isHaveCheckinReward();
+    if (listEquals(_loginCycle, _loginRewardCycle)) {
+      haveCheckinReward = false;
+      // notifyListeners();
+    }
     return reward;
   }
 }

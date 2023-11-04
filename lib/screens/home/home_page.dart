@@ -1,7 +1,8 @@
-import 'package:audioplayers/audioplayers.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:cognitive_training/audio/audio_controller.dart';
 import 'package:cognitive_training/constants/globals.dart';
+import 'package:cognitive_training/constants/home_page_const.dart';
+import 'package:cognitive_training/constants/login_page_const.dart';
 import 'package:cognitive_training/models/user_checkin_provider.dart';
 import 'package:cognitive_training/models/user_info_provider.dart';
 import 'package:cognitive_training/screens/games/shared/exit_button_template.dart';
@@ -40,30 +41,6 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   List<double> xPositions = [-0.95, -0.3166, 0.3166, 0.95];
   int? chosenGame;
   String? chosenLanguage;
-  List<String> gameImagePaths = [
-    'assets/images/home_page/choosing_game_lottery.png',
-    'assets/images/home_page/choosing_game_fishing.png',
-    'assets/images/home_page/choosing_game_poker.png',
-    'assets/images/home_page/choosing_game_route.png',
-  ];
-  List<String> gameName = [
-    '樂透彩券',
-    '釣魚',
-    '撲克牌',
-    '路線規劃',
-  ];
-  List<String> gameDescriptionString = [
-    '廟裡的神明會給你一組樂透彩券號碼，將號碼記憶下來，去彩券行下注贏取獎金!想成為樂透得主嗎？那就試著記下中獎號碼吧！',
-    '到海邊釣魚，水面上漣漪越大，水底下的魚越大。選擇正確的釣竿，一起來釣大魚吧！',
-    '公園散步巧遇朋友，展開一場撲克牌遊戲，想在這場遊戲中勝利，就要選擇適合的牌打出去！一起來挑戰吧！',
-    '接到家人的電話請求幫忙出門辦事。請用最快的速度完成家人交辦的各項任務，再回到家中！我們出發吧！',
-  ];
-  List<String> gameTrainingArea = [
-    '注意力/工作記憶',
-    '執行功能',
-    '注意力',
-    '執行功能',
-  ];
 
   List<String> gameRoutes = [
     'lottery_game_menu',
@@ -98,10 +75,14 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     }
   }
 
+  void playTutorialAudio(int step) {
+    _audioController.playInstructionRecord(HomePageConst.tutorialAudio[step]);
+  }
+
   @override
   Widget build(BuildContext context) {
-    userInfoProvider = Provider.of<UserInfoProvider>(context);
-    userCheckinProvider = Provider.of<UserCheckinProvider>(context);
+    userInfoProvider = context.read<UserInfoProvider>();
+    userCheckinProvider = context.read<UserCheckinProvider>();
     final settings = context.watch<SettingsController>();
     chosenLanguage = settings.language.value;
     _audioController = context.read<AudioController>();
@@ -116,7 +97,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
         body: Container(
           decoration: const BoxDecoration(
             image: DecorationImage(
-              image: AssetImage('assets/global/login_background_1.jpeg'),
+              image: AssetImage(LoginPageConst.loginBackground),
               fit: BoxFit.fitWidth,
               opacity: 0.3,
             ),
@@ -131,8 +112,8 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                     isChosen = List.generate(4, (index) => false);
                     chosenGame = null;
                     _homeTutorial.isTutorial = true;
-                    _audioController.playInstructionRecord(
-                        'tutorial/self_introduction.m4a');
+                    _audioController
+                        .playInstructionRecord(HomePageConst.tutorialAudio[0]);
                   });
                 },
                 child: _homeTutorial.tutorialButton(),
@@ -196,7 +177,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                   child: Row(
                     children: [
                       Image.asset(
-                        'assets/global/coin_without_tap.png',
+                        Globals.coinWithoutTap,
                         fit: BoxFit.contain,
                       ),
                       Expanded(
@@ -323,7 +304,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                               icon: Icon(
                                 Icons.calendar_today_outlined,
                                 color: checkinProvider.haveCheckinReward ||
-                                        checkinProvider.haveAccumulatePlayReward
+                                        checkinProvider.haveBonusReward
                                     ? Colors.amber
                                     : Colors.black,
                               ),
@@ -339,8 +320,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                                   fontSize: 100,
                                   color: Colors.red.withOpacity(
                                       checkinProvider.haveCheckinReward ||
-                                              checkinProvider
-                                                  .haveAccumulatePlayReward
+                                              checkinProvider.haveBonusReward
                                           ? 1
                                           : 0),
                                 ),
@@ -437,7 +417,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                       Align(
                         alignment: Alignment.centerRight,
                         child: ExitButton(callBackFunction: () {
-                          _audioController.stopAudio();
+                          _audioController.stopPlayingInstruction();
                           setState(() {
                             isChosen[isChosen.indexOf(true)] = false;
                           });
@@ -448,19 +428,19 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                 ),
                 Expanded(
                   flex: 8,
-                  child: FractionallySizedBox(
-                    widthFactor: 0.8,
-                    heightFactor: 0.9,
-                    child: AutoSizeText(
-                      chosenGame != null
-                          ? gameDescriptionString[chosenGame!]
-                          : '',
-                      style: const TextStyle(
-                          fontSize: 1000,
-                          color: Colors.black,
-                          fontFamily: 'GSR_B'),
-                    ),
-                  ),
+                  child: chosenGame != null
+                      ? FractionallySizedBox(
+                          widthFactor: 0.8,
+                          heightFactor: 0.9,
+                          child: AutoSizeText(
+                            HomePageConst.gameDescription[chosenGame!],
+                            style: const TextStyle(
+                                fontSize: 1000,
+                                color: Colors.black,
+                                fontFamily: 'GSR_B'),
+                          ),
+                        )
+                      : Container(),
                 ),
                 Expanded(
                   flex: 3,
@@ -495,17 +475,19 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                 ),
                 Expanded(
                   flex: 2,
-                  child: FractionallySizedBox(
-                    widthFactor: 0.8,
-                    heightFactor: 0.9,
-                    child: AutoSizeText(
-                      chosenGame != null ? gameTrainingArea[chosenGame!] : '',
-                      style: const TextStyle(
-                          fontSize: 1000,
-                          color: Colors.black,
-                          fontFamily: 'GSR_B'),
-                    ),
-                  ),
+                  child: chosenGame != null
+                      ? FractionallySizedBox(
+                          widthFactor: 0.8,
+                          heightFactor: 0.9,
+                          child: AutoSizeText(
+                            HomePageConst.gameTrainingArea[chosenGame!],
+                            style: const TextStyle(
+                                fontSize: 1000,
+                                color: Colors.black,
+                                fontFamily: 'GSR_B'),
+                          ),
+                        )
+                      : Container(),
                 ),
               ],
             ),
@@ -515,35 +497,32 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     );
   }
 
+  void nextTutorialProgress() {
+    setState(() {
+      if (_homeTutorial.tutorialProgress < 2) {
+        _homeTutorial.tutorialProgress++;
+        if (_homeTutorial.tutorialProgress == 1) {
+          chosenGame = 0;
+          playTutorialAudio(_homeTutorial.tutorialProgress);
+        } else if (_homeTutorial.tutorialProgress == 2) {
+          isChosen[0] = true;
+          playTutorialAudio(_homeTutorial.tutorialProgress);
+        }
+      } else {
+        _audioController.stopPlayingInstruction();
+        Future.delayed(const Duration(milliseconds: 500), () {
+          _homeTutorial.tutorialProgress = 0;
+        });
+        isChosen = List.generate(4, (index) => false);
+        _homeTutorial.isTutorial = false;
+      }
+    });
+  }
+
   IgnorePointer continueButton() {
     return IgnorePointer(
       ignoring: !_homeTutorial.isTutorial,
-      child: GestureDetector(
-        onTap: () {
-          setState(() {
-            if (_homeTutorial.tutorialProgress < 2) {
-              _homeTutorial.tutorialProgress++;
-              if (_homeTutorial.tutorialProgress == 1) {
-                chosenGame = 0;
-                _audioController
-                    .playInstructionRecord('tutorial/choose_game.m4a');
-              } else if (_homeTutorial.tutorialProgress == 2) {
-                isChosen[0] = true;
-                _audioController
-                    .playInstructionRecord('tutorial/start_game.m4a');
-              }
-            } else {
-              _audioController.stopAudio();
-              Future.delayed(const Duration(milliseconds: 500), () {
-                _homeTutorial.tutorialProgress = 0;
-              });
-              isChosen = List.generate(4, (index) => false);
-              _homeTutorial.isTutorial = false;
-            }
-          });
-        },
-        child: _homeTutorial.getContinueButton(),
-      ),
+      child: _homeTutorial.getContinueButton(callback: nextTutorialProgress),
     );
   }
 
@@ -598,17 +577,19 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
             child: GestureDetector(
               onTap: () {
                 if (!_homeTutorial.isTutorial) {
-                  final audioController = context.read<AudioController>();
                   setState(() {
                     if (isChosen.contains(true)) {
                       if (isChosen.indexOf(true) == gameIndex) {
                         isChosen[gameIndex] = false;
-                        audioController.stopAudio();
+                        _audioController.stopPlayingInstruction();
                       }
                     } else {
                       isChosen[gameIndex] = !isChosen[gameIndex];
                       chosenGame = gameIndex;
-                      audioController.playGameDescription(gameIndex);
+                      // audioController.playGameDescription(gameIndex);
+                      _audioController.playGameDescription(gameIndex);
+                      // FlameAudio.playLongAudio(
+                      //     'home_page/chinese/fishing_game_description.m4a');
                     }
                   });
                 }
@@ -616,8 +597,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
               child: Container(
                 decoration: const BoxDecoration(
                   image: DecorationImage(
-                    image: AssetImage(
-                        'assets/images/home_page/choosing_game_banner.png'),
+                    image: AssetImage(HomePageConst.choosingGameBanner),
                     fit: BoxFit.contain,
                   ),
                 ),
@@ -628,7 +608,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                       child: FractionallySizedBox(
                         heightFactor: 0.2,
                         child: AutoSizeText(
-                          Globals.gameName[gameIndex],
+                          HomePageConst.gameName[gameIndex],
                           textAlign: TextAlign.center,
                           style: const TextStyle(fontSize: 100),
                         ),
@@ -640,7 +620,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                         heightFactor: 0.44,
                         widthFactor: 0.885,
                         child: Image.asset(
-                          Globals.gameImagePaths[gameIndex],
+                          HomePageConst.gameImagePaths[gameIndex],
                           fit: BoxFit.contain,
                         ),
                       ),
@@ -762,11 +742,11 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       lostConnectionDialog(context);
     } else if (!_homeTutorial.isTutorial) {
       final audioController = context.read<AudioController>();
-      audioController.stopAudio();
+      audioController.stopPlayingInstruction();
       String route = gameRoutes[isChosen.indexOf(true)];
       GoRouter.of(context).pushNamed(route);
     }
-    _audioController.playPathAudio(Globals.clickButtonSound);
+    _audioController.playSfx(Globals.clickButtonSound);
   }
 }
 
@@ -783,7 +763,7 @@ class HomePageTitle extends StatelessWidget {
         heightFactor: 0.15,
         widthFactor: 0.5,
         child: Image.asset(
-          'assets/images/home_page/choosing_game_title.png',
+          HomePageConst.choosingGameTitle,
           fit: BoxFit.contain,
         ),
       ),

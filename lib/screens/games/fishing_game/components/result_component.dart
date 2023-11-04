@@ -2,11 +2,9 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:cognitive_training/constants/fishing_game_const.dart';
-import 'package:cognitive_training/constants/globals.dart';
 import 'package:flame/components.dart';
 import 'package:flame/effects.dart';
 import 'package:flutter/material.dart';
-import 'package:logger/logger.dart';
 import '../fishing_game.dart';
 
 enum ResultType {

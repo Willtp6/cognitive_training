@@ -1,13 +1,10 @@
 import 'dart:async';
 import 'dart:math';
-
-import 'package:audioplayers/audioplayers.dart';
-import 'package:auto_size_text/auto_size_text.dart';
 import 'package:cognitive_training/audio/audio_controller.dart';
-import 'package:cognitive_training/firebase/record_game.dart';
+import 'package:cognitive_training/constants/globals.dart';
+import 'package:cognitive_training/constants/poker_game_const.dart';
 import 'package:cognitive_training/models/user_info_provider.dart';
 import 'package:cognitive_training/models/user_model.dart';
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:logger/logger.dart';
@@ -15,6 +12,15 @@ import 'package:provider/provider.dart';
 import 'poker_game_instance.dart';
 import 'poker_game_tutorial.dart';
 import '../../../shared/button_with_text.dart';
+import 'widgets/alarm_clock.dart';
+import 'widgets/chosen_card.dart';
+import 'widgets/coin_animation.dart';
+import 'widgets/computer_handcard.dart';
+import 'widgets/no_card_button.dart';
+import 'widgets/player_hand_card.dart';
+import 'widgets/poker_game_rule.dart';
+import 'widgets/response_word.dart';
+import 'widgets/showed_coins.dart';
 
 class PokerGameScene extends StatefulWidget {
   PokerGameScene(
@@ -29,7 +35,7 @@ class PokerGameScene extends StatefulWidget {
   final int historyContinuousLose;
 
   bool isTutorial;
-  var responseTimeList;
+  List<int> responseTimeList;
   @override
   State<PokerGameScene> createState() => _PokerGameStateScene();
 }
@@ -43,6 +49,8 @@ class _PokerGameStateScene extends State<PokerGameScene>
   late GameInstance game;
   late AudioController audioController;
   Timer? timer;
+  Timer? timerForDelayingResult;
+  Timer? timerForDelayingRoundresult;
   bool isPlayerTurn = false;
   bool showWord = false;
   late UserInfoProvider userInfoProvider;
@@ -67,7 +75,7 @@ class _PokerGameStateScene extends State<PokerGameScene>
       vsync: this,
     );
     _controllerChangeMoney = AnimationController(
-      duration: const Duration(milliseconds: 750),
+      duration: const Duration(milliseconds: 1400),
       vsync: this,
     );
     game = GameInstance(
@@ -86,7 +94,10 @@ class _PokerGameStateScene extends State<PokerGameScene>
     _controllerChosenComputer.dispose();
     _controllerChangeMoney.dispose();
     timer?.cancel();
-    audioController.stopAudio();
+    timerForDelayingResult?.cancel();
+    timerForDelayingRoundresult?.cancel();
+    audioController.stopPlayingInstruction();
+    audioController.stopAllSfx();
     super.dispose();
   }
 
@@ -121,7 +132,7 @@ class _PokerGameStateScene extends State<PokerGameScene>
     setState(() {
       game.putBack();
       showWord = false;
-      game.backgroundPath = 'assets/poker_game/scene/play_board.png';
+      game.backgroundPath = PokerGameConst.backgroundImage;
       isPlayerTurn = false;
     });
     switch (game.gameLevelChange()) {
@@ -136,21 +147,21 @@ class _PokerGameStateScene extends State<PokerGameScene>
         break;
       case 1:
         Logger().i('level upgrade');
-        _showLevelUpgradeDialog().then((value) {
+        _showLevelChangedDialog(upgrade: true).then((value) {
           setState(() {
             game.cardDealed = false;
-            String path = game.getRulePath();
-            audioController.playInstructionRecord('poker_game/$path');
+            final path = game.getRulePath();
+            audioController.playInstructionRecord(path);
           });
         });
         break;
       case 2:
         Logger().i('level downgrade');
-        _showLevelDowngradeDialog().then((value) {
+        _showLevelChangedDialog(upgrade: false).then((value) {
           setState(() {
             game.cardDealed = false;
-            String path = game.getRulePath();
-            audioController.playInstructionRecord('poker_game/$path');
+            final path = game.getRulePath();
+            audioController.playInstructionRecord(path);
           });
         });
         break;
@@ -188,70 +199,90 @@ class _PokerGameStateScene extends State<PokerGameScene>
   }
 
   void timeLimitExceeded() {
+    audioController.stopPlayingInstruction();
+    audioController.stopAllSfx();
+    //* set board first to prevent any other interaction
     setState(() {
       isPlayerTurn = false;
       game.isChosen.fillRange(0, game.isChosen.length, false);
-      playerCoinChange = "-${game.coinLose[game.gameLevel]}";
-      opponentCoinChange = "+${game.coinWin[game.gameLevel]}";
     });
+    //* get the value about reward & penalty
+    //* also change money in database here
+    //* although the animation hasn't start yet while the value won't change before setstate called
+    //* thus the value of money is always correct and seperate by the aniamtion status
+    playerCoinChange = "-${game.coinLose[game.gameLevel]}";
+    opponentCoinChange = "+${game.coinWin[game.gameLevel]}";
+    userInfoProvider.coins -= game.coinLose[game.gameLevel];
+    game.opponentCoin += game.coinWin[game.gameLevel];
+    //* start the animation for money value change
     _controllerChangeMoney.reset();
     _controllerChangeMoney.forward();
-    Future.delayed(const Duration(milliseconds: 750), () {
+    //todo modify this to prevent from setstate after dispose
+    timerForDelayingResult = Timer(const Duration(milliseconds: 750), () {
       setState(() {
-        game.resultType = ResultType.none;
-        userInfoProvider.coins -= game.coinLose[game.gameLevel];
-        game.opponentCoin += game.coinWin[game.gameLevel];
+        game.resultType = ResultType.lose;
         game.continuousWinLose();
         game.recordGame();
-        audioController.playPokerGameSoundEffect('player_lose.mp3');
-        game.backgroundPath = 'assets/poker_game/scene/player_lose.png';
+        audioController.playSfx(PokerGameConst.loseSfx);
+        game.backgroundPath = PokerGameConst.playerLoseBackground;
         showWord = true;
       });
     });
-    Future.delayed(const Duration(seconds: 2, milliseconds: 500), () {
+    // Future.delayed(const Duration(milliseconds: 750), () {
+
+    // });
+    timerForDelayingRoundresult =
+        Timer(const Duration(seconds: 2, milliseconds: 500), () {
       roundResult();
     });
+    // Future.delayed(const Duration(seconds: 2, milliseconds: 500), () {
+    //   roundResult();
+    // });
   }
 
   void settlement() {
-    audioController.stopAudio();
-    game.getResult();
+    audioController.stopPlayingInstruction();
+    audioController.stopAllSfx();
     setState(() {
-      if (game.resultType == ResultType.win) {
-        playerCoinChange = "+${game.coinWin[game.gameLevel]}";
-        opponentCoinChange = "-${game.coinLose[game.gameLevel]}";
-      } else if (game.resultType == ResultType.lose) {
-        playerCoinChange = "-${game.coinLose[game.gameLevel]}";
-        opponentCoinChange = "+${game.coinWin[game.gameLevel]}";
-      } else if (game.resultType == ResultType.tie) {
-        playerCoinChange = "+0";
-        opponentCoinChange = "-0";
-      }
-      _controllerChangeMoney.reset();
-      _controllerChangeMoney.forward();
+      game.getResult();
     });
-
-    Future.delayed(const Duration(milliseconds: 750), () {
+    //* get the value about reward & penalty
+    //* also change money in database here
+    //* although the animation hasn't start yet while the value won't change before setstate called
+    //* thus the value of money is always correct and seperate by the aniamtion status
+    if (game.resultType == ResultType.win) {
+      playerCoinChange = "+${game.coinWin[game.gameLevel]}";
+      opponentCoinChange = "-${game.coinLose[game.gameLevel]}";
+      userInfoProvider.coins += game.coinWin[game.gameLevel];
+      game.opponentCoin -= game.coinLose[game.gameLevel];
+    } else if (game.resultType == ResultType.lose) {
+      playerCoinChange = "-${game.coinLose[game.gameLevel]}";
+      opponentCoinChange = "+${game.coinWin[game.gameLevel]}";
+      userInfoProvider.coins -= game.coinLose[game.gameLevel];
+      game.opponentCoin += game.coinWin[game.gameLevel];
+    } else if (game.resultType == ResultType.tie) {
+      playerCoinChange = "+0";
+      opponentCoinChange = "-0";
+    }
+    //* start animation
+    _controllerChangeMoney.reset();
+    _controllerChangeMoney.forward();
+    timerForDelayingResult = Timer(const Duration(milliseconds: 750), () {
       setState(() {
-        String path;
         if (game.resultType == ResultType.win) {
-          userInfoProvider.coins += game.coinWin[game.gameLevel];
-          game.opponentCoin -= game.coinLose[game.gameLevel];
-          path = 'player_win.wav';
-          audioController.playPokerGameSoundEffect(path);
-          game.backgroundPath = 'assets/poker_game/scene/player_win.png';
+          audioController.playSfx(PokerGameConst.winSfx);
+          game.backgroundPath = PokerGameConst.playerWinBackground;
           showWord = true;
         } else if (game.resultType == ResultType.lose) {
-          userInfoProvider.coins -= game.coinLose[game.gameLevel];
-          game.opponentCoin += game.coinWin[game.gameLevel];
-          path = 'player_lose.mp3';
-          audioController.playPokerGameSoundEffect(path);
-          game.backgroundPath = 'assets/poker_game/scene/player_lose.png';
+          audioController.playSfx(PokerGameConst.loseSfx);
+          game.backgroundPath = PokerGameConst.playerLoseBackground;
           showWord = true;
         }
       });
     });
-    Future.delayed(const Duration(seconds: 2, milliseconds: 500), () {
+
+    timerForDelayingRoundresult =
+        Timer(const Duration(seconds: 2, milliseconds: 500), () {
       roundResult();
     });
   }
@@ -301,18 +332,11 @@ class _PokerGameStateScene extends State<PokerGameScene>
 
   @override
   Widget build(BuildContext context) {
-    userInfoProvider = Provider.of<UserInfoProvider>(context);
+    userInfoProvider = context.read<UserInfoProvider>();
     audioController = context.read<AudioController>();
     return SafeArea(
       child: WillPopScope(
-        onWillPop: () async {
-          audioController.pauseAudio();
-          if (isTutorialModePop()) {
-            return await _showSkipTutorialDialog();
-          } else {
-            return await _showAlertDialog();
-          }
-        },
+        onWillPop: () async => false,
         child: Scaffold(
           body: SizedBox(
             child: Container(
@@ -324,8 +348,8 @@ class _PokerGameStateScene extends State<PokerGameScene>
               ),
               child: Stack(
                 children: [
-                  opponentCoin(),
-                  playerCoin(),
+                  OpponentCoin(game: game),
+                  const PlayerCoin(),
                   if (widget.isTutorial &&
                       _pokerGameTutorial.tutorialProgress <= 4) ...[
                     Container(
@@ -338,15 +362,17 @@ class _PokerGameStateScene extends State<PokerGameScene>
                     pokerGameTutorial: _pokerGameTutorial,
                     callback: startGame,
                   ),
-                  computerHandCard(),
-                  if (game.computerCard != null) ...[
-                    computerChosenCard(game.computerCard!),
-                  ],
-                  if (game.playerCard != null) ...[
-                    playerChosenCard(game.playerCard!),
-                  ],
+                  ComputerHandCard(
+                    game: game,
+                    controllerChosenComputer: _controllerChosenComputer,
+                    controller: _controller,
+                  ),
+                  ComputerChosenCard(card: game.computerCard),
+                  PlayerChosenCard(card: game.playerCard),
                   if (isPlayerTurn) ...[
-                    noCardButton(),
+                    NoCardButton(
+                      callBack: noCardCallBack,
+                    ),
                     if (widget.isTutorial &&
                         (_pokerGameTutorial.tutorialProgress == 5 ||
                             _pokerGameTutorial.tutorialProgress == 6)) ...[
@@ -372,7 +398,59 @@ class _PokerGameStateScene extends State<PokerGameScene>
                         ),
                       )
                   ],
-                  playerHandCard(),
+                  // PlayerHandCard(
+                  //   game: game,
+                  //   controllerChosenPlayer: _controllerChosenPlayer,
+                  //   controller: _controller,
+                  //   callback: playerCardOnTap,
+                  // ),
+                  Align(
+                    alignment: const Alignment(0.0, 0.8),
+                    child: FractionallySizedBox(
+                      heightFactor: 0.25,
+                      widthFactor: 0.8,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          for (int i = 0; i < game.player.hand.length; i++) ...[
+                            Flexible(
+                              child: SlideTransition(
+                                position: game.isChosen[i]
+                                    ? Tween(
+                                            begin: const Offset(0.0, -0.2),
+                                            end: const Offset(0.0, 0.0))
+                                        .animate(_controllerChosenPlayer)
+                                    : Tween(
+                                            begin: const Offset(0.0, 0.0),
+                                            end: const Offset(0.0, -0.2))
+                                        .animate(_controllerChosenPlayer),
+                                child: GestureDetector(
+                                  onTap: () {
+                                    playerCardOnTap(i);
+                                  },
+                                  child: Image.asset(
+                                    PokerGameConst.cardImageList[game
+                                        .player
+                                        .hand[i]
+                                        .suit]![game.player.hand[i].rank - 1],
+                                    opacity: Tween(begin: 0.0, end: 1.0)
+                                        .chain(CurveTween(
+                                            curve: Interval(
+                                                i / game.player.hand.length,
+                                                (i + 1) /
+                                                    game.player.hand.length)))
+                                        .chain(ReverseTween(
+                                            Tween(begin: 1.0, end: 0.0)))
+                                        .animate(_controller),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                  ),
                   if (widget.isTutorial &&
                       _pokerGameTutorial.tutorialProgress == 7) ...[
                     Container(
@@ -380,7 +458,7 @@ class _PokerGameStateScene extends State<PokerGameScene>
                     )
                   ],
                   if (showWord) ...[
-                    responseWord(),
+                    ResponseWord(game: game),
                   ],
                   OpponentCoinAnimation(
                       controller: _controllerChangeMoney,
@@ -408,42 +486,6 @@ class _PokerGameStateScene extends State<PokerGameScene>
     );
   }
 
-  Align computerChosenCard(PokerCard card) {
-    return Align(
-      alignment: const Alignment(-0.05, 0.25),
-      child: FractionallySizedBox(
-        heightFactor: 0.15,
-        child: Transform(
-          alignment: FractionalOffset.center,
-          transform: Matrix4.identity()
-            ..rotateX(0.5)
-            ..rotateZ(0.5),
-          child: Image.asset(
-            'assets/poker_game/card/${card.suit}_${card.rank}.png',
-          ),
-        ),
-      ),
-    );
-  }
-
-  Align playerChosenCard(PokerCard card) {
-    return Align(
-      alignment: const Alignment(0.05, 0.25),
-      child: FractionallySizedBox(
-        heightFactor: 0.15,
-        child: Transform(
-          alignment: FractionalOffset.center,
-          transform: Matrix4.identity()
-            ..rotateX(0.5)
-            ..rotateZ(-0.5),
-          child: Image.asset(
-            'assets/poker_game/card/${card.suit}_${card.rank}.png',
-          ),
-        ),
-      ),
-    );
-  }
-
   void chooseCard() {
     setState(() {
       isPlayerTurn = false;
@@ -461,166 +503,19 @@ class _PokerGameStateScene extends State<PokerGameScene>
     settlement();
   }
 
-  Align noCardButton() {
-    return Align(
-      alignment: const Alignment(-0.9, 0.2),
-      child: FractionallySizedBox(
-          heightFactor: 0.15,
-          child: ButtonWithText(text: '沒有', onTapFunction: noCardCallBack)),
-    );
-  }
-
-  Align responseWord() {
-    return Align(
-      alignment: const Alignment(-0.6, -0.5),
-      child: FractionallySizedBox(
-        heightFactor: 0.25,
-        widthFactor: 0.3,
-        child: AspectRatio(
-          aspectRatio: 1077 / 352,
-          child: Image.asset(game.resultType == ResultType.win
-              ? 'assets/poker_game/scene/win_word.png'
-              : 'assets/poker_game/scene/lose_word.png'),
-        ),
-      ),
-    );
-  }
-
-  Align playerHandCard() {
-    return Align(
-      alignment: const Alignment(0.0, 0.8),
-      child: FractionallySizedBox(
-        heightFactor: 0.25,
-        widthFactor: 0.8,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            for (int i = 0; i < game.player.hand.length; i++) ...[
-              Flexible(
-                child: SlideTransition(
-                  position: game.isChosen[i]
-                      ? Tween(
-                              begin: const Offset(0.0, -0.2),
-                              end: const Offset(0.0, 0.0))
-                          .animate(_controllerChosenPlayer)
-                      : Tween(
-                              begin: const Offset(0.0, 0.0),
-                              end: const Offset(0.0, -0.2))
-                          .animate(_controllerChosenPlayer),
-                  child: GestureDetector(
-                    onTap: () {
-                      if (isPlayerTurn) {
-                        if (!game.isChosen[i]) {
-                          setState(() {
-                            game.isChosen
-                                .fillRange(0, game.isChosen.length, false);
-                            game.isChosen[i] = true;
-                          });
-                        } else {
-                          setState(() {
-                            game.isChosen
-                                .fillRange(0, game.isChosen.length, false);
-                          });
-                        }
-                      }
-                    },
-                    child: Image.asset(
-                      'assets/poker_game/card/${game.player.hand[i].suit}_${game.player.hand[i].rank}.png',
-                      opacity: Tween(begin: 0.0, end: 1.0)
-                          .chain(CurveTween(
-                              curve: Interval(i / game.player.hand.length,
-                                  (i + 1) / game.player.hand.length)))
-                          .chain(ReverseTween(Tween(begin: 1.0, end: 0.0)))
-                          .animate(_controller),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ],
-        ),
-      ),
-    );
-  }
-
-  Align computerHandCard() {
-    return Align(
-      alignment: const Alignment(0.0, -0.2),
-      child: FractionallySizedBox(
-        heightFactor: 0.2,
-        widthFactor: 0.8,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            for (int i = 0; i < game.computer.hand.length; i++) ...[
-              Flexible(
-                child: SlideTransition(
-                  position: game.isChosenComputer[i]
-                      ? Tween(
-                              begin: const Offset(0.0, -0.2),
-                              end: const Offset(0.0, 0.0))
-                          .animate(_controllerChosenComputer)
-                      : Tween(
-                              begin: const Offset(0.0, 0.0),
-                              end: const Offset(0.0, -0.2))
-                          .animate(_controllerChosenComputer),
-                  child: Image.asset('assets/poker_game/card/card_back.png',
-                      opacity: Tween(begin: 0.0, end: 1.0)
-                          .chain(CurveTween(
-                              curve: Interval(i / game.computer.hand.length,
-                                  (i + 1) / game.computer.hand.length)))
-                          .animate(_controller)),
-                ),
-              ),
-            ],
-          ],
-        ),
-      ),
-    );
-  }
-
-  Align playerCoin() {
-    return Align(
-      alignment: const Alignment(0.65, -0.825),
-      child: FractionallySizedBox(
-        heightFactor: 0.08,
-        widthFactor: 0.1,
-        child: Consumer<UserInfoProvider>(builder: (context, provider, child) {
-          return Center(
-            child: AutoSizeText(
-              provider.coins.toString(),
-              style: const TextStyle(
-                color: Colors.white,
-                fontFamily: 'GSR_B',
-                fontSize: 100,
-              ),
-              textAlign: TextAlign.end,
-            ),
-          );
-        }),
-      ),
-    );
-  }
-
-  Align opponentCoin() {
-    return Align(
-      alignment: const Alignment(-0.625, -0.825),
-      child: FractionallySizedBox(
-        heightFactor: 0.08,
-        widthFactor: 0.1,
-        child: Center(
-          child: AutoSizeText(
-            game.opponentCoin.toString(),
-            style: const TextStyle(
-              color: Colors.white,
-              fontFamily: 'GSR_B',
-              fontSize: 100,
-            ),
-            textAlign: TextAlign.end,
-          ),
-        ),
-      ),
-    );
+  void playerCardOnTap(int index) {
+    if (isPlayerTurn) {
+      if (!game.isChosen[index]) {
+        setState(() {
+          game.isChosen.fillRange(0, game.isChosen.length, false);
+          game.isChosen[index] = true;
+        });
+      } else {
+        setState(() {
+          game.isChosen.fillRange(0, game.isChosen.length, false);
+        });
+      }
+    }
   }
 
   Align exitButton() {
@@ -631,11 +526,11 @@ class _PokerGameStateScene extends State<PokerGameScene>
         child: AspectRatio(
           aspectRatio: 1,
           child: GestureDetector(
-            onTap: () async {
+            onTap: () {
               if (isTutorialModePop()) {
-                if (await _showSkipTutorialDialog()) context.pop();
+                _showAlertDialog(isTutorial: true);
               } else {
-                if (await _showAlertDialog()) context.pop();
+                _showAlertDialog();
               }
             },
             child: Container(
@@ -704,22 +599,22 @@ class _PokerGameStateScene extends State<PokerGameScene>
     );
   }
 
-  Future<void> _showLevelUpgradeDialog() async {
+  Future<void> _showLevelChangedDialog({bool upgrade: true}) async {
     return showDialog<void>(
       context: context,
       barrierDismissible: false, // user must tap button!
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Center(
+          title: Center(
               child: Text(
-            '難度提升',
-            style: TextStyle(fontFamily: 'GSR_B', fontSize: 40),
+            upgrade ? '難度提升' : '難度下降',
+            style: const TextStyle(fontFamily: 'GSR_B', fontSize: 40),
           )),
-          content: const SingleChildScrollView(
+          content: SingleChildScrollView(
             child: Center(
               child: Text(
-                '連續獲勝五次咯',
-                style: TextStyle(fontFamily: 'GSR_B', fontSize: 30),
+                upgrade ? '連續獲勝五次咯' : '連續落敗五次咯',
+                style: const TextStyle(fontFamily: 'GSR_B', fontSize: 30),
               ),
             ),
           ),
@@ -750,163 +645,31 @@ class _PokerGameStateScene extends State<PokerGameScene>
     );
   }
 
-  Future<void> _showLevelDowngradeDialog() async {
-    return showDialog<void>(
+  void _showAlertDialog({bool isTutorial = false}) {
+    audioController.pauseAudio();
+    showDialog(
       context: context,
-      barrierDismissible: false, // user must tap button!
       builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Center(
-              child: Text(
-            '難度下降',
-            style: TextStyle(fontFamily: 'GSR_B', fontSize: 40),
-          )),
-          content: const SingleChildScrollView(
-            child: Center(
-              child: Text(
-                '連續落敗五次咯',
-                style: TextStyle(fontFamily: 'GSR_B', fontSize: 30),
-              ),
-            ),
-          ),
-          actions: <Widget>[
-            TextButton(
-              child: const Text(
-                '返回選單',
-                style: TextStyle(fontFamily: 'GSR_B', fontSize: 30),
-              ),
-              onPressed: () {
-                Navigator.of(context).pop();
-                Navigator.of(context).pop();
-              },
-            ),
-            TextButton(
-              child: const Text(
-                '繼續遊戲',
-                style: TextStyle(fontFamily: 'GSR_B', fontSize: 30),
-              ),
-              onPressed: () {
-                game.shuffleBack();
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
+        return Globals.exitDialog(
+          continueCallback: () {
+            //game.isPaused = false;
+            audioController.resumeAudio();
+            // Navigator.of(context).pop(false);
+            Navigator.of(context).pop(false);
+            // context.pop();
+          },
+          exitCallback: () {
+            audioController.stopAllSfx();
+            audioController.stopPlayingInstruction();
+            //* if is tutorial mode which means skipping tutorual
+            if (isTutorial) userInfoProvider.pokerGameDoneTutorial();
+            Navigator.of(context).pop(false);
+            context.pop();
+          },
+          isTutorialMode: isTutorial,
         );
       },
     );
-  }
-
-  Future<bool> _showAlertDialog() async {
-    audioController.pauseAudio();
-    bool shouldPop = false;
-    await showDialog(
-      context: context,
-      barrierDismissible: false, // user must tap button!
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Center(
-            child: Text(
-              '確定要離開嗎?',
-              style: TextStyle(fontFamily: 'GSR_B', fontSize: 40),
-            ),
-          ),
-          // this part can put multiple messages
-          content: SingleChildScrollView(
-            child: ListBody(
-              children: const <Widget>[
-                Center(
-                  child: Text(
-                    '遊戲將不會被記錄下來喔!!!',
-                    style: TextStyle(fontFamily: 'GSR_B', fontSize: 30),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          actionsAlignment: MainAxisAlignment.center,
-          actions: <Widget>[
-            TextButton(
-              child: const Text(
-                '繼續遊戲',
-                style: TextStyle(fontFamily: 'GSR_B', fontSize: 30),
-              ),
-              onPressed: () {
-                //game.isPaused = false;
-                audioController.resumeAudio();
-                Navigator.of(context).pop(false);
-              },
-            ),
-            TextButton(
-              child: const Text(
-                '確定離開',
-                style: TextStyle(fontFamily: 'GSR_B', fontSize: 30),
-              ),
-              onPressed: () {
-                Navigator.of(context).pop(true);
-              },
-            ),
-          ],
-        );
-      },
-    ).then((value) => shouldPop = value);
-    return shouldPop;
-  }
-
-  Future<bool> _showSkipTutorialDialog() async {
-    audioController.pauseAudio();
-    bool shouldPop = false;
-    await showDialog(
-      context: context,
-      barrierDismissible: false, // user must tap button!
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Center(
-            child: Text(
-              '確定要離開嗎?',
-              style: TextStyle(fontFamily: 'GSR_B', fontSize: 40),
-            ),
-          ),
-          // this part can put multiple messages
-          content: SingleChildScrollView(
-            child: ListBody(
-              children: const <Widget>[
-                Center(
-                  child: Text(
-                    '要退出教學模式嗎?',
-                    style: TextStyle(fontFamily: 'GSR_B', fontSize: 30),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          actionsAlignment: MainAxisAlignment.center,
-          actions: <Widget>[
-            TextButton(
-              child: const Text(
-                '繼續教學',
-                style: TextStyle(fontFamily: 'GSR_B', fontSize: 30),
-              ),
-              onPressed: () {
-                //audioController.resumeAudio();
-                Navigator.of(context).pop(false);
-              },
-            ),
-            TextButton(
-              child: const Text(
-                '確定離開',
-                style: TextStyle(fontFamily: 'GSR_B', fontSize: 30),
-              ),
-              onPressed: () {
-                //audioController.stopAudio();
-                userInfoProvider.pokerGameDoneTutorial();
-                Navigator.of(context).pop(true);
-              },
-            ),
-          ],
-        );
-      },
-    ).then((value) => shouldPop = value);
-    return shouldPop;
   }
 
   Future<void> _showTutorialEndDialog() async {
@@ -966,519 +729,15 @@ class _PokerGameStateScene extends State<PokerGameScene>
                     isTutorial: widget.isTutorial,
                   );
                 });
-                String path = game.gameLevel <= 1
-                    ? 'find_bigger.m4a'
-                    : 'find_the_same.m4a';
-                audioController.playInstructionRecord('poker_game/$path');
+                final path = game.gameLevel <= 1
+                    ? PokerGameConst.gameRuleFindBiggerAudio
+                    : PokerGameConst.gameRuleFindTheSameAudio;
+                audioController.playInstructionRecord(path);
               },
             ),
           ],
         );
       },
-    );
-  }
-}
-
-class RuleScreen extends StatefulWidget {
-  const RuleScreen({
-    super.key,
-    required this.game,
-    required this.audioController,
-    required this.pokerGameTutorial,
-    required this.callback,
-  });
-
-  final GameInstance game;
-  final AudioController audioController;
-  final PokerGameTutorial pokerGameTutorial;
-  final Function() callback;
-
-  @override
-  State<RuleScreen> createState() => _RuleScreenState();
-}
-
-class _RuleScreenState extends State<RuleScreen> {
-  List<Alignment> starPosition = [
-    const Alignment(-0.9, -0.5),
-    const Alignment(-0.3, -0.5),
-    const Alignment(0.3, -0.5),
-    const Alignment(0.9, -0.5),
-  ];
-  String starLight = 'assets/global/star_light.png';
-  String starDark = 'assets/global/star_dark.png';
-  AutoSizeText getBigger = const AutoSizeText.rich(
-    TextSpan(
-      children: [
-        TextSpan(text: '請從牌中挑選出', style: TextStyle(color: Colors.black)),
-        TextSpan(text: '比我數字還大', style: TextStyle(color: Colors.red)),
-        TextSpan(text: '的牌！', style: TextStyle(color: Colors.black)),
-        TextSpan(text: '\n'),
-        TextSpan(text: '只要你在', style: TextStyle(color: Colors.black)),
-        TextSpan(text: '時限內', style: TextStyle(color: Colors.red)),
-        TextSpan(text: '找到這張牌就是你贏了！', style: TextStyle(color: Colors.black)),
-        TextSpan(text: '\n'),
-        TextSpan(
-            text: '如果牌裡面沒有比我數字還大的牌，請按下', style: TextStyle(color: Colors.black)),
-        TextSpan(text: '「沒有」', style: TextStyle(color: Colors.red)),
-        TextSpan(text: '的按鈕！', style: TextStyle(color: Colors.black)),
-      ],
-    ),
-    softWrap: true,
-    maxLines: 4,
-    textAlign: TextAlign.center,
-    style: TextStyle(fontSize: 100, fontFamily: 'GSR_B'),
-  );
-  AutoSizeText getSameRankOrSuit = const AutoSizeText.rich(
-    TextSpan(
-      children: [
-        TextSpan(text: '請從牌中挑選出', style: TextStyle(color: Colors.black)),
-        TextSpan(text: '數字或花色一樣', style: TextStyle(color: Colors.red)),
-        TextSpan(text: '的牌！', style: TextStyle(color: Colors.black)),
-        TextSpan(text: '\n'),
-        TextSpan(text: '只要你在', style: TextStyle(color: Colors.black)),
-        TextSpan(text: '時限內', style: TextStyle(color: Colors.red)),
-        TextSpan(text: '找到這張牌就是你贏了！', style: TextStyle(color: Colors.black)),
-        TextSpan(text: '\n'),
-        TextSpan(
-            text: '如果牌裡面沒有跟我一樣數字或花色的牌，請按下',
-            style: TextStyle(color: Colors.black)),
-        TextSpan(text: '「沒有」', style: TextStyle(color: Colors.red)),
-        TextSpan(text: '的按鈕！', style: TextStyle(color: Colors.black)),
-      ],
-    ),
-    softWrap: true,
-    maxLines: 4,
-    textAlign: TextAlign.center,
-    style: TextStyle(fontSize: 100, fontFamily: 'GSR_B'),
-  );
-  AutoSizeText getSizeRule = const AutoSizeText.rich(
-    TextSpan(
-      children: [
-        TextSpan(text: '比大小規則:', style: TextStyle(color: Colors.black)),
-        TextSpan(text: '\n'),
-        TextSpan(text: '黑桃>愛心>方塊>梅花', style: TextStyle(color: Colors.black)),
-        TextSpan(text: '\n'),
-        TextSpan(
-            text: 'A>K>Q>J>10>9>8>7>6>5>4>3>2',
-            style: TextStyle(color: Colors.black)),
-      ],
-    ),
-    softWrap: true,
-    maxLines: 3,
-    textAlign: TextAlign.center,
-    style: TextStyle(fontSize: 100, fontFamily: 'GSR_B'),
-  );
-  List<String> difficulties = ['一', '二', '三', '四'];
-
-  late StreamSubscription<PlayerState> listener;
-  bool isAudioOver = false;
-
-  @override
-  void initState() {
-    if (!widget.game.isTutorial) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        String path = widget.game.gameLevel <= 1
-            ? 'find_bigger.m4a'
-            : 'find_the_same.m4a';
-        widget.audioController.playInstructionRecord('poker_game/$path');
-      });
-    }
-    listener =
-        widget.audioController.audioPlayer.onPlayerStateChanged.listen((event) {
-      switch (event) {
-        case PlayerState.playing:
-          if (isAudioOver = true) {
-            setState(() => isAudioOver = false);
-          }
-          break;
-        case PlayerState.completed:
-          setState(() => isAudioOver = true);
-          break;
-        default:
-          break;
-      }
-    });
-    super.initState();
-  }
-
-  @override
-  void dispose() {
-    listener.cancel();
-    super.dispose();
-  }
-
-  bool questionIconPressed = false;
-  String questionButtonPath = 'assets/poker_game/scene/question_light.png';
-
-  @override
-  Widget build(BuildContext context) {
-    return Align(
-      child: IgnorePointer(
-        ignoring: widget.game.cardDealed,
-        child: FractionallySizedBox(
-          widthFactor: 0.7,
-          child: AnimatedOpacity(
-            opacity: widget.game.cardDealed ? 0.0 : 1.0,
-            duration: const Duration(milliseconds: 300),
-            child: Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Container(
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.9),
-                  border: Border.all(
-                    color: Colors.blue
-                        .withOpacity(widget.game.isTutorial ? 0.5 : 1),
-                    width: 5,
-                  ),
-                  borderRadius: const BorderRadius.all(
-                    Radius.circular(30),
-                  ),
-                ),
-                child: Stack(
-                  children: [
-                    Opacity(
-                      opacity: widget.game.isTutorial &&
-                              widget.pokerGameTutorial.tutorialProgress != 2
-                          ? 0.3
-                          : 1,
-                      child: difficultyStars(),
-                    ),
-                    if (widget.game.gameLevel <= 1) ...[
-                      Opacity(
-                        opacity: widget.game.isTutorial ? 0.3 : 1,
-                        child: sizeDescriptionButton(),
-                      ),
-                    ],
-                    Opacity(
-                      opacity: widget.game.isTutorial &&
-                              widget.pokerGameTutorial.tutorialProgress != 3
-                          ? 0.3
-                          : 1,
-                      child: Align(
-                        alignment: const Alignment(0.0, 0.9),
-                        child: FractionallySizedBox(
-                          heightFactor: 0.15,
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Flexible(
-                                child: Center(
-                                  child: ButtonWithText(
-                                      text: '再聽一次', onTapFunction: listenAgain),
-                                ),
-                              ),
-                              Flexible(
-                                child: Center(
-                                  child: ButtonWithText(
-                                      text: isAudioOver ? '開始' : '跳過並開始',
-                                      onTapFunction: startGame),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                    Opacity(
-                      opacity: widget.game.isTutorial &&
-                              (widget.pokerGameTutorial.tutorialProgress != 0 &&
-                                  widget.pokerGameTutorial.tutorialProgress !=
-                                      1)
-                          ? 0.3
-                          : 1,
-                      child: ruleText(),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Align difficultyStars() {
-    return Align(
-      alignment: Alignment.topCenter,
-      child: FractionallySizedBox(
-        heightFactor: 0.3,
-        child: Stack(
-          children: [
-            for (int i = 0; i < 4; i++) ...[
-              Align(
-                alignment: starPosition[i],
-                child: FractionallySizedBox(
-                  widthFactor: 0.2,
-                  child: AspectRatio(
-                    aspectRatio: 1,
-                    child: Image.asset(
-                        i <= widget.game.gameLevel ? starLight : starDark),
-                  ),
-                ),
-              ),
-            ],
-          ],
-        ),
-      ),
-    );
-  }
-
-  void startGame() {
-    if (!widget.game.isTutorial) {
-      widget.audioController.stopAudio();
-      widget.callback();
-    }
-  }
-
-  void listenAgain() {
-    if (!widget.game.isTutorial) {
-      String path =
-          widget.game.gameLevel <= 1 ? 'find_bigger.m4a' : 'find_the_same.m4a';
-      widget.audioController.playInstructionRecord('poker_game/$path');
-    }
-  }
-
-  Align sizeDescriptionButton() {
-    return Align(
-      alignment: const Alignment(0.9, -0.3),
-      child: FractionallySizedBox(
-        widthFactor: 0.1,
-        child: GestureDetector(
-          onTapDown: (_) {
-            questionButtonPath = 'assets/poker_game/scene/question_dark.png';
-            setState(() => questionIconPressed = true);
-          },
-          onTapUp: (_) {
-            questionButtonPath = 'assets/poker_game/scene/question_light.png';
-            setState(() => questionIconPressed = false);
-          },
-          onPanEnd: (_) {
-            questionButtonPath = 'assets/poker_game/scene/question_light.png';
-            setState(() => questionIconPressed = false);
-          },
-          child: AspectRatio(
-            aspectRatio: 1,
-            child: Image.asset(questionButtonPath),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Align ruleText() {
-    return Align(
-      alignment: const Alignment(0.0, 0.2),
-      child: FractionallySizedBox(
-        heightFactor: 0.5,
-        widthFactor: 0.9,
-        child: questionIconPressed ||
-                (widget.game.isTutorial &&
-                    widget.pokerGameTutorial.tutorialProgress == 1)
-            ? Center(
-                child: FractionallySizedBox(
-                  heightFactor: 0.7,
-                  widthFactor: 0.8,
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.9),
-                      border: Border.all(
-                        color: Colors.green,
-                        width: 3,
-                      ),
-                      borderRadius: const BorderRadius.all(
-                        Radius.circular(30),
-                      ),
-                    ),
-                    child: Center(child: getSizeRule),
-                  ),
-                ),
-              )
-            : Center(
-                child:
-                    widget.game.gameLevel <= 1 ? getBigger : getSameRankOrSuit,
-              ),
-      ),
-    );
-  }
-}
-
-class AlarmClock extends StatefulWidget {
-  const AlarmClock({
-    super.key,
-    required this.timeInMilliSeconds,
-    required this.audioController,
-    required this.isTutorial,
-    required this.callback,
-  });
-
-  final int timeInMilliSeconds;
-  final AudioController audioController;
-  final bool isTutorial;
-  final Function() callback;
-
-  @override
-  State<AlarmClock> createState() => _AlarmClockState();
-}
-
-class _AlarmClockState extends State<AlarmClock>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-  late Animation<double> animation;
-  late Timer _timer;
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 3000),
-    );
-    if (widget.isTutorial) {
-      animation = Tween<double>(begin: 10.0, end: 10.0).animate(_controller);
-      _timer = Timer(const Duration(seconds: 1), () {});
-    } else {
-      animation = Tween<double>(begin: 0.0, end: 10.0).animate(_controller);
-      startTimer();
-    }
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    _timer.cancel();
-    super.dispose();
-  }
-
-  void startTimer() {
-    if (widget.timeInMilliSeconds >= 3000) {
-      _timer =
-          Timer(Duration(milliseconds: widget.timeInMilliSeconds - 3000), () {
-        widget.audioController.playPokerGameSoundEffect('tictoc.mp3');
-        _controller.forward().whenComplete(() {
-          widget.audioController.stopAudio();
-          widget.callback();
-        });
-      });
-    } else {
-      _controller.forward();
-      widget.audioController.playPokerGameSoundEffect('tictoc.mp3');
-      _timer = Timer(Duration(milliseconds: widget.timeInMilliSeconds), () {
-        _controller.reset();
-        widget.audioController.stopAudio();
-        widget.callback();
-      });
-    }
-  }
-
-  int getAngle(double value) {
-    int stamp = value.toInt();
-    if (stamp == 1 || stamp == 5 || stamp == 9) {
-      return 1;
-    } else if (stamp == 3 || stamp == 7) {
-      return -1;
-    }
-    return 0;
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Align(
-      alignment: const Alignment(0.85, -0.25),
-      child: FractionallySizedBox(
-        heightFactor: 0.3,
-        child: AspectRatio(
-          aspectRatio: 1,
-          child: AnimatedBuilder(
-            animation: _controller,
-            builder: (context, child) {
-              return Transform.rotate(
-                angle: getAngle(animation.value) * 2 * pi / 40,
-                child: Opacity(
-                    opacity: animation.value > 0 ? 1 : 0,
-                    child: Image.asset(
-                      'assets/poker_game/scene/AlarmClock.png',
-                    )),
-              );
-            },
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class OpponentCoinAnimation extends StatefulWidget {
-  const OpponentCoinAnimation(
-      {super.key, required this.controller, required this.string});
-  final AnimationController controller;
-  final String string;
-  @override
-  State<OpponentCoinAnimation> createState() => _OpponentCoinAnimationState();
-}
-
-class _OpponentCoinAnimationState extends State<OpponentCoinAnimation> {
-  final opacitySequence = TweenSequence([
-    TweenSequenceItem(tween: Tween(begin: 0.0, end: 1.0), weight: 1),
-    TweenSequenceItem(tween: Tween(begin: 1.0, end: 1.0), weight: 5),
-    TweenSequenceItem(tween: Tween(begin: 1.0, end: 0.0), weight: 1),
-  ]);
-  @override
-  Widget build(BuildContext context) {
-    return FadeTransition(
-      opacity: opacitySequence.animate(widget.controller),
-      child: AlignTransition(
-        alignment: Tween(
-                begin: const Alignment(-0.625, -0.5),
-                end: const Alignment(-0.625, -0.8))
-            .animate(widget.controller),
-        child: FractionallySizedBox(
-          heightFactor: 0.1,
-          widthFactor: 0.15,
-          child: AutoSizeText(
-            widget.string,
-            style: const TextStyle(
-                fontFamily: 'GSR_B', fontSize: 100, color: Colors.red),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class PlayerCoinAnimation extends StatefulWidget {
-  const PlayerCoinAnimation(
-      {super.key, required this.controller, required this.string});
-  final AnimationController controller;
-  final String string;
-  @override
-  State<PlayerCoinAnimation> createState() => _PlayerCoinAnimationState();
-}
-
-class _PlayerCoinAnimationState extends State<PlayerCoinAnimation> {
-  final opacitySequence = TweenSequence([
-    TweenSequenceItem(tween: Tween(begin: 0.0, end: 1.0), weight: 1),
-    TweenSequenceItem(tween: Tween(begin: 1.0, end: 1.0), weight: 5),
-    TweenSequenceItem(tween: Tween(begin: 1.0, end: 0.0), weight: 1),
-  ]);
-  @override
-  Widget build(BuildContext context) {
-    return FadeTransition(
-      opacity: opacitySequence.animate(widget.controller),
-      child: AlignTransition(
-        alignment: Tween(
-                begin: const Alignment(0.65, -0.5),
-                end: const Alignment(0.65, -0.8))
-            .animate(widget.controller),
-        child: FractionallySizedBox(
-          heightFactor: 0.1,
-          widthFactor: 0.1,
-          child: AutoSizeText(
-            widget.string,
-            style: const TextStyle(
-                fontFamily: 'GSR_B', fontSize: 100, color: Colors.blue),
-          ),
-        ),
-      ),
     );
   }
 }

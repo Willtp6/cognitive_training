@@ -1,11 +1,10 @@
 import 'dart:math';
 
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cognitive_training/constants/globals.dart';
+import 'package:cognitive_training/constants/reward_page_const.dart';
 import 'package:cognitive_training/models/user_checkin_provider.dart';
 import 'package:cognitive_training/models/user_info_provider.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
 import 'package:logger/logger.dart';
 import 'package:provider/provider.dart';
@@ -19,16 +18,6 @@ class RewardPage extends StatefulWidget {
 
 class _RewardPageState extends State<RewardPage> {
   @override
-  void initState() {
-    super.initState();
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
     return SafeArea(
       child: Scaffold(
@@ -36,7 +25,7 @@ class _RewardPageState extends State<RewardPage> {
           decoration: BoxDecoration(
             color: Colors.lightBlue[100],
             image: const DecorationImage(
-              image: AssetImage('assets/login_reward/reward_background.png'),
+              image: AssetImage(RewardPageConst.background),
               fit: BoxFit.fill,
             ),
           ),
@@ -102,44 +91,8 @@ class CheckinReward extends StatefulWidget {
 }
 
 class CheckinRewardState extends State<CheckinReward> {
-  final String title = 'assets/login_reward/reward_title.png';
-  final List<String> dayString = [
-    'assets/login_reward/day1.png',
-    'assets/login_reward/day2.png',
-    'assets/login_reward/day3.png',
-    'assets/login_reward/day4.png',
-    'assets/login_reward/day5.png',
-    'assets/login_reward/day6.png',
-    'assets/login_reward/day7.png',
-  ];
-  final List<String> numString = [
-    'assets/login_reward/100.png',
-    'assets/login_reward/200.png',
-    'assets/login_reward/300.png',
-    'assets/login_reward/400.png',
-    'assets/login_reward/500.png',
-    'assets/login_reward/600.png',
-    'assets/login_reward/700.png',
-  ];
-  late UserInfoProvider infoProvider;
-  late UserCheckinProvider checkinProvider;
-  @override
-  void initState() {
-    Logger().d('created');
-    super.initState();
-  }
-
-  @override
-  void dispose() {
-    // TODO: implement dispose
-    super.dispose();
-  }
-
   @override
   Widget build(BuildContext context) {
-    infoProvider = Provider.of<UserInfoProvider>(context);
-    checkinProvider = Provider.of<UserCheckinProvider>(context);
-
     return LayoutBuilder(
         builder: (BuildContext buildContext, BoxConstraints constraints) {
       return Column(
@@ -149,7 +102,7 @@ class CheckinRewardState extends State<CheckinReward> {
             flex: 2,
             child: Center(
               child: Image.asset(
-                title,
+                RewardPageConst.title,
                 fit: BoxFit.contain,
               ),
             ),
@@ -163,16 +116,27 @@ class CheckinRewardState extends State<CheckinReward> {
               return Row(
                 mainAxisSize: MainAxisSize.max,
                 children: [
-                  for (int i = 0; i < numString.length; i++) ...[
-                    if (provider.loginCycle[i] &&
-                        provider.loginRewardCycle[i]) ...[
-                      Expanded(child: rewardImage(i, rewardTaken: true)),
-                    ] else if (provider.loginCycle[i] &&
-                        !provider.loginRewardCycle[i]) ...[
-                      Expanded(child: rewardImage(i, haveReward: true)),
-                    ] else ...[
-                      Expanded(child: rewardImage(i)),
-                    ]
+                  for (int i = 0;
+                      i < RewardPageConst.numString.length;
+                      i++) ...[
+                    Expanded(
+                      child:
+                          provider.loginCycle[i] && provider.loginRewardCycle[i]
+                              ? rewardImage(i, rewardTaken: true)
+                              : provider.loginCycle[i] &&
+                                      !provider.loginRewardCycle[i]
+                                  ? rewardImage(i, haveReward: true)
+                                  : rewardImage(i),
+                    ),
+                    // if (provider.loginCycle[i] &&
+                    //     provider.loginRewardCycle[i]) ...[
+                    //   Expanded(child: rewardImage(i, rewardTaken: true)),
+                    // ] else if (provider.loginCycle[i] &&
+                    //     !provider.loginRewardCycle[i]) ...[
+                    //   Expanded(child: rewardImage(i, haveReward: true)),
+                    // ] else ...[
+                    //   Expanded(child: rewardImage(i)),
+                    // ]
                   ]
                 ],
               );
@@ -194,53 +158,56 @@ class CheckinRewardState extends State<CheckinReward> {
             aspectRatio: 1,
             child: LayoutBuilder(
               builder: (BuildContext buildContext, BoxConstraints constraints) {
-                double minValue =
-                    min(constraints.maxHeight, constraints.maxWidth);
-                return GestureDetector(
-                  onTap: () {
-                    if (haveReward) {
-                      Logger().i(day);
-                      infoProvider.coins +=
-                          checkinProvider.updateRewardStatus(day);
-                    }
-                  },
-                  child: Stack(
-                    alignment: Alignment.center,
-                    children: [
-                      Opacity(
-                        opacity: haveReward ? 1 : 0.7,
-                        child: Image.asset(
-                          'assets/login_reward/calendar_without_tap.png',
-                          fit: BoxFit.contain,
+                // double minValue =
+                //     min(constraints.maxHeight, constraints.maxWidth);
+                return Consumer2<UserInfoProvider, UserCheckinProvider>(
+                    builder: (_, userInfoProvider, userCheckinProvider, child) {
+                  return GestureDetector(
+                    onTap: () {
+                      if (haveReward) {
+                        Logger().i(day);
+                        userInfoProvider.coins +=
+                            userCheckinProvider.updateRewardStatus(day);
+                      }
+                    },
+                    child: Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        Opacity(
+                          opacity: haveReward ? 1 : 0.7,
+                          child: Image.asset(
+                            RewardPageConst.calenderWithoutTap,
+                            fit: BoxFit.contain,
+                          ),
                         ),
-                      ),
-                      Align(
-                        alignment: const Alignment(0.0, 0.65),
-                        child: FractionallySizedBox(
-                          heightFactor: 0.5,
-                          widthFactor: 0.5,
-                          child: Opacity(
-                            opacity: haveReward ? 1 : 0.3,
-                            child: Image.asset(
-                              'assets/login_reward/coin_without_tap.png',
-                              fit: BoxFit.contain,
+                        Align(
+                          alignment: const Alignment(0.0, 0.65),
+                          child: FractionallySizedBox(
+                            heightFactor: 0.5,
+                            widthFactor: 0.5,
+                            child: Opacity(
+                              opacity: haveReward ? 1 : 0.3,
+                              child: Image.asset(
+                                Globals.coinWithoutTap,
+                                fit: BoxFit.contain,
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                      if (rewardTaken)
-                        Center(
-                          child: Transform.rotate(
-                            angle: pi / 6,
-                            child: Image.asset(
-                              'assets/login_reward/received seal.png',
-                              fit: BoxFit.contain,
+                        if (rewardTaken)
+                          Center(
+                            child: Transform.rotate(
+                              angle: pi / 6,
+                              child: Image.asset(
+                                RewardPageConst.receivedSeal,
+                                fit: BoxFit.contain,
+                              ),
                             ),
-                          ),
-                        )
-                    ],
-                  ),
-                );
+                          )
+                      ],
+                    ),
+                  );
+                });
               },
             ),
           ),
@@ -248,14 +215,14 @@ class CheckinRewardState extends State<CheckinReward> {
         Expanded(
           flex: 3,
           child: Image.asset(
-            dayString[day],
+            RewardPageConst.dayString[day],
             fit: BoxFit.contain,
           ),
         ),
         Expanded(
           flex: 3,
           child: Image.asset(
-            numString[day],
+            RewardPageConst.numString[day],
             fit: BoxFit.contain,
           ),
         ),
@@ -283,109 +250,90 @@ class _BonusRewardState extends State<BonusReward> {
         Expanded(
           flex: 5,
           child: Container(
-              decoration: const BoxDecoration(
-                image: DecorationImage(
-                  image: AssetImage(
-                    'assets/login_reward/bonus_reward_background.png',
-                  ),
-                  fit: BoxFit.fill,
-                ),
+            decoration: const BoxDecoration(
+              image: DecorationImage(
+                image: AssetImage(RewardPageConst.bonusRewardBackground),
+                fit: BoxFit.fill,
               ),
-              child: Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Column(
-                  children: [
-                    Expanded(
-                      flex: 1,
-                      child:
-                          Image.asset('assets/login_reward/bonus_reward.png'),
-                    ),
-                    Expanded(
-                        flex: 2,
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: Column(
-                                children: [
-                                  Expanded(
-                                    flex: 2,
-                                    child: Image.asset(
-                                      'assets/login_reward/bonus_reward_badge.png',
-                                      fit: BoxFit.contain,
-                                    ),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Column(
+                children: [
+                  Expanded(
+                    flex: 1,
+                    child: Image.asset(RewardPageConst.bonusRewardLabel),
+                  ),
+                  Expanded(
+                      flex: 2,
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Column(
+                              children: [
+                                Expanded(
+                                  flex: 2,
+                                  child: Image.asset(
+                                    RewardPageConst.bonusRewardBadge,
+                                    fit: BoxFit.contain,
                                   ),
-                                  Expanded(
-                                      flex: 1,
-                                      child: Image.asset(
-                                        'assets/login_reward/30_straight_minutes.png',
-                                        fit: BoxFit.contain,
-                                      )),
-                                ],
-                              ),
-                            ),
-                            Expanded(
-                              child: Column(
-                                children: [
-                                  Expanded(
-                                    flex: 2,
+                                ),
+                                Expanded(
+                                    flex: 1,
                                     child: Image.asset(
-                                      'assets/login_reward/bonus_reward_badge.png',
+                                      RewardPageConst.thirtyStraightMins,
                                       fit: BoxFit.contain,
-                                    ),
-                                  ),
-                                  Expanded(
-                                      flex: 1,
-                                      child: Image.asset(
-                                        'assets/login_reward/3_times_in_week.png',
-                                        fit: BoxFit.contain,
-                                      )),
-                                ],
-                              ),
+                                    )),
+                              ],
                             ),
-                            Expanded(
-                              child: Column(
-                                children: [
-                                  Expanded(
-                                    flex: 2,
+                          ),
+                          Expanded(
+                            child: Column(
+                              children: [
+                                Expanded(
+                                  flex: 2,
+                                  child: Image.asset(
+                                    RewardPageConst.bonusRewardBadge,
+                                    fit: BoxFit.contain,
+                                  ),
+                                ),
+                                Expanded(
+                                    flex: 1,
                                     child: Image.asset(
-                                      'assets/login_reward/bonus_reward_badge.png',
+                                      RewardPageConst.threeTimesInWeek,
                                       fit: BoxFit.contain,
-                                    ),
-                                  ),
-                                  Expanded(
-                                      flex: 1,
-                                      child: Image.asset(
-                                        'assets/login_reward/30_mins_3_times.png',
-                                        fit: BoxFit.contain,
-                                      )),
-                                ],
-                              ),
+                                    )),
+                              ],
                             ),
-                          ],
-                        )),
-                  ],
-                ),
-              )),
+                          ),
+                          Expanded(
+                            child: Column(
+                              children: [
+                                Expanded(
+                                  flex: 2,
+                                  child: Image.asset(
+                                    RewardPageConst.bonusRewardBadge,
+                                    fit: BoxFit.contain,
+                                  ),
+                                ),
+                                Expanded(
+                                    flex: 1,
+                                    child: Image.asset(
+                                      RewardPageConst.thirtyMinsThreeTimes,
+                                      fit: BoxFit.contain,
+                                    )),
+                              ],
+                            ),
+                          ),
+                        ],
+                      )),
+                ],
+              ),
+            ),
+          ),
         ),
         Expanded(
           flex: 2,
-          // child: FractionallySizedBox(
-          //   widthFactor: 0.8,
-          //   heightFactor: 0.8,
-          //   child: Column(
-          //     children: [
-          //       Expanded(
-          //         flex: 3,
-          //         child: Image.asset('assets/login_reward/Mystery_gift.png'),
-          //       ),
-          //       Expanded(
-          //         flex: 2,
-          //         child:
-          //             Image.asset('assets/login_reward/Mystery_gift_title.png'),
-          //       ),
-          //     ],
-          //   ),
-          // ),
           child: Container(),
         ),
       ],

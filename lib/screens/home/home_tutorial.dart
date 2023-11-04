@@ -1,4 +1,6 @@
 import 'package:auto_size_text/auto_size_text.dart';
+import 'package:cognitive_training/constants/tutorial_mode_const.dart';
+import 'package:cognitive_training/shared/button_with_text.dart';
 import 'package:flutter/material.dart';
 
 class HomeTutorial {
@@ -12,8 +14,8 @@ class HomeTutorial {
     '接著畫面中央會出現開始遊戲，按下去就可以開始囉!',
   ];
   List<String> arrowPath = [
-    'assets/global/tutorial_left_arrow.png',
-    'assets/global/tutorial_right_arrow.png',
+    TutorialModeConst.leftArrow,
+    TutorialModeConst.rightArrow
   ];
   List<Alignment> arrowAlignment = [
     const Alignment(-0.4, 0.0),
@@ -30,7 +32,7 @@ class HomeTutorial {
           heightFactor: 0.15,
           widthFactor: 0.2,
           alignment: Alignment.centerRight,
-          child: Image.asset('assets/login_page/tutorial_button.png'),
+          child: Image.asset(TutorialModeConst.enterTutorialModeButton),
         ),
       ),
     );
@@ -52,9 +54,7 @@ class HomeTutorial {
               child: Container(
                 decoration: const BoxDecoration(
                   image: DecorationImage(
-                    image: AssetImage(
-                      'assets/login_page/tutorial_doctors.png',
-                    ),
+                    image: AssetImage(TutorialModeConst.doctors),
                     fit: BoxFit.contain,
                     alignment: Alignment.bottomCenter,
                   ),
@@ -83,9 +83,7 @@ class HomeTutorial {
               child: Container(
                 decoration: const BoxDecoration(
                   image: DecorationImage(
-                    image: AssetImage(
-                      'assets/login_page/tutorial_chat_bubble.png',
-                    ),
+                    image: AssetImage(TutorialModeConst.chatBubble),
                     fit: BoxFit.contain,
                   ),
                 ),
@@ -116,7 +114,7 @@ class HomeTutorial {
     );
   }
 
-  AnimatedOpacity getContinueButton() {
+  AnimatedOpacity getContinueButton({required Function callback}) {
     return AnimatedOpacity(
       opacity: isTutorial ? 1 : 0,
       duration: const Duration(milliseconds: 500),
@@ -126,32 +124,7 @@ class HomeTutorial {
             : const Alignment(-0.5, 0.9),
         child: FractionallySizedBox(
           widthFactor: 0.15,
-          child: AspectRatio(
-            aspectRatio: 835 / 373,
-            child: Stack(
-              children: [
-                Center(
-                  child: Image.asset('assets/global/orange_button.png'),
-                ),
-                const Center(
-                  child: FractionallySizedBox(
-                    heightFactor: 0.7,
-                    widthFactor: 0.7,
-                    child: FittedBox(
-                      child: Text(
-                        '點我繼續',
-                        style: TextStyle(
-                          fontFamily: 'GSR_B',
-                          fontSize: 100,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
+          child: ButtonWithText(text: '點我繼續', onTapFunction: callback),
         ),
       ),
     );

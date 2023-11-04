@@ -1,61 +1,10 @@
+import 'package:cognitive_training/constants/poker_game_const.dart';
 import 'package:cognitive_training/firebase/record_game.dart';
 import 'package:logger/logger.dart';
 
-class PokerCard {
-  String suit;
-  int rank;
-
-  PokerCard(this.suit, this.rank);
-}
-
-class Deck {
-  late List<PokerCard> cards;
-
-  Deck() {
-    cards = [];
-    for (int i = 0; i < 4; i++) {
-      for (int j = 1; j <= 13; j++) {
-        PokerCard card = PokerCard(_getSuit(i), j);
-        cards.add(card);
-      }
-    }
-  }
-
-  String _getSuit(int index) {
-    switch (index) {
-      case 0:
-        return 'Spades';
-      case 1:
-        return 'Hearts';
-      case 2:
-        return 'Diamonds';
-      case 3:
-        return 'Clubs';
-      default:
-        return '';
-    }
-  }
-
-  void shuffle() {
-    cards.shuffle();
-  }
-
-  PokerCard draw() {
-    return cards.removeLast();
-  }
-}
-
-class Player {
-  late List<PokerCard> hand;
-
-  Player() {
-    hand = [];
-  }
-
-  void addCard(PokerCard card) {
-    hand.add(card);
-  }
-}
+import 'models/deck.dart';
+import 'models/player.dart';
+import 'models/poker_card.dart';
 
 enum ResultType {
   none,
@@ -72,7 +21,7 @@ class GameInstance {
   int continuousLose;
 
   List<int> numberOfCards = [5, 6, 6, 8];
-  String backgroundPath = 'assets/poker_game/scene/play_board.png';
+  String backgroundPath = PokerGameConst.backgroundImage;
 
   Player player = Player();
   Player computer = Player();
@@ -92,8 +41,8 @@ class GameInstance {
   late List<bool> isChosen;
   late List<bool> isChosenComputer;
 
-  List<int> coinWin = [100, 200, 250, 300];
-  List<int> coinLose = [100, 100, 150, 150];
+  final List<int> coinWin = [100, 200, 250, 300];
+  final List<int> coinLose = [100, 100, 150, 150];
 
   GameInstance(
       {required this.gameLevel,
@@ -101,8 +50,7 @@ class GameInstance {
       required this.continuousLose,
       required this.responseTimeList,
       required this.isTutorial}) {
-    deck = Deck();
-    deck.shuffle();
+    deck = Deck()..shuffle();
   }
 
   void dealCards() {
@@ -194,7 +142,7 @@ class GameInstance {
     int resTime = end.difference(start).inMilliseconds;
     responseTimeList.add(resTime);
     responseTimeList.sort();
-    if (responseTimeList.length > 50) {
+    if (responseTimeList.length > 100) {
       responseTimeList.removeAt(0);
       responseTimeList.removeLast();
     }
@@ -272,8 +220,9 @@ class GameInstance {
     }
   }
 
-  String getRulePath() {
-    String path = gameLevel <= 1 ? 'find_bigger.m4a' : 'find_the_same.m4a';
-    return path;
+  Map<String, String> getRulePath() {
+    return gameLevel <= 1
+        ? PokerGameConst.gameRuleFindBiggerAudio
+        : PokerGameConst.gameRuleFindTheSameAudio;
   }
 }

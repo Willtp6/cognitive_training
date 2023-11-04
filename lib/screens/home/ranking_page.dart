@@ -24,7 +24,7 @@ class _RankingPageState extends State<RankingPage> {
                 color: Colors.lightBlue[100],
                 image: const DecorationImage(
                   image: AssetImage(
-                      'assets/images/home_page/ranking_page/ranking_background.png'),
+                      'assets/images/ranking_page/ranking_background.png'),
                   fit: BoxFit.fill,
                 ),
               ),
@@ -68,16 +68,35 @@ class _RankingPageState extends State<RankingPage> {
                           ),
                         ),
                         Align(
-                          alignment: const Alignment(0.8, 0.5),
-                          child: IconButton(
-                            icon: Icon(
-                              Icons.replay,
-                              color: Colors.lightBlueAccent,
-                              size: MediaQuery.of(context).size.height * 0.15,
-                            ),
-                            onPressed: () {
+                          alignment: const Alignment(0.85, 0.55),
+                          child: GestureDetector(
+                            onTap: () {
+                              // Logger().d('tapped');
                               globalInfoProvider.updateRanking();
                             },
+                            child: FractionallySizedBox(
+                              heightFactor: 0.1,
+                              child: AspectRatio(
+                                aspectRatio: 1,
+                                child: LayoutBuilder(
+                                  builder: (buildContext, constraints) => Icon(
+                                    Icons.replay_circle_filled,
+                                    size: constraints.maxHeight,
+                                    color: Colors.blue,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            // child: IconButton(
+                            //   icon: Icon(
+                            //     Icons.replay,
+                            //     color: Colors.lightBlueAccent,
+                            //     size: MediaQuery.of(context).size.height * 0.15,
+                            //   ),
+                            //   onPressed: () {
+                            //     Logger().d('tapped');
+                            //   },
+                            // ),
                           ),
                         ),
                         Align(

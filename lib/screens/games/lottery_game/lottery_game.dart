@@ -1,11 +1,6 @@
-import 'dart:async';
 import 'dart:math';
-
-import 'package:audioplayers/audioplayers.dart';
+import 'package:cognitive_training/constants/lottery_game_const.dart';
 import 'package:cognitive_training/firebase/record_game.dart';
-import 'package:cognitive_training/models/user_info_provider.dart';
-import 'package:cognitive_training/screens/login/login_page.dart';
-import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 
 class LotteryGame {
@@ -27,18 +22,15 @@ class LotteryGame {
   late List<int> userArray;
 
   final List<String> imagePath = [
-    'assets/lottery_game/scene/Temple2_withoutWord.png',
-    'assets/lottery_game/scene/Temple2_withoutWord.png',
-    'assets/lottery_game/scene/NumberInput_recognitionWithoutNum.png',
-    'assets/lottery_game/scene/BuyLotteryTickets.png',
-    'assets/lottery_game/scene/BuyLotter.png',
+    LotteryGameConst.insideTempleBackground,
+    LotteryGameConst.insideTempleBackground,
+    LotteryGameConst.markLotteryBackground,
+    LotteryGameConst.buyLotteryBackground,
+    LotteryGameConst.waitingResultBackground
   ];
-  final String formPath =
-      'assets/lottery_game/scene/NumberInput_withoutWord.png';
-  final String imagePathWin =
-      'assets/lottery_game/scene/feedback/BuyLotter_win_background.png';
-  final String imagePathLose =
-      'assets/lottery_game/scene/feedback/BuyLotter_lose_background.png';
+  final String formPath = LotteryGameConst.formBackground;
+  final String imagePathWin = LotteryGameConst.winBackground;
+  final String imagePathLose = LotteryGameConst.loseBackground;
   String rewardImagePath = '';
 
   int gameProgress = 0;
@@ -52,7 +44,7 @@ class LotteryGame {
   int specialRules = 0;
   String showNumber = '';
   int numOfCorrectAns = 0;
-  String currentImagePath = 'assets/lottery_game/scene/Temple2_withoutWord.png';
+  String currentImagePath = LotteryGameConst.insideTempleBackground;
   List<int> coinReward = [200, 400, 800];
   int gameReward = 0;
   double correctRate = 0;
@@ -63,31 +55,25 @@ class LotteryGame {
   late bool doneTutorial;
   List<bool> isChosen = List.generate(50, (index) => false);
 
-  String getInstructionAudioPath() {
-    String path = 'lottery_game/rule_level_${gameLevel + 1}';
+  Map<String, String>? getInstructionAudioPath() {
     if (gameProgress == 2) {
-      path = '${path}_sum';
+      return LotteryGameConst.gameRuleLevel5Sum;
     } else {
       if (gameLevel == 4) {
         switch (specialRules) {
           case 0:
-            path = '${path}_even';
-            break;
+            return LotteryGameConst.gameRuleLevel5Even;
           case 1:
-            path = '${path}_max';
-            break;
+            return LotteryGameConst.gameRuleLevel5Max;
           case 2:
-            path = '${path}_min';
-            break;
+            return LotteryGameConst.gameRuleLevel5Min;
           case 3:
-            path = '${path}_odd';
-            break;
+            return LotteryGameConst.gameRuleLevel5Odd;
           default:
         }
       }
     }
-    path = '$path.m4a';
-    return path;
+    return null;
   }
 
   void setArrays(int min, int max) {
@@ -164,8 +150,16 @@ class LotteryGame {
     }
   }
 
+  int getNumOfAnsDigits() {
+    return numArray
+        .where((element) => specialRules == 0 ? element.isEven : element.isOdd)
+        .length;
+  }
+
   void getResult() {
     numOfCorrectAns = 0;
+    //* default set to number of digits
+    int numOfAnsDigits = numberOfDigits;
     switch (gameLevel) {
       case 0:
       case 1:
@@ -201,24 +195,29 @@ class LotteryGame {
             for (int i = 0; i < numArray.length; i++) {
               if (userArray.contains(numArray[i])) numOfCorrectAns++;
             }
+            numOfAnsDigits = getNumOfAnsDigits();
             break;
           //max
           case 1:
             numArray.sort((b, a) => a.compareTo(b));
             sum = numArray[0] + numArray[1];
             if (sum == userArray[0]) numOfCorrectAns = numArray.length;
+            //* no need to set ans digit because correct rate is not showed
             break;
           //min
           case 2:
             numArray.sort();
             sum = numArray[0] + numArray[1];
             if (sum == userArray[0]) numOfCorrectAns = numArray.length;
+            //* no need to set ans digit because correct rate is not showed
             break;
           //odd
           case 3:
             for (int i = 0; i < numArray.length; i++) {
               if (userArray.contains(numArray[i])) numOfCorrectAns++;
+              //* calculate numOfAnsDigits
             }
+            numOfAnsDigits = getNumOfAnsDigits();
             break;
           default:
             break;
@@ -228,7 +227,8 @@ class LotteryGame {
         break;
     }
     // reward is determined by correct rate
-    correctRate = numOfCorrectAns / numberOfDigits;
+    // correctRate = numOfCorrectAns / numberOfDigits
+    correctRate = numOfCorrectAns / numOfAnsDigits;
     gameReward = 0;
     if (correctRate > 0 && correctRate <= 0.5) {
       gameReward = coinReward[0];

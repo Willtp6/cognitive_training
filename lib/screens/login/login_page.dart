@@ -1,13 +1,12 @@
 import 'package:auto_size_text/auto_size_text.dart';
+import 'package:cognitive_training/constants/login_page_const.dart';
 import 'package:cognitive_training/firebase/auth.dart';
 import 'package:cognitive_training/shared/button_with_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:go_router/go_router.dart';
-import 'package:logger/logger.dart';
 import '../../shared/design_type.dart';
-import 'package:dotted_border/dotted_border.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -45,7 +44,7 @@ class _LoginPageState extends State<LoginPage> {
         body: Container(
           decoration: const BoxDecoration(
             image: DecorationImage(
-              image: AssetImage('assets/global/login_background_1.jpeg'),
+              image: AssetImage(LoginPageConst.loginBackground),
               fit: BoxFit.fitWidth,
             ),
           ),
@@ -107,7 +106,7 @@ class _LoginPageState extends State<LoginPage> {
           child: Container(
             decoration: const BoxDecoration(
               image: DecorationImage(
-                image: AssetImage('assets/login_page/login_logo.png'),
+                image: AssetImage(LoginPageConst.loginLogo),
                 fit: BoxFit.contain,
               ),
             ),
@@ -146,7 +145,7 @@ class _LoginPageState extends State<LoginPage> {
                     flex: 2,
                     child: Center(
                       child: Image.asset(
-                        'assets/login_page/login_id.png',
+                        LoginPageConst.loginId,
                         fit: BoxFit.contain,
                       ),
                     ),
@@ -192,7 +191,7 @@ class _LoginPageState extends State<LoginPage> {
                   Expanded(
                     flex: 2,
                     child: Image.asset(
-                      'assets/login_page/login_username.png',
+                      LoginPageConst.loginUsername,
                       fit: BoxFit.contain,
                     ),
                   ),

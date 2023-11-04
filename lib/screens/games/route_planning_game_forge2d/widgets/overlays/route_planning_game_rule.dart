@@ -4,6 +4,7 @@ import 'package:cognitive_training/constants/globals.dart';
 import 'package:cognitive_training/shared/button_with_text.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../../shared/progress_bar.dart';
 import '../../route_planning_game_forge2d.dart';
 
 class RoutePlanningGameRule extends StatefulWidget {
@@ -94,6 +95,17 @@ class _RoutePlanningGameRuleState extends State<RoutePlanningGameRule>
                         ),
                       ),
                     ],
+                    Align(
+                      alignment: const Alignment(0.0, -0.1),
+                      child: FractionallySizedBox(
+                        widthFactor: 0.7,
+                        heightFactor: 0.2,
+                        child: ProgressBar(
+                          maxProgress: 5,
+                          continuousWin: widget.game.continuousWin,
+                        ),
+                      ),
+                    ),
                     GameRule(
                       gameLevel: widget.game.gameLevel,
                     ),
@@ -135,7 +147,7 @@ class _RoutePlanningGameRuleState extends State<RoutePlanningGameRule>
   void _startGame() {
     if (buttonEnabled) {
       buttonEnabled = false;
-      _audioController.playPathAudio(Globals.clickButtonSound);
+      _audioController.playSfx(Globals.clickButtonSound);
       _controller.forward().whenComplete(() {
         widget.game.overlays.remove(RoutePlanningGameRule.id);
         // widget.game.overlays.remove(FishingGameRule.id);
@@ -148,13 +160,13 @@ class _RoutePlanningGameRuleState extends State<RoutePlanningGameRule>
 }
 
 class GameRule extends StatelessWidget {
-  int gameLevel;
-  GameRule({super.key, required this.gameLevel});
+  final int gameLevel;
+  const GameRule({super.key, required this.gameLevel});
 
   @override
   Widget build(BuildContext context) {
     return Align(
-      alignment: const Alignment(0.0, 0.3),
+      alignment: const Alignment(0.0, 0.4),
       child: FractionallySizedBox(
         heightFactor: 0.25,
         child: FractionallySizedBox(

@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'package:cognitive_training/constants/globals.dart';
+import 'package:cognitive_training/constants/route_planning_game_const.dart';
 import 'package:cognitive_training/models/user_info_provider.dart';
 import 'package:cognitive_training/screens/games/shared/game_label.dart';
 import 'package:flame_audio/flame_audio.dart';
@@ -57,7 +57,7 @@ class _RoutePlanningGameForge2dMenuState
         });
       });
       Timer(Duration(milliseconds: (8000 * 0.2).toInt()), () {
-        FlameAudio.play('route_planning_game/sound/phone_vibration2.mp3');
+        FlameAudio.play(RoutePlanningGameConst.phoneVibration);
       });
     }
   }
@@ -75,7 +75,7 @@ class _RoutePlanningGameForge2dMenuState
         });
       });
       Timer(Duration(milliseconds: (8000 * 0.2).toInt()), () {
-        FlameAudio.play('route_planning_game/sound/phone_vibration2.mp3');
+        FlameAudio.play(RoutePlanningGameConst.phoneVibration);
       });
     }
   }
@@ -161,7 +161,7 @@ class DialogBox extends StatelessWidget {
             child: Container(
               decoration: const BoxDecoration(
                 image: DecorationImage(
-                  image: AssetImage(Globals.dialogBox),
+                  image: AssetImage(RoutePlanningGameConst.dialogBox),
                 ),
               ),
               child: Stack(
@@ -178,7 +178,8 @@ class DialogBox extends StatelessWidget {
                         heightFactor: 0.3,
                         child: AspectRatio(
                           aspectRatio: 1,
-                          child: Image.asset(Globals.riderInMenu),
+                          child:
+                              Image.asset(RoutePlanningGameConst.riderInMenu),
                         ),
                       ),
                     ),
@@ -187,7 +188,7 @@ class DialogBox extends StatelessWidget {
                     alignment: const Alignment(0.0, 0.75),
                     child: FractionallySizedBox(
                       heightFactor: 0.3,
-                      child: Image.asset(Globals.dialogBoxMom),
+                      child: Image.asset(RoutePlanningGameConst.dialogBoxMom),
                     ),
                   ),
                 ],
@@ -226,7 +227,7 @@ class PhoneRing extends StatelessWidget {
             child: Container(
               decoration: const BoxDecoration(
                 image: DecorationImage(
-                  image: AssetImage(Globals.phoneRingImage),
+                  image: AssetImage(RoutePlanningGameConst.phoneRingImage),
                 ),
               ),
             ),
@@ -259,7 +260,7 @@ class Background extends StatelessWidget {
         child: Container(
           decoration: const BoxDecoration(
             image: DecorationImage(
-              image: AssetImage(Globals.menuBackground),
+              image: AssetImage(RoutePlanningGameConst.menuBackground),
               fit: BoxFit.fill,
             ),
           ),

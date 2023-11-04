@@ -1,5 +1,3 @@
-import 'dart:js';
-
 import 'package:cognitive_training/app_lifecycle/app_lifecycle.dart';
 import 'package:cognitive_training/audio/audio_controller.dart';
 import 'package:cognitive_training/check_internet/check_connection_status.dart';
@@ -85,21 +83,23 @@ class MyApp extends StatelessWidget {
                       path: 'lottery_game',
                       builder: (context, state) {
                         final parameters = state.queryParams;
-                        final startLevel = parameters['startLevel'] ?? '0';
-                        final startDigit = parameters['startDigit'] ?? '2';
-                        final continuousWin =
-                            parameters['historyContinuousWin'] ?? '0';
-                        final continuousLose =
-                            parameters['historyContinuousLose'] ?? '0';
+                        // final startLevel = parameters['startLevel'] ?? '0';
+                        // final startDigit = parameters['startDigit'] ?? '2';
+                        // final continuousWin =
+                        //     parameters['historyContinuousWin'] ?? '0';
+                        // final continuousLose =
+                        //     parameters['historyContinuousLose'] ?? '0';
                         final isTutorial = parameters['isTutorial'] ?? 'false';
 
+                        final userInfoProvider =
+                            context.read<UserInfoProvider>();
+                        final database = userInfoProvider.lotteryGameDatabase;
+
                         return LotteryGameScene(
-                          startLevel: int.tryParse(startLevel) ?? 0,
-                          startDigit: int.tryParse(startDigit) ?? 2,
-                          historyContinuousWin:
-                              int.tryParse(continuousWin) ?? 0,
-                          historyContinuousLose:
-                              int.tryParse(continuousLose) ?? 0,
+                          startLevel: database.currentLevel,
+                          startDigit: database.currentDigit,
+                          historyContinuousWin: database.historyContinuousWin,
+                          historyContinuousLose: database.historyContinuousLose,
                           isTutorial: isTutorial == 'true',
                         );
                       }),
@@ -115,12 +115,12 @@ class MyApp extends StatelessWidget {
                       path: 'fishing_game',
                       builder: (context, state) {
                         final parameters = state.queryParams;
-                        final startLevel = parameters['startLevel'] ?? '0';
                         final isTutorial = parameters['isTutorial'] ?? 'false';
-                        Logger().i(startLevel);
-                        Logger().i(isTutorial);
+                        final userInfoProvider =
+                            context.read<UserInfoProvider>();
+                        final database = userInfoProvider.fishingGameDatabase;
                         return FishingGamePlay(
-                          gameLevel: int.tryParse(startLevel)!,
+                          gameLevel: database.currentLevel,
                           isTutorial: isTutorial == 'true',
                         );
                       }),
@@ -135,31 +135,32 @@ class MyApp extends StatelessWidget {
                     name: 'poker_game',
                     path: 'poker_game',
                     builder: (context, state) {
+                      final userInfoProvider = context.read<UserInfoProvider>();
+                      final database = userInfoProvider.pokerGameDatabase;
+
                       final parameters = state.queryParams;
-                      final startLevel = parameters['startLevel'] ?? '0';
-                      final historyContinuousWin =
-                          parameters['historyContinuousWin'] ?? '0';
-                      final historyContinuousLose =
-                          parameters['historyContinuousLose'] ?? '0';
+                      // final startLevel = parameters['startLevel'] ?? '0';
+                      // final historyContinuousWin =
+                      //     parameters['historyContinuousWin'] ?? '0';
+                      // final historyContinuousLose =
+                      //     parameters['historyContinuousLose'] ?? '0';
                       final isTutorial = parameters['isTutorial'] ?? 'false';
-                      final responseTimeList =
-                          parameters['responseTimeList'] ?? '[]';
-                      Logger().d(responseTimeList);
-                      List<int> myList = responseTimeList.length >= 3
-                          ? responseTimeList
-                              .substring(1, responseTimeList.length - 1)
-                              .split(', ')
-                              .map<int>((item) => int.parse(item))
-                              .toList()
-                          : [10000, 10000, 10000, 10000, 10000];
+                      // final responseTimeList =
+                      //     parameters['responseTimeList'] ?? '[]';
+                      // Logger().d(responseTimeList);
+                      // List<int> myList = responseTimeList.length >= 3
+                      //     ? responseTimeList
+                      //         .substring(1, responseTimeList.length - 1)
+                      //         .split(', ')
+                      //         .map<int>((item) => int.parse(item))
+                      //         .toList()
+                      //     : [10000, 10000, 10000, 10000, 10000];
                       return PokerGameScene(
-                        startLevel: int.tryParse(startLevel) ?? 0,
-                        historyContinuousWin:
-                            int.tryParse(historyContinuousWin) ?? 0,
-                        historyContinuousLose:
-                            int.tryParse(historyContinuousLose) ?? 0,
+                        startLevel: database.currentLevel,
+                        historyContinuousWin: database.historyContinuousWin,
+                        historyContinuousLose: database.historyContinuousLose,
                         isTutorial: isTutorial == 'true',
-                        responseTimeList: myList,
+                        responseTimeList: database.responseTimeList,
                       );
                     },
                   ),
@@ -177,8 +178,9 @@ class MyApp extends StatelessWidget {
                     builder: (context, state) {
                       final parameters = state.queryParams;
                       // final startLevel = parameters['startLevel'] ?? '0';
-                      final doneTutorial = parameters['isTutorial'] ?? 'false';
-                      Logger().i(doneTutorial);
+                      final enterTutotialMode =
+                          parameters['isTutorial'] ?? 'false';
+                      Logger().i(enterTutotialMode);
                       // final responseTimeList =
                       //     parameters['responseTimeList'] ?? '[]';
                       // Logger().d(responseTimeList);
@@ -195,7 +197,7 @@ class MyApp extends StatelessWidget {
                       //   responseTimeList: myList,
                       // );
                       return RoutePlanningGameForge2dPlay(
-                        isTutorial: doneTutorial == 'true',
+                        isTutorial: enterTutotialMode == 'true',
                       );
                     },
                   ),

@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:math';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:cognitive_training/constants/route_planning_game_const.dart';
-import 'package:cognitive_training/firebase/record_game.dart';
 import 'package:cognitive_training/models/user_info_provider.dart';
 import 'package:cognitive_training/models/user_model.dart';
 import 'package:cognitive_training/screens/games/route_planning_game_forge2d/widgets/overlays/exit_button.dart';
@@ -82,13 +81,14 @@ class RoutePlanningGameForge2d extends Forge2DGame
   void onDetach() {
     FlameAudio.bgm.stop();
     countDownTimer?.cancel();
+    Logger().d('detached');
   }
 
   @override
   FutureOr<void> onLoad() async {
     // debugMode = true;
-    //? the problem is that the size need to times 10 maybe because in forge2d game
-    //? size is 10 times smaller than in flame game.
+    //? the problem is that the size need to times 10 ?
+    //? because in forge2d game size is 10 times smaller than in flame game.
     //? while the other which takes gameRef.size to get size don't need to
     //? times 10 reason is unknown.
     joystick = JoystickComponent(
@@ -144,6 +144,7 @@ class RoutePlanningGameForge2d extends Forge2DGame
   }
 
   void startGame() async {
+    //! for debugging
     FlameAudio.bgm.play(RoutePlanningGameConst.bgm);
     //* get a new map index
     int numOfPossibleMap = possibleMapIndex[gameLevel].length;
@@ -164,6 +165,10 @@ class RoutePlanningGameForge2d extends Forge2DGame
     // map.addAllBuildingsAsHome();
     map.addBuildings(buildings: buildings);
     startTime = DateTime.now();
+    //! for debugging
+    // Timer(const Duration(seconds: 5), () {
+    //   gameWin();
+    // });
   }
 
   /// remove all added dynamic components
@@ -193,6 +198,7 @@ class RoutePlanningGameForge2d extends Forge2DGame
   }
 
   void gameWin() {
+    countDownTimer?.cancel();
     recordGame('Win');
     FlameAudio.bgm.stop();
     overlays.remove(ExitButton.id);
@@ -213,17 +219,18 @@ class RoutePlanningGameForge2d extends Forge2DGame
   void recordGame(String result) {
     endTime = DateTime.now();
     //* record game result
-    RecordGame().recordRoutePlanningGame(
-      end: endTime,
-      gameDifficulties: gameLevel,
-      mapIndex: chosenMap,
-      nonTargetError: nonTargetError,
-      numOfTargets: numOfTarget[gameLevel],
-      repeatedError: repeatedError,
-      result: result,
-      start: startTime,
-      timeToEachHalfwayPoint: timeToEachHalfwayPoint,
-    );
+    //! for debugging
+    // RecordGame().recordRoutePlanningGame(
+    //   end: endTime,
+    //   gameDifficulties: gameLevel,
+    //   mapIndex: chosenMap,
+    //   nonTargetError: nonTargetError,
+    //   numOfTargets: numOfTarget[gameLevel],
+    //   repeatedError: repeatedError,
+    //   result: result,
+    //   start: startTime,
+    //   timeToEachHalfwayPoint: timeToEachHalfwayPoint,
+    // );
     //* reset data
     nonTargetError = 0;
     repeatedError = 0;
@@ -244,10 +251,10 @@ class RoutePlanningGameForge2d extends Forge2DGame
     //* change game level
     if (continuousWin >= 5) {
       continuousWin = 0;
-      gameLevel = gameLevel < 4 ? gameLevel++ : gameLevel;
+      if (gameLevel < 4) gameLevel++;
     } else if (continuousLose >= 5) {
       continuousLose = 0;
-      gameLevel = gameLevel > 0 ? gameLevel-- : gameLevel;
+      if (gameLevel > 0) gameLevel--;
     }
   }
 
@@ -259,6 +266,7 @@ class RoutePlanningGameForge2d extends Forge2DGame
     database.responseTimeList
       ..add(endTime.difference(startTime).inMilliseconds)
       ..sort();
+    //* remove first and last item
     if (database.responseTimeList.length > 100) {
       database.responseTimeList
         ..removeAt(0)
@@ -291,14 +299,14 @@ class RoutePlanningGameForge2d extends Forge2DGame
           add(alarmClock);
           alarmClockAdded = true;
           alarmClockAudio =
-              await FlameAudio.loop('route_planning_game/sound/tictoc.mp3');
+              await FlameAudio.loop(RoutePlanningGameConst.tictocAudio);
         }
+        //* cancel timer and trigger time up event
         if (remainTime <= 0) {
-          Logger().d('Cancel timer');
           alarmClock.removeFromParent();
           alarmClockAdded = false;
           alarmClockAudio?.pause();
-          timer.cancel();
+          countDownTimer?.cancel();
           gameLose();
         }
       });

@@ -84,29 +84,39 @@ flutter:
 
   # To add assets to your application, add an assets section, like this:
   assets:
-    - assets/lottery_game/scene/
-    - assets/lottery_game/scene/feedback/
-    - assets/lottery_game/sound/
-    - assets/lottery_game/sound/chinese/
-    - assets/lottery_game/sound/taiwanese/
-    - assets/poker_game/scene/
-    - assets/poker_game/sound/
-    - assets/poker_game/card/
-    - assets/global/
+   
+    #* removed
+    # - assets/lottery_game/scene/
+    # - assets/lottery_game/scene/feedback/
+    # - assets/lottery_game/sound/
+    # - assets/lottery_game/sound/chinese/
+    # - assets/lottery_game/sound/taiwanese/
+    # - assets/poker_game/scene/
+    # - assets/poker_game/sound/
+    # - assets/poker_game/card/
     - assets/images/home_page/
-    - assets/images/home_page/ranking_page/
-    - assets/login_reward/
-    - assets/login_page/
-    - assets/instruction_record/chinese/lottery_game/
-    - assets/instruction_record/chinese/fishing_game/
-    - assets/instruction_record/chinese/poker_game/
-    - assets/instruction_record/chinese/routing_game/
-    - assets/instruction_record/chinese/tutorial/
-    - assets/instruction_record/taiwanese/lottery_game/
-    - assets/instruction_record/taiwanese/fishing_game/
-    - assets/instruction_record/taiwanese/poker_game/
-    - assets/instruction_record/taiwanese/routing_game/
-    - assets/instruction_record/taiwanese/tutorial/
+    - assets/images/ranking_page/
+    - assets/images/login_page/
+    - assets/images/reward_page/
+    - assets/images/lottery_game/
+    - assets/images/lottery_game/scene/
+    - assets/images/lottery_game/feedback/
+    - assets/images/poker_game/
+    - assets/images/poker_game/scene/
+    - assets/images/poker_game/card/
+
+    #* removed
+    # - assets/instruction_record/chinese/lottery_game/
+    # - assets/instruction_record/chinese/fishing_game/
+    # - assets/instruction_record/chinese/poker_game/
+    # - assets/instruction_record/chinese/routing_game/
+    # - assets/instruction_record/chinese/tutorial/
+    # - assets/instruction_record/taiwanese/lottery_game/
+    # - assets/instruction_record/taiwanese/fishing_game/
+    # - assets/instruction_record/taiwanese/poker_game/
+    # - assets/instruction_record/taiwanese/routing_game/
+    # - assets/instruction_record/taiwanese/tutorial/
+
     # flame part
     - assets/images/
     - assets/images/shared/
@@ -118,10 +128,29 @@ flutter:
     - assets/images/route_planning_game/buildings/
     - assets/images/route_planning_game/hints/
     - assets/images/route_planning_game/scene/
+    # for tutorial
+    - assets/images/tutorial_mode/
+    # audio
     - assets/audio/
     - assets/audio/shared/
-    - assets/audio/fishing_game/sound/
-    - assets/audio/route_planning_game/sound/
+    - assets/audio/home_page/chinese/
+    - assets/audio/home_page/chinese/tutorial/
+    - assets/audio/home_page/taiwanese/
+    - assets/audio/home_page/taiwanese/tutorial/
+    - assets/audio/lottery_game/sfx/
+    - assets/audio/lottery_game/instruction_record/chinese/
+    - assets/audio/lottery_game/instruction_record/taiwanese/
+    - assets/audio/lottery_game/numbers/chinese/
+    - assets/audio/lottery_game/numbers/taiwanese/
+    - assets/audio/fishing_game/sfx/
+    - assets/audio/fishing_game/instruction_record/chinese/
+    - assets/audio/fishing_game/instruction_record/taiwanese/
+    - assets/audio/poker_game/sfx/
+    - assets/audio/poker_game/instruction_record/chinese/
+    - assets/audio/poker_game/instruction_record/taiwanese/
+    - assets/audio/route_planning_game/sfx/
+    - assets/audio/route_planning_game/instruction_record/chinese/
+    - assets/audio/route_planning_game/instruction_record/taiwanese/
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware

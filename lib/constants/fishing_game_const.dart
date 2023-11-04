@@ -78,10 +78,15 @@ class FishingGameConst {
       'assets/images/fishing_game/ripple/ripple_animation.riv';
 
   //* audio
-  static const bgmAudio = 'fishing_game/sound/bgm.mp3';
-  static const bubbleAudio = 'fishing_game/sound/Bubbles.wav';
-  static const winAudio = 'fishing_game/sound/fishing_win.mp3';
-  static const loseAudio = 'fishing_game/sound/fishing_lose.mp3';
+  static const gameRule = {
+    'chinese': 'audio/fishing_game/instruction_record/chinese/game_rule.m4a',
+    'taiwanese':
+        'audio/fishing_game/instruction_record/taiwanese/game_rule.m4a',
+  };
+  static const bgmAudio = 'fishing_game/sfx/bgm.mp3';
+  static const bubbleAudio = 'fishing_game/sfx/Bubbles.wav';
+  static const winAudio = 'fishing_game/sfx/fishing_win.mp3';
+  static const loseAudio = 'fishing_game/sfx/fishing_lose.mp3';
 
   //* tutorial mode
   static const dottedLineContaierAlignment = [

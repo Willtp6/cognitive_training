@@ -1,7 +1,8 @@
 import 'package:auto_size_text/auto_size_text.dart';
+import 'package:cognitive_training/constants/tutorial_mode_const.dart';
+import 'package:cognitive_training/shared/button_with_text.dart';
 import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/material.dart';
-import 'package:logger/logger.dart';
 
 class LotteryGameTutorial {
   bool isTutorial = false;
@@ -182,9 +183,7 @@ class LotteryGameTutorial {
               child: Container(
                 decoration: const BoxDecoration(
                   image: DecorationImage(
-                    image: AssetImage(
-                      'assets/login_page/tutorial_doctors.png',
-                    ),
+                    image: AssetImage(TutorialModeConst.doctors),
                     fit: BoxFit.contain,
                     alignment: Alignment.bottomCenter,
                   ),
@@ -213,9 +212,7 @@ class LotteryGameTutorial {
               child: Container(
                 decoration: const BoxDecoration(
                   image: DecorationImage(
-                    image: AssetImage(
-                      'assets/login_page/tutorial_chat_bubble.png',
-                    ),
+                    image: AssetImage(TutorialModeConst.chatBubble),
                     fit: BoxFit.contain,
                   ),
                 ),
@@ -242,9 +239,9 @@ class LotteryGameTutorial {
     const Alignment(0.0, 0.0),
     const Alignment(0.0, 0.45),
     const Alignment(-0.625, -0.55),
-    const Alignment(0.15, 0.0),
-    const Alignment(0.15, 0.0),
-    const Alignment(0.4, 0.825),
+    const Alignment(0.15, -0.2),
+    const Alignment(0.15, -0.2),
+    const Alignment(0.4, 0.85),
     const Alignment(0, 0),
     const Alignment(0.4, 0.825),
     const Alignment(0.35, 0.75),
@@ -312,7 +309,7 @@ class LotteryGameTutorial {
 
   Align extraDottedLineContainer() {
     return Align(
-      alignment: const Alignment(-0.25, 0.0),
+      alignment: const Alignment(-0.25, -0.2),
       child: FractionallySizedBox(
         widthFactor: 0.5 * 3 / 8,
         heightFactor: 0.15,
@@ -337,9 +334,9 @@ class LotteryGameTutorial {
     const Alignment(3, 3),
     const Alignment(-0.75, 0.4),
     const Alignment(-0.6, 0.4),
-    const Alignment(-0.25, 0.0),
-    const Alignment(-0.25, 0.0),
-    const Alignment(0.0, 0.9),
+    const Alignment(-0.25, -0.2),
+    const Alignment(-0.25, -0.2),
+    const Alignment(0.0, 0.95),
     const Alignment(0.5, 0.0),
     const Alignment(0.5, 0.0),
     const Alignment(0.8, 0.65),
@@ -359,6 +356,13 @@ class LotteryGameTutorial {
     'right',
   ];
 
+  Map<String, String> arrowImagePath = {
+    'up': TutorialModeConst.upArrow,
+    'down': TutorialModeConst.downArrow,
+    'left': TutorialModeConst.leftArrow,
+    'right': TutorialModeConst.rightArrow,
+  };
+
   Align hintArrow() {
     return Align(
       alignment: _hintArrowAlignment[tutorialProgress],
@@ -367,9 +371,11 @@ class LotteryGameTutorial {
           // widthFactor: 0.1,
           heightFactor: 0.2,
           child: AspectRatio(
-              aspectRatio: 1,
-              child: Image.asset(
-                  'assets/global/tutorial_${arrowDirection[tutorialProgress]}_arrow.png')),
+            aspectRatio: 1,
+            child: Image.asset(
+              arrowImagePath[arrowDirection[tutorialProgress]]!,
+            ),
+          ),
         ),
       ),
     );
@@ -377,13 +383,12 @@ class LotteryGameTutorial {
 
   Align extraHintArrow() {
     return Align(
-      alignment: const Alignment(-0.25, -0.6),
+      alignment: const Alignment(-0.25, -0.8),
       child: FractionallySizedBox(
         //widthFactor: 0.1,
         heightFactor: 0.2,
         child: AspectRatio(
-            aspectRatio: 1,
-            child: Image.asset('assets/global/tutorial_down_arrow.png')),
+            aspectRatio: 1, child: Image.asset(TutorialModeConst.downArrow)),
       ),
     );
   }
@@ -409,38 +414,12 @@ class LotteryGameTutorial {
         alignment: _continueButtonAlignment[tutorialProgress],
         child: FractionallySizedBox(
           widthFactor: 0.15,
-          child: GestureDetector(
-            onTap: () {
-              tutorialProgress++;
-              callback();
-            },
-            child: AspectRatio(
-              aspectRatio: 835 / 373,
-              child: Stack(
-                children: [
-                  Center(
-                    child: Image.asset('assets/global/continue_button.png'),
-                  ),
-                  Center(
-                    child: FractionallySizedBox(
-                      heightFactor: 0.7,
-                      widthFactor: 0.7,
-                      child: Center(
-                        child: AutoSizeText(
-                          tutorialProgress < 9 ? '點我繼續' : '結束教學',
-                          style: const TextStyle(
-                            fontFamily: 'GSR_B',
-                            fontSize: 100,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
+          child: ButtonWithText(
+              text: tutorialProgress < 9 ? '點我繼續' : '結束教學',
+              onTapFunction: () {
+                tutorialProgress++;
+                callback();
+              }),
         ),
       ),
     );

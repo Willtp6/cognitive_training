@@ -1,8 +1,8 @@
 import 'package:auto_size_text/auto_size_text.dart';
+import 'package:cognitive_training/constants/tutorial_mode_const.dart';
 import 'package:cognitive_training/shared/button_with_text.dart';
 import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/material.dart';
-import 'package:logger/logger.dart';
 
 class PokerGameTutorial {
   bool isTutorial = false;
@@ -160,9 +160,7 @@ class PokerGameTutorial {
               child: Container(
                 decoration: const BoxDecoration(
                   image: DecorationImage(
-                    image: AssetImage(
-                      'assets/login_page/tutorial_doctors.png',
-                    ),
+                    image: AssetImage(TutorialModeConst.doctors),
                     fit: BoxFit.contain,
                     alignment: Alignment.bottomCenter,
                   ),
@@ -200,9 +198,7 @@ class PokerGameTutorial {
               child: Container(
                 decoration: const BoxDecoration(
                   image: DecorationImage(
-                    image: AssetImage(
-                      'assets/login_page/tutorial_chat_bubble.png',
-                    ),
+                    image: AssetImage(TutorialModeConst.chatBubble),
                     fit: BoxFit.contain,
                   ),
                 ),
@@ -301,8 +297,7 @@ class PokerGameTutorial {
       child: FractionallySizedBox(
         widthFactor: 0.1,
         child: AspectRatio(
-            aspectRatio: 1,
-            child: Image.asset('assets/global/tutorial_right_arrow.png')),
+            aspectRatio: 1, child: Image.asset(TutorialModeConst.rightArrow)),
       ),
     );
   }

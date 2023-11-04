@@ -5,7 +5,6 @@ import 'package:cognitive_training/models/user_info_provider.dart';
 import 'package:cognitive_training/screens/games/shared/game_label.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:logger/logger.dart';
 import 'package:provider/provider.dart';
 import '../../../shared/button_with_text.dart';
 
@@ -49,9 +48,9 @@ class _FishingGameMenuState extends State<FishingGameMenu>
         context.pushNamed(
           'fishing_game',
           queryParams: {
-            'startLevel': db.currentLevel.toString(),
-            'historyContinuousWin': db.historyContinuousWin.toString(),
-            'historyContinuousLose': db.historyContinuousLose.toString(),
+            // 'startLevel': db.currentLevel.toString(),
+            // 'historyContinuousWin': db.historyContinuousWin.toString(),
+            // 'historyContinuousLose': db.historyContinuousLose.toString(),
             'isTutorial': (!db.doneTutorial).toString(),
           },
         );
@@ -59,7 +58,7 @@ class _FishingGameMenuState extends State<FishingGameMenu>
         _controller.reset();
         buttonEnabled = true;
       });
-      _audioController.playPathAudio(Globals.clickButtonSound);
+      _audioController.playSfx(Globals.clickButtonSound);
     }
   }
 
@@ -75,13 +74,13 @@ class _FishingGameMenuState extends State<FishingGameMenu>
         _controller.reset();
         buttonEnabled = true;
       });
-      _audioController.playPathAudio(Globals.clickButtonSound);
+      _audioController.playSfx(Globals.clickButtonSound);
     }
   }
 
   void goBack() {
     if (buttonEnabled) {
-      _audioController.playPathAudio(Globals.clickButtonSound);
+      _audioController.playSfx(Globals.clickButtonSound);
       context.pop();
     }
   }
