@@ -1,3 +1,6 @@
+import 'package:auto_size_text/auto_size_text.dart';
+import 'package:flutter/material.dart';
+
 class RoutePlanningGameConst {
   RoutePlanningGameConst._();
 
@@ -12,6 +15,58 @@ class RoutePlanningGameConst {
       'assets/images/route_planning_game/scene/dialog_box_mom.png';
   static const riderInMenu =
       'assets/images/route_planning_game/scene/rider_left.png';
+
+  //* rule text
+  static const level1RuleText = AutoSizeText.rich(
+    TextSpan(
+      children: [
+        TextSpan(
+            text: '請前往目標地幫家人辦事後回家\n', style: TextStyle(color: Colors.black)),
+        TextSpan(text: '越快', style: TextStyle(color: Colors.red)),
+        TextSpan(text: '完成越好喔!', style: TextStyle(color: Colors.black)),
+      ],
+    ),
+    softWrap: true,
+    maxLines: 2,
+    textAlign: TextAlign.center,
+    style: TextStyle(fontSize: 100, fontFamily: 'GSR_B'),
+  );
+  static const level2RuleText = AutoSizeText.rich(
+    TextSpan(
+      children: [
+        TextSpan(text: '請在', style: TextStyle(color: Colors.black)),
+        TextSpan(text: '時限內', style: TextStyle(color: Colors.red)),
+        TextSpan(
+            text: '前往目標地幫家人辦事後回家\n', style: TextStyle(color: Colors.black)),
+        TextSpan(text: '越快', style: TextStyle(color: Colors.red)),
+        TextSpan(
+            text: '完成越好! 注意錯誤只會提示一次喔!', style: TextStyle(color: Colors.black)),
+      ],
+    ),
+    softWrap: true,
+    maxLines: 2,
+    textAlign: TextAlign.center,
+    style: TextStyle(fontSize: 100, fontFamily: 'GSR_B'),
+  );
+  static const level3to5RuleText = AutoSizeText.rich(
+    TextSpan(
+      children: [
+        TextSpan(text: '請在', style: TextStyle(color: Colors.black)),
+        TextSpan(text: '時限內', style: TextStyle(color: Colors.red)),
+        TextSpan(
+            text: '前往目標地幫家人辦事後回家\n', style: TextStyle(color: Colors.black)),
+        TextSpan(text: '不要走錯', style: TextStyle(color: Colors.red)),
+        TextSpan(text: '且', style: TextStyle(color: Colors.black)),
+        TextSpan(text: '越快', style: TextStyle(color: Colors.red)),
+        TextSpan(text: '完成越好喔!', style: TextStyle(color: Colors.black)),
+      ],
+    ),
+    softWrap: true,
+    maxLines: 2,
+    textAlign: TextAlign.center,
+    style: TextStyle(fontSize: 100, fontFamily: 'GSR_B'),
+  );
+
   //* images
   static const targetList = 'route_planning_game/scene/targetLabel.png';
   static const riderLeft = 'route_planning_game/scene/rider_left.png';
@@ -103,6 +158,7 @@ class RoutePlanningGameConst {
     'route_planning_game/buildings/Building39_light.png',
     'route_planning_game/buildings/Building40_light.png',
   ];
+
   //* hints
   static const errorHint = 'route_planning_game/hints/error_hint.png';
   static const repeatedHint = 'route_planning_game/hints/repeated_hint.png';
@@ -139,4 +195,22 @@ class RoutePlanningGameConst {
   static const phoneVibration = 'route_planning_game/sfx/phone_vibration2.mp3';
 
   //* instruction part
+  static const gameRuleLevel1 = {
+    'chinese':
+        'audio/route_planning_game/instruction_record/chinese/level1.m4a',
+    'taiwanese':
+        'audio/route_planning_game/instruction_record/taiwanese/level1.m4a'
+  };
+  static const gameRuleLevel2 = {
+    'chinese':
+        'audio/route_planning_game/instruction_record/chinese/level2.m4a',
+    'taiwanese':
+        'audio/route_planning_game/instruction_record/taiwanese/level2.m4a'
+  };
+  static const gameRuleLevel3to5 = {
+    'chinese':
+        'audio/route_planning_game/instruction_record/chinese/level3to5.m4a',
+    'taiwanese':
+        'audio/route_planning_game/instruction_record/taiwanese/level3to5.m4a'
+  };
 }

@@ -17,7 +17,6 @@ import 'widgets/chosen_card.dart';
 import 'widgets/coin_animation.dart';
 import 'widgets/computer_handcard.dart';
 import 'widgets/no_card_button.dart';
-import 'widgets/player_hand_card.dart';
 import 'widgets/poker_game_rule.dart';
 import 'widgets/response_word.dart';
 import 'widgets/showed_coins.dart';
@@ -78,13 +77,20 @@ class _PokerGameStateScene extends State<PokerGameScene>
       duration: const Duration(milliseconds: 1400),
       vsync: this,
     );
-    game = GameInstance(
-      gameLevel: widget.startLevel,
-      continuousWin: widget.historyContinuousWin,
-      continuousLose: widget.historyContinuousLose,
-      responseTimeList: widget.responseTimeList,
-      isTutorial: widget.isTutorial,
-    );
+    game = widget.isTutorial
+        ? GameInstance(
+            gameLevel: 0,
+            continuousWin: 0,
+            continuousLose: 0,
+            responseTimeList: [10000, 10000, 10000],
+            isTutorial: true,
+          )
+        : GameInstance(
+            gameLevel: widget.startLevel,
+            continuousWin: widget.historyContinuousWin,
+            continuousLose: widget.historyContinuousLose,
+            responseTimeList: widget.responseTimeList,
+            isTutorial: false);
   }
 
   @override
@@ -96,8 +102,7 @@ class _PokerGameStateScene extends State<PokerGameScene>
     timer?.cancel();
     timerForDelayingResult?.cancel();
     timerForDelayingRoundresult?.cancel();
-    audioController.stopPlayingInstruction();
-    audioController.stopAllSfx();
+    audioController.stopAllAudio();
     super.dispose();
   }
 
@@ -138,32 +143,20 @@ class _PokerGameStateScene extends State<PokerGameScene>
     switch (game.gameLevelChange()) {
       case 0:
         if (game.computer.hand.isEmpty) {
-          _showGameEndDialog().then((value) {
-            resetBoard();
-          });
+          _showGameEndDialog();
         } else {
           simulatePlayerAction();
         }
         break;
       case 1:
         Logger().i('level upgrade');
-        _showLevelChangedDialog(upgrade: true).then((value) {
-          setState(() {
-            game.cardDealed = false;
-            final path = game.getRulePath();
-            audioController.playInstructionRecord(path);
-          });
-        });
+        _showLevelUpgradeDialog();
+
         break;
       case 2:
         Logger().i('level downgrade');
-        _showLevelChangedDialog(upgrade: false).then((value) {
-          setState(() {
-            game.cardDealed = false;
-            final path = game.getRulePath();
-            audioController.playInstructionRecord(path);
-          });
-        });
+        _showLevelDownGradeDialog();
+
         break;
     }
     userInfoProvider.pokerGameDatabase = PokerGameDatabase(
@@ -528,9 +521,9 @@ class _PokerGameStateScene extends State<PokerGameScene>
           child: GestureDetector(
             onTap: () {
               if (isTutorialModePop()) {
-                _showAlertDialog(isTutorial: true);
+                _showSkipTutorialDialog();
               } else {
-                _showAlertDialog();
+                _showExitDialog();
               }
             },
             child: Container(
@@ -560,182 +553,203 @@ class _PokerGameStateScene extends State<PokerGameScene>
     );
   }
 
-  Future<void> _showGameEndDialog() async {
-    return showDialog<void>(
-      context: context,
-      barrierDismissible: false, // user must tap button!
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Center(
-            child: Text(
-              '本局結束',
-              style: TextStyle(fontFamily: 'GSR_B', fontSize: 40),
-            ),
-          ),
-          actionsAlignment: MainAxisAlignment.center,
-          actions: <Widget>[
-            TextButton(
-              child: const Text(
-                '回到選單',
-                style: TextStyle(fontFamily: 'GSR_B', fontSize: 30),
-              ),
-              onPressed: () {
-                Navigator.of(context).pop();
-                Navigator.of(context).pop();
-              },
-            ),
-            TextButton(
-              child: const Text(
-                '繼續遊戲',
-                style: TextStyle(fontFamily: 'GSR_B', fontSize: 30),
-              ),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  Future<void> _showLevelChangedDialog({bool upgrade: true}) async {
-    return showDialog<void>(
-      context: context,
-      barrierDismissible: false, // user must tap button!
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Center(
-              child: Text(
-            upgrade ? '難度提升' : '難度下降',
-            style: const TextStyle(fontFamily: 'GSR_B', fontSize: 40),
-          )),
-          content: SingleChildScrollView(
-            child: Center(
-              child: Text(
-                upgrade ? '連續獲勝五次咯' : '連續落敗五次咯',
-                style: const TextStyle(fontFamily: 'GSR_B', fontSize: 30),
-              ),
-            ),
-          ),
-          actions: <Widget>[
-            TextButton(
-              child: const Text(
-                '返回選單',
-                style: TextStyle(fontFamily: 'GSR_B', fontSize: 30),
-              ),
-              onPressed: () {
-                Navigator.of(context).pop();
-                Navigator.of(context).pop();
-              },
-            ),
-            TextButton(
-              child: const Text(
-                '繼續遊戲',
-                style: TextStyle(fontFamily: 'GSR_B', fontSize: 30),
-              ),
-              onPressed: () {
-                game.shuffleBack();
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  void _showAlertDialog({bool isTutorial = false}) {
-    audioController.pauseAudio();
+  void _showGameEndDialog() {
     showDialog(
       context: context,
+      barrierDismissible: false,
       builder: (BuildContext context) {
-        return Globals.exitDialog(
-          continueCallback: () {
-            //game.isPaused = false;
-            audioController.resumeAudio();
-            // Navigator.of(context).pop(false);
-            Navigator.of(context).pop(false);
-            // context.pop();
+        return Globals.dialogTemplate(
+            title: '本局結束',
+            subTitle: '',
+            option1: '回到選單',
+            option1Callback: () {
+              Navigator.of(context)
+                ..pop()
+                ..pop();
+            },
+            option2: '繼續遊戲',
+            option2Callback: () {
+              Navigator.of(context).pop();
+              resetBoard();
+            });
+      },
+    );
+  }
+
+  void _showLevelUpgradeDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return Globals.dialogTemplate(
+          title: '難度提升',
+          subTitle: '連續獲勝五次咯',
+          option1: '返回選單',
+          option1Callback: () {
+            audioController.stopAllAudio();
+            Navigator.of(context)
+              ..pop()
+              ..pop();
           },
-          exitCallback: () {
-            audioController.stopAllSfx();
-            audioController.stopPlayingInstruction();
-            //* if is tutorial mode which means skipping tutorual
-            if (isTutorial) userInfoProvider.pokerGameDoneTutorial();
-            Navigator.of(context).pop(false);
-            context.pop();
+          option2: '繼續遊戲',
+          option2Callback: () {
+            game.shuffleBack();
+            Navigator.of(context).pop();
+            setState(() {
+              game.cardDealed = false;
+              final path = game.getRulePath();
+              audioController.playInstructionRecord(path);
+            });
           },
-          isTutorialMode: isTutorial,
         );
       },
     );
   }
 
-  Future<void> _showTutorialEndDialog() async {
-    userInfoProvider.pokerGameDoneTutorial();
-    return showDialog<void>(
+  void _showLevelDownGradeDialog() {
+    showDialog(
       context: context,
-      barrierDismissible: false, // user must tap button!
+      barrierDismissible: false,
       builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Center(
-            child: Text(
-              '遊戲教學已完成',
-              style: TextStyle(fontFamily: 'GSR_B', fontSize: 40),
-            ),
-          ),
-          // this part can put multiple messages
-          content: SingleChildScrollView(
-            child: ListBody(
-              children: const <Widget>[
-                Center(
-                  child: Text(
-                    '直接開始遊戲嗎?',
-                    style: TextStyle(fontFamily: 'GSR_B', fontSize: 30),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          actionsAlignment: MainAxisAlignment.center,
-          actions: <Widget>[
-            TextButton(
-              child: const Text(
-                '暫時離開',
-                style: TextStyle(fontFamily: 'GSR_B', fontSize: 30),
-              ),
-              onPressed: () {
-                Navigator.of(context).pop();
-                Navigator.of(context).pop();
-              },
-            ),
-            TextButton(
-              child: const Text(
-                '開始遊戲',
-                style: TextStyle(fontFamily: 'GSR_B', fontSize: 30),
-              ),
-              onPressed: () {
-                Navigator.of(context).pop();
-                game.putBack();
-                game.shuffleBack();
-                setState(() {
-                  widget.isTutorial = false;
-                  game = GameInstance(
-                    gameLevel: widget.startLevel,
-                    continuousWin: widget.historyContinuousWin,
-                    continuousLose: widget.historyContinuousLose,
-                    responseTimeList: widget.responseTimeList,
-                    isTutorial: widget.isTutorial,
-                  );
-                });
-                final path = game.gameLevel <= 1
-                    ? PokerGameConst.gameRuleFindBiggerAudio
-                    : PokerGameConst.gameRuleFindTheSameAudio;
-                audioController.playInstructionRecord(path);
-              },
-            ),
-          ],
+        return Globals.dialogTemplate(
+          title: '難度下降',
+          subTitle: '連續落敗五次咯',
+          option1: '返回選單',
+          option1Callback: () {
+            audioController.stopAllAudio();
+            Navigator.of(context)
+              ..pop()
+              ..pop();
+          },
+          option2: '繼續遊戲',
+          option2Callback: () {
+            game.shuffleBack();
+            Navigator.of(context).pop();
+            setState(() {
+              game.cardDealed = false;
+              final path = game.getRulePath();
+              audioController.playInstructionRecord(path);
+            });
+          },
+        );
+      },
+    );
+  }
+
+  void _showExitDialog() {
+    audioController.pauseAllAudio();
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return Globals.dialogTemplate(
+          title: '確定要離開嗎?',
+          subTitle: '遊戲將不會被記錄下來喔!!!',
+          option1: '確定離開',
+          option1Callback: () {
+            audioController.stopAllSfx();
+            audioController.stopPlayingInstruction();
+            Navigator.of(context).pop();
+            context.pop();
+          },
+          option2: '繼續遊戲',
+          option2Callback: () {
+            audioController.resumeAllAudio();
+            Navigator.of(context).pop();
+          },
+        );
+      },
+    );
+  }
+
+  void _showSkipTutorialDialog() {
+    audioController.pauseAllAudio();
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return Globals.dialogTemplate(
+          title: '確定要離開嗎?',
+          subTitle: '直接離開會跳過教學模式喔!!!',
+          option1: '確定離開',
+          option1Callback: () {
+            audioController.stopAllAudio();
+            userInfoProvider.pokerGameDoneTutorial();
+            Navigator.of(context).pop();
+            context.pop();
+          },
+          option2: '繼續教學',
+          option2Callback: () {
+            audioController.resumeAllAudio();
+            Navigator.of(context).pop();
+          },
+        );
+      },
+    );
+  }
+
+  // void _showAlertDialog({bool isTutorial = false}) {
+  //   audioController.pauseAllAudio();
+  //   showDialog(
+  //     context: context,
+  //     builder: (BuildContext context) {
+  //       return Globals.exitDialog(
+  //         continueCallback: () {
+  //           //game.isPaused = false;
+  //           audioController.resumeAllAudio();
+  //           // Navigator.of(context).pop(false);+
+  //           Navigator.of(context).pop(false);
+  //           // context.pop();
+  //         },
+  //         exitCallback: () {
+  //           audioController.stopAllSfx();
+  //           audioController.stopPlayingInstruction();
+  //           //* if is tutorial mode which means skipping tutorual
+  //           if (isTutorial) userInfoProvider.pokerGameDoneTutorial();
+  //           Navigator.of(context).pop(false);
+  //           context.pop();
+  //         },
+  //         isTutorialMode: isTutorial,
+  //       );
+  //     },
+  //   );
+  // }
+
+  void _showTutorialEndDialog() {
+    userInfoProvider.pokerGameDoneTutorial();
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return Globals.dialogTemplate(
+          title: '遊戲教學已完成',
+          subTitle: '直接開始遊戲嗎?',
+          option1: '暫時離開',
+          option1Callback: () {
+            Navigator.of(context)
+              ..pop()
+              ..pop();
+          },
+          option2: '開始遊戲',
+          option2Callback: () {
+            Navigator.of(context).pop();
+            game.putBack();
+            game.shuffleBack();
+            setState(() {
+              widget.isTutorial = false;
+              game = GameInstance(
+                gameLevel: widget.startLevel,
+                continuousWin: widget.historyContinuousWin,
+                continuousLose: widget.historyContinuousLose,
+                responseTimeList: widget.responseTimeList,
+                isTutorial: false,
+              );
+            });
+            final path = game.gameLevel <= 1
+                ? PokerGameConst.gameRuleFindBiggerAudio
+                : PokerGameConst.gameRuleFindTheSameAudio;
+            audioController.playInstructionRecord(path);
+          },
         );
       },
     );

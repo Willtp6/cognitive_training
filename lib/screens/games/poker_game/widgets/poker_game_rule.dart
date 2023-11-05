@@ -112,8 +112,8 @@ class _RuleScreenState extends State<RuleScreen> {
         widget.audioController.playInstructionRecord(path);
       });
     }
-    listener =
-        widget.audioController.audioPlayer.onPlayerStateChanged.listen((event) {
+    listener = widget.audioController.instructionPlayer.onPlayerStateChanged
+        .listen((event) {
       switch (event) {
         case PlayerState.playing:
           if (isAudioOver = true) {

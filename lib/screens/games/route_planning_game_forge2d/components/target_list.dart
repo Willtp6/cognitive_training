@@ -76,7 +76,7 @@ class TargetList extends SpriteComponent
 
   void reachTarget({required reachedIndex}) {
     int index = targetsID.indexOf(reachedIndex);
-    targetsSprite[index].opacity = 0.5;
+    targetsSprite[index].opacity = 0.3;
   }
 
   bool allVisited() {

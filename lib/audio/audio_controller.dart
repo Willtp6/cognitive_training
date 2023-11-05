@@ -7,9 +7,8 @@ import 'package:logger/logger.dart';
 class AudioController {
   static final _log = Logger();
 
-  final AudioPlayer audioPlayer;
   // final AudioPlayer _bgmPlayer;
-  final AudioPlayer _instructionPlayer;
+  final AudioPlayer instructionPlayer;
 
   final List<AudioPlayer> _sfxPlayers;
 
@@ -22,11 +21,15 @@ class AudioController {
 
   AudioController({int polyphony = 3})
       : assert(polyphony >= 1),
-        audioPlayer = AudioPlayer(playerId: 'audioPlayer'),
-        _instructionPlayer = AudioPlayer(playerId: 'instructionPlayer'),
+        instructionPlayer = AudioPlayer(playerId: 'instructionPlayer'),
         _sfxPlayers = List.generate(
             polyphony, (i) => AudioPlayer(playerId: 'sfxPlayer#$i'),
-            growable: false);
+            growable: false) {
+    // instructionPlayer.onPlayerComplete.listen((event) {
+    //   Logger().d('done');
+    //   instructionPlayer.release();
+    // });
+  }
   // _bgmPlayer = AudioPlayer(playerId: 'bgmPlayer');
 
   /// Preloads all sound effects.
@@ -67,9 +70,8 @@ class AudioController {
   void dispose() {
     _lifecycleNotifier?.removeListener(_handleAppLifecycle);
     _stopAllSound();
-    audioPlayer.dispose();
     // _bgmPlayer.dispose();
-    _instructionPlayer.dispose();
+    instructionPlayer.dispose();
     for (final player in _sfxPlayers) {
       player.dispose();
     }
@@ -102,7 +104,7 @@ class AudioController {
   }
 
   void _stopAllSound() {
-    _instructionPlayer.stop();
+    instructionPlayer.stop();
     for (final player in _sfxPlayers) {
       player.stop();
     }
@@ -110,8 +112,8 @@ class AudioController {
 
   void _resumeMusic() {
     // * check template
-    if (_instructionPlayer.state == PlayerState.paused) {
-      _instructionPlayer.resume();
+    if (instructionPlayer.state == PlayerState.paused) {
+      instructionPlayer.resume();
     }
     for (final player in _sfxPlayers) {
       if (player.state == PlayerState.paused) {
@@ -141,32 +143,46 @@ class AudioController {
     Logger().d(_currentLanguage);
   }
 
+  void stopPlayingInstruction() {
+    instructionPlayer.stop();
+  }
+
   void playInstructionRecord(Map<String, String> path) async {
-    // await audioPlayer.pause();
-    // await audioPlayer.release();
-    // audioPlayer.play(AssetSource('instruction_record/$language/$path'));
-    _instructionPlayer.play(AssetSource(path[_currentLanguage]!));
+    instructionPlayer.stop();
+    instructionPlayer.release();
+    instructionPlayer.play(AssetSource(path[_currentLanguage]!));
   }
 
-  void pauseAudio() {
-    _instructionPlayer.pause();
-    for (final player in _sfxPlayers) {
-      player.pause();
-    }
-  }
-
-  void resumeAudio() {
-    if (_instructionPlayer.state == PlayerState.paused) {
-      _instructionPlayer.resume();
+  void pauseAllAudio() {
+    if (instructionPlayer.state == PlayerState.playing) {
+      instructionPlayer.pause();
     }
     for (final player in _sfxPlayers) {
-      if (player.state == PlayerState.paused) {
-        try {
-          player.resume();
-        } catch (e) {
-          _log.d(e);
-        }
+      if (player.state == PlayerState.playing) {
+        player.pause();
       }
+    }
+  }
+
+  void resumeAllAudio() {
+    if (instructionPlayer.state == PlayerState.paused) {
+      instructionPlayer.resume();
+    }
+    // for (final player in _sfxPlayers) {
+    //   if (player.state == PlayerState.paused) {
+    //     try {
+    //       player.resume();
+    //     } catch (e) {
+    //       _log.d(e);
+    //     }
+    //   }
+    // }
+  }
+
+  void stopAllAudio() {
+    instructionPlayer.stop();
+    for (final player in _sfxPlayers) {
+      player.stop();
     }
   }
 
@@ -182,12 +198,9 @@ class AudioController {
     }
   }
 
-  void stopPlayingInstruction() {
-    _instructionPlayer.stop();
-  }
-
   void playGameDescription(int index) {
-    _instructionPlayer.play(AssetSource(
-        HomePageConst.gameDescriptionAudio[index][_currentLanguage]!));
+    instructionPlayer.play(
+      AssetSource(HomePageConst.gameDescriptionAudio[index][_currentLanguage]!),
+    );
   }
 }

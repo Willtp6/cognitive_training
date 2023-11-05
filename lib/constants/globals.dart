@@ -65,6 +65,60 @@ class Globals {
     );
   }
 
+  static AlertDialog dialogTemplate({
+    required String title,
+    required String subTitle,
+    required String option1,
+    required Function option1Callback,
+    String? option2,
+    Function? option2Callback,
+  }) {
+    return AlertDialog(
+      title: Center(
+        child: Text(
+          title,
+          style: const TextStyle(fontFamily: 'GSR_B', fontSize: 40),
+        ),
+      ),
+      // this part can put multiple messages
+      content: SingleChildScrollView(
+        child: ListBody(
+          children: <Widget>[
+            Center(
+              child: Text(
+                subTitle,
+                style: const TextStyle(fontFamily: 'GSR_B', fontSize: 30),
+              ),
+            ),
+          ],
+        ),
+      ),
+      actionsAlignment: MainAxisAlignment.center,
+      actions: <Widget>[
+        TextButton(
+          child: Text(
+            option1,
+            style: const TextStyle(fontFamily: 'GSR_B', fontSize: 30),
+          ),
+          onPressed: () {
+            option1Callback();
+          },
+        ),
+        if (option2 != null && option2Callback != null) ...[
+          TextButton(
+            child: Text(
+              option2,
+              style: const TextStyle(fontFamily: 'GSR_B', fontSize: 30),
+            ),
+            onPressed: () {
+              option2Callback();
+            },
+          ),
+        ]
+      ],
+    );
+  }
+
   //* sfx
   static const String clickButtonSound = 'audio/shared/click_button.wav';
 }

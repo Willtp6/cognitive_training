@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:cognitive_training/audio/audio_controller.dart';
+import 'package:cognitive_training/constants/globals.dart';
 import 'package:cognitive_training/constants/lottery_game_const.dart';
 import 'package:cognitive_training/models/user_info_provider.dart';
 import 'package:cognitive_training/screens/games/lottery_game/lottery_game.dart';
@@ -49,7 +50,7 @@ class _LotteryGameSceneState extends State<LotteryGameScene>
 
   late UserInfoProvider userInfoProvider;
 
-  late final LotteryGame game;
+  late LotteryGame game;
   late AnimationController _controller;
 
   final _lotteryGameTutorial = LotteryGameTutorial();
@@ -58,13 +59,21 @@ class _LotteryGameSceneState extends State<LotteryGameScene>
   void initState() {
     super.initState();
 
-    game = LotteryGame(
-      gameLevel: widget.startLevel,
-      numberOfDigits: widget.startDigit,
-      continuousCorrectRateBiggerThan50: widget.historyContinuousWin,
-      loseInCurrentDigits: widget.historyContinuousLose,
-      isTutorial: widget.isTutorial,
-    );
+    game = widget.isTutorial
+        ? LotteryGame(
+            gameLevel: 0,
+            numberOfDigits: 2,
+            continuousCorrectRateBiggerThan50: 0,
+            loseInCurrentDigits: 0,
+            isTutorial: true,
+          )
+        : LotteryGame(
+            gameLevel: widget.startLevel,
+            numberOfDigits: widget.startDigit,
+            continuousCorrectRateBiggerThan50: widget.historyContinuousWin,
+            loseInCurrentDigits: widget.historyContinuousLose,
+            isTutorial: false,
+          );
 
     _controller = AnimationController(
       duration: const Duration(seconds: 2),
@@ -418,9 +427,9 @@ class _LotteryGameSceneState extends State<LotteryGameScene>
             onTap: () async {
               game.isPaused = true;
               if (isTutorialModePop()) {
-                if (await _showSkipTutorialDialog()) context.pop();
+                _showSkipTutorialDialog();
               } else {
-                if (await _showAlertDialog()) context.pop();
+                _showExitDialog();
               }
             },
             child: Container(
@@ -538,9 +547,11 @@ class _LotteryGameSceneState extends State<LotteryGameScene>
                                                           false) {
                                                     game.isPaused = true;
                                                     //show that need to cancel one of them first
-                                                    _exceedLimitAlertDialog()
-                                                        .then((_) => game
-                                                            .isPaused = false);
+                                                    _showExceedLimitDialog();
+
+                                                    // _exceedLimitAlertDialog()
+                                                    //     .then((_) => game
+                                                    //         .isPaused = false);
                                                   } else {
                                                     game.isChosen[i + 1] =
                                                         !game.isChosen[i + 1];
@@ -733,43 +744,13 @@ class _LotteryGameSceneState extends State<LotteryGameScene>
                         child: ButtonWithText(
                             text: '填好了',
                             onTapFunction: game.disableButton || game.isTutorial
-                                ? null
+                                ? () {}
                                 : () {
                                     game.getResult();
                                     setState(() {
                                       game.changeCurrentImage();
                                     });
                                   }),
-                        // child: AspectRatio(
-                        //   aspectRatio: 835 / 353,
-                        //   child: Container(
-                        //     decoration: const BoxDecoration(
-                        //       image: DecorationImage(
-                        //         image: AssetImage(Globals.orangeButton),
-                        //       ),
-                        //     ),
-                        //     child: FractionallySizedBox(
-                        //       heightFactor: 0.5,
-                        //       widthFactor: 0.8,
-                        //       child: LayoutBuilder(
-                        //         builder: (BuildContext buildContext,
-                        //             BoxConstraints boxConstraints) {
-                        //           double width = boxConstraints.maxWidth;
-                        //           return Center(
-                        //             child: AutoSizeText(
-                        //               '',
-                        //               style: TextStyle(
-                        //                 fontSize: width / 4,
-                        //                 color: Colors.white,
-                        //                 fontFamily: 'GSR_B',
-                        //               ),
-                        //             ),
-                        //           );
-                        //         },
-                        //       ),
-                        //     ),
-                        //   ),
-                        // ),
                       ),
                     ),
                   ),
@@ -780,276 +761,140 @@ class _LotteryGameSceneState extends State<LotteryGameScene>
     );
   }
 
-  Future<bool> _showAlertDialog() async {
-    audioController.pauseAudio();
-    bool shouldPop = false;
-    await showDialog(
-      context: context,
-      barrierDismissible: false, // user must tap button!
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Center(
-            child: Text(
-              '確定要離開嗎?',
-              style: TextStyle(fontFamily: 'GSR_B', fontSize: 40),
-            ),
-          ),
-          // this part can put multiple messages
-          content: SingleChildScrollView(
-            child: ListBody(
-              children: const <Widget>[
-                Center(
-                  child: Text(
-                    '遊戲將不會被記錄下來喔!!!',
-                    style: TextStyle(fontFamily: 'GSR_B', fontSize: 30),
-                  ),
-                ),
-                Center(
-                  child: Text(
-                    '而且猜中也能拿到獎勵',
-                    style: TextStyle(fontFamily: 'GSR_B', fontSize: 30),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          actionsAlignment: MainAxisAlignment.center,
-          actions: <Widget>[
-            TextButton(
-              child: const Text(
-                '繼續遊戲',
-                style: TextStyle(fontFamily: 'GSR_B', fontSize: 30),
-              ),
-              onPressed: () {
-                game.isPaused = false;
-                audioController.resumeAudio();
-                Navigator.of(context).pop(false);
-              },
-            ),
-            TextButton(
-              child: const Text(
-                '確定離開',
-                style: TextStyle(fontFamily: 'GSR_B', fontSize: 30),
-              ),
-              onPressed: () {
-                audioController.stopPlayingInstruction();
-                audioController.stopAllSfx();
-                Navigator.of(context).pop(true);
-              },
-            ),
-          ],
-        );
-      },
-    ).then((value) => shouldPop = value);
-    return shouldPop;
-  }
+  void _showExitDialog() {
+    audioController.pauseAllAudio();
 
-  Future<bool> _showSkipTutorialDialog() async {
-    audioController.pauseAudio();
-    bool shouldPop = false;
-    await showDialog(
+    showDialog(
       context: context,
-      barrierDismissible: false, // user must tap button!
+      barrierDismissible: false,
       builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Center(
-            child: Text(
-              '確定要離開嗎?',
-              style: TextStyle(fontFamily: 'GSR_B', fontSize: 40),
-            ),
-          ),
-          // this part can put multiple messages
-          content: SingleChildScrollView(
-            child: ListBody(
-              children: const <Widget>[
-                Center(
-                  child: Text(
-                    '要退出教學模式嗎?',
-                    style: TextStyle(fontFamily: 'GSR_B', fontSize: 30),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          actionsAlignment: MainAxisAlignment.center,
-          actions: <Widget>[
-            TextButton(
-              child: const Text(
-                '繼續教學',
-                style: TextStyle(fontFamily: 'GSR_B', fontSize: 30),
-              ),
-              onPressed: () {
-                game.isPaused = false;
-                //audioController.resumeAudio();
-                Navigator.of(context).pop(false);
-              },
-            ),
-            TextButton(
-              child: const Text(
-                '確定離開',
-                style: TextStyle(fontFamily: 'GSR_B', fontSize: 30),
-              ),
-              onPressed: () {
-                //audioController.stopAudio();
-                userInfoProvider.lotteryGameDoneTutorial();
-                Navigator.of(context).pop(true);
-              },
-            ),
-          ],
-        );
-      },
-    ).then((value) => shouldPop = value);
-    return shouldPop;
-  }
-
-  Future<void> _exceedLimitAlertDialog() async {
-    return showDialog<void>(
-      context: context,
-      barrierDismissible: false, // user must tap button!
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('劃記太多了喔'),
-          // this part can put multiple messages
-          content: SingleChildScrollView(
-            child: ListBody(
-              children: <Widget>[
-                Text('最多只能劃記${game.numberOfDigits}個數字'),
-              ],
-            ),
-          ),
-          actions: <Widget>[
-            TextButton(
-              child: const Text('OK'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
+        return Globals.dialogTemplate(
+          title: '確定要離開嗎?',
+          subTitle: '遊戲將不會被記錄下來喔!!!\n而且猜中也能拿到獎勵',
+          option1: '確定離開',
+          option1Callback: () {
+            audioController.stopPlayingInstruction();
+            audioController.stopAllSfx();
+            Navigator.of(context)
+              ..pop()
+              ..pop();
+          },
+          option2: '繼續遊戲',
+          option2Callback: () {
+            game.isPaused = false;
+            audioController.resumeAllAudio();
+            Navigator.of(context).pop();
+          },
         );
       },
     );
   }
 
-  Future<void> _showGameEndDialog() async {
-    return showDialog<void>(
+  void _showSkipTutorialDialog() {
+    audioController.pauseAllAudio();
+    showDialog(
       context: context,
-      barrierDismissible: false, // user must tap button!
+      barrierDismissible: false,
       builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Center(
-              child: Text(
-            '結果發表',
-            style: TextStyle(fontFamily: 'GSR_B', fontSize: 40),
-          )),
-          // this part can put multiple messages
-          content: SingleChildScrollView(
-            child: ListBody(children: [
-              game.playerWin
-                  ? const Center(
-                      child: Text(
-                        '你贏得遊戲了!!!',
-                        style: TextStyle(fontFamily: 'GSR_B', fontSize: 30),
-                      ),
-                    )
-                  : const Center(
-                      child: Text(
-                        '真可惜下次努力吧',
-                        style: TextStyle(fontFamily: 'GSR_B', fontSize: 30),
-                      ),
-                    ),
-            ]),
-          ),
-          actionsAlignment: MainAxisAlignment.center,
-          actions: <Widget>[
-            TextButton(
-              child: const Text(
-                '回到選單',
-                style: TextStyle(fontFamily: 'GSR_B', fontSize: 30),
-              ),
-              onPressed: () {
-                Navigator.of(context).pop();
-                Navigator.of(context).pop();
-              },
-            ),
-            if (!game.isTutorial) ...[
-              TextButton(
-                child: const Text(
-                  '繼續遊戲',
-                  style: TextStyle(fontFamily: 'GSR_B', fontSize: 30),
-                ),
-                onPressed: () {
-                  Navigator.of(context).pop();
-                  Timer(const Duration(seconds: 1), () {
-                    game.setNextGame();
-                    setState(() {
-                      game.changeCurrentImage();
-                    });
-                  });
-                },
-              ),
-            ]
-          ],
+        return Globals.dialogTemplate(
+          title: '確定要離開嗎?',
+          subTitle: '要退出教學模式嗎?',
+          option1: '確定離開',
+          option1Callback: () {
+            userInfoProvider.lotteryGameDoneTutorial();
+            Navigator.of(context)
+              ..pop()
+              ..pop();
+          },
+          option2: '繼續教學',
+          option2Callback: () {
+            game.isPaused = false;
+            audioController.resumeAllAudio();
+            Navigator.of(context).pop(false);
+          },
         );
       },
     );
   }
 
-  Future<void> _showTutorialEndDialog() async {
-    return showDialog<void>(
+  void _showExceedLimitDialog() {
+    showDialog(
       context: context,
-      barrierDismissible: false, // user must tap button!
+      barrierDismissible: false,
       builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Center(
-            child: Text(
-              '遊戲教學已完成',
-              style: TextStyle(fontFamily: 'GSR_B', fontSize: 40),
-            ),
-          ),
-          // this part can put multiple messages
-          content: SingleChildScrollView(
-            child: ListBody(
-              children: const <Widget>[
-                Center(
-                  child: Text(
-                    '直接開始遊戲嗎?',
-                    style: TextStyle(fontFamily: 'GSR_B', fontSize: 30),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          actionsAlignment: MainAxisAlignment.center,
-          actions: <Widget>[
-            TextButton(
-              child: const Text(
-                '開始遊戲',
-                style: TextStyle(fontFamily: 'GSR_B', fontSize: 30),
-              ),
-              onPressed: () {
-                Navigator.of(context).pop();
-                game.isTutorial = false;
-                game.gameLevel =
-                    userInfoProvider.lotteryGameDatabase.currentLevel;
-                game.numberOfDigits =
-                    userInfoProvider.lotteryGameDatabase.currentDigit;
-                game.setNextGame();
-                setState(() {
-                  game.changeCurrentImage();
-                });
-              },
-            ),
-            TextButton(
-              child: const Text(
-                '暫時離開',
-                style: TextStyle(fontFamily: 'GSR_B', fontSize: 30),
-              ),
-              onPressed: () {
-                Navigator.of(context).pop();
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
+        return Globals.dialogTemplate(
+          title: '劃記太多了喔',
+          subTitle: '最多只能劃記${game.numberOfDigits}個數字',
+          option1: 'OK',
+          option1Callback: () {
+            game.isPaused = false;
+            Navigator.of(context).pop();
+          },
+        );
+      },
+    );
+  }
+
+  void _showGameEndDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return Globals.dialogTemplate(
+          title: '結果發表',
+          subTitle: game.playerWin ? '你贏得遊戲了!!!' : '真可惜下次努力吧',
+          option1: '回到選單',
+          option1Callback: () {
+            Navigator.of(context)
+              ..pop()
+              ..pop();
+          },
+          option2: '繼續遊戲',
+          option2Callback: () {
+            Navigator.of(context).pop();
+            Timer(const Duration(seconds: 1), () {
+              game.setNextGame();
+              setState(() {
+                game.changeCurrentImage();
+              });
+            });
+          },
+        );
+      },
+    );
+  }
+
+  void _showTutorialEndDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return Globals.dialogTemplate(
+          title: '遊戲教學已完成',
+          subTitle: '直接開始遊戲嗎?',
+          option1: '暫時離開',
+          option1Callback: () {
+            Navigator.of(context)
+              ..pop()
+              ..pop();
+          },
+          option2: '開始遊戲',
+          option2Callback: () {
+            Navigator.of(context).pop();
+            game = LotteryGame(
+              gameLevel: userInfoProvider.lotteryGameDatabase.currentLevel,
+              numberOfDigits: userInfoProvider.lotteryGameDatabase.currentDigit,
+              continuousCorrectRateBiggerThan50:
+                  userInfoProvider.lotteryGameDatabase.historyContinuousWin,
+              loseInCurrentDigits:
+                  userInfoProvider.lotteryGameDatabase.historyContinuousLose,
+              isTutorial: false,
+            );
+            game.setNextGame();
+            setState(() {
+              game.changeCurrentImage();
+            });
+          },
         );
       },
     );

@@ -100,7 +100,7 @@ class HomeTutorial {
                         softWrap: true,
                         style: const TextStyle(
                           fontSize: 100,
-                          fontFamily: 'GSR_R',
+                          fontFamily: 'GSR_B',
                         ),
                       ),
                     ),

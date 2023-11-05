@@ -2,6 +2,7 @@ import 'package:cognitive_training/constants/route_planning_game_const.dart';
 import 'package:cognitive_training/screens/games/route_planning_game_forge2d/route_planning_game_forge2d.dart';
 import 'package:flame_audio/flame_audio.dart';
 import 'package:flutter/widgets.dart';
+import 'exit_button.dart';
 
 import 'route_planning_game_rule.dart';
 
@@ -29,6 +30,7 @@ class _GameLoseState extends State<GameLose>
       controller.forward().whenComplete(() {
         widget.game.overlays.remove(GameLose.id);
         widget.game.overlays.add(RoutePlanningGameRule.id);
+        widget.game.overlays.add(ExitButton.id);
       });
     });
     super.initState();

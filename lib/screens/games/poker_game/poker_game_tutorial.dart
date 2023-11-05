@@ -222,17 +222,17 @@ class PokerGameTutorial {
   }
 
   final List<Alignment> _dottedLineContainerAlignment = [
-    const Alignment(0.0, 0.15),
-    const Alignment(0.0, 0.15),
+    const Alignment(0.0, 0.3),
+    const Alignment(0.0, 0.3),
     const Alignment(0.0, -0.85),
-    const Alignment(0.4, 0.825),
+    const Alignment(0.4, 0.85),
     const Alignment(0.0, -0.2),
     const Alignment(0.0, 0.85),
     const Alignment(0.85, -0.25),
   ];
   final List<double?> _dottedLineContainerWFactor = [
     0.65,
-    0.65,
+    0.5,
     0.6,
     null,
     null,
@@ -241,7 +241,7 @@ class PokerGameTutorial {
   ];
   final List<double> _dottedLineContainerHFactor = [
     0.4,
-    0.4,
+    0.35,
     0.25,
     0.15,
     0.25,
@@ -282,8 +282,8 @@ class PokerGameTutorial {
   }
 
   final List<Alignment> _hintArrowAlignment = [
-    const Alignment(-0.95, 0.15),
-    const Alignment(-0.95, 0.15),
+    const Alignment(-0.95, 0.3),
+    const Alignment(-0.95, 0.3),
     const Alignment(-0.9, -0.85),
     const Alignment(0.0, 0.9),
     const Alignment(-0.8, -0.2),

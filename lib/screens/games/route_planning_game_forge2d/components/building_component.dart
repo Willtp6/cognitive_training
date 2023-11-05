@@ -166,16 +166,18 @@ class BuildingComponent extends BodyComponent<RoutePlanningGameForge2d>
         //* first tapped
         else {
           if (gameRef.gameLevel < 2 && building.isTarget) {
-            flagSprite.add(ScaleEffect.by(
-              Vector2.all(3),
-              EffectController(
-                  duration: 1,
-                  onMax: () {
-                    flagSprite.opacity = 0;
-                    gameRef.targetList.reachTarget(reachedIndex: building.id);
-                  }),
-            ));
+            flagSprite.add(
+              ScaleEffect.by(
+                  Vector2.all(3),
+                  EffectController(
+                      duration: 1,
+                      onMax: () {
+                        flagSprite.opacity = 0;
+                      })),
+            );
           }
+          //* let building image in target list become translucent
+          gameRef.targetList.reachTarget(reachedIndex: building.id);
           //* get every first reach time
           gameRef.timeToEachHalfwayPoint
               .add(DateTime.now().difference(gameRef.startTime).inMilliseconds);

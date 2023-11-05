@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:audioplayers/audioplayers.dart';
+import 'package:cognitive_training/audio/audio_controller.dart';
 import 'package:cognitive_training/constants/fishing_game_const.dart';
 import 'package:cognitive_training/firebase/record_game.dart';
 import 'package:cognitive_training/models/global_info_provider.dart';
@@ -27,6 +28,7 @@ class FishingGame extends FlameGame with HasCollisionDetection, HasTappables {
     this.isTutorial = false,
     required this.userInfoProvider,
     required this.globalInfoProvider,
+    required this.audioController,
   });
   final List<List<int>> possibleRippleList = [
     [0, 3],
@@ -52,6 +54,7 @@ class FishingGame extends FlameGame with HasCollisionDetection, HasTappables {
   int continuousLose;
   UserInfoProvider userInfoProvider;
   GlobalInfoProvider globalInfoProvider;
+  AudioController audioController;
 
   late BackGroundComponent backGroundComponent;
   late List<TimerComponent> rippleTimers;

@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'package:cognitive_training/audio/audio_controller.dart';
+import 'package:cognitive_training/constants/globals.dart';
 import 'package:cognitive_training/constants/route_planning_game_const.dart';
 import 'package:cognitive_training/models/user_info_provider.dart';
 import 'package:cognitive_training/screens/games/shared/game_label.dart';
@@ -24,6 +26,7 @@ class _RoutePlanningGameForge2dMenuState
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late UserInfoProvider userInfoProvider;
+  late AudioController audioController;
   bool buttonEnabled = true;
 
   @override
@@ -44,6 +47,7 @@ class _RoutePlanningGameForge2dMenuState
   void startGame() {
     if (buttonEnabled) {
       buttonEnabled = false;
+      audioController.playSfx(Globals.clickButtonSound);
       _controller.forward().whenComplete(() {
         String isTutorial =
             (!userInfoProvider.routePlanningGameDatabase.doneTutorial)
@@ -63,30 +67,34 @@ class _RoutePlanningGameForge2dMenuState
   }
 
   void startTutorial() {
-    if (buttonEnabled) {
-      buttonEnabled = false;
-      _controller.forward().whenComplete(() {
-        context.pushNamed(
-          'route_planning_game',
-          queryParams: {'isTutorial': true.toString()},
-        ).whenComplete(() {
-          _controller.reset();
-          buttonEnabled = true;
-        });
-      });
-      Timer(Duration(milliseconds: (8000 * 0.2).toInt()), () {
-        FlameAudio.play(RoutePlanningGameConst.phoneVibration);
-      });
-    }
+    // if (buttonEnabled) {
+    //   buttonEnabled = false;
+    //   _controller.forward().whenComplete(() {
+    //     context.pushNamed(
+    //       'route_planning_game',
+    //       queryParams: {'isTutorial': true.toString()},
+    //     ).whenComplete(() {
+    //       _controller.reset();
+    //       buttonEnabled = true;
+    //     });
+    //   });
+    //   Timer(Duration(milliseconds: (8000 * 0.2).toInt()), () {
+    //     FlameAudio.play(RoutePlanningGameConst.phoneVibration);
+    //   });
+    // }
   }
 
   void goBack() {
-    if (buttonEnabled) context.pop();
+    if (buttonEnabled) {
+      audioController.playSfx(Globals.clickButtonSound);
+      context.pop();
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     userInfoProvider = context.read<UserInfoProvider>();
+    audioController = context.read<AudioController>();
     return SafeArea(
       child: Scaffold(
         body: Stack(

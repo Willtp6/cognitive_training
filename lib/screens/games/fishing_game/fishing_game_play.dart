@@ -1,3 +1,4 @@
+import 'package:cognitive_training/audio/audio_controller.dart';
 import 'package:cognitive_training/models/global_info_provider.dart';
 import 'package:cognitive_training/models/user_info_provider.dart';
 import 'package:cognitive_training/screens/games/fishing_game/widgets/overlays/fishing_game_rule.dart';
@@ -20,6 +21,7 @@ class FishingGamePlay extends StatelessWidget {
 
   late UserInfoProvider userInfoProvider;
   late GlobalInfoProvider globalInfoProvider;
+  late AudioController audioController;
   int gameLevel;
   bool isTutorial;
   // final FishingGame game = FishingGame(userInfoProvider: userInfoProvider);
@@ -28,6 +30,7 @@ class FishingGamePlay extends StatelessWidget {
   Widget build(BuildContext context) {
     userInfoProvider = context.read<UserInfoProvider>();
     globalInfoProvider = context.read<GlobalInfoProvider>();
+    audioController = context.read<AudioController>();
     return SafeArea(
       child: Scaffold(
         body: WillPopScope(
@@ -41,6 +44,7 @@ class FishingGamePlay extends StatelessWidget {
               isTutorial: isTutorial,
               userInfoProvider: userInfoProvider,
               globalInfoProvider: globalInfoProvider,
+              audioController: audioController,
             ),
             initialActiveOverlays: isTutorial
                 ? [

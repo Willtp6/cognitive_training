@@ -60,6 +60,7 @@ class RoutePlanningGameForge2d extends Forge2DGame
   // late TimerComponent countDownTimer;
   Timer? countDownTimer;
   late int remainTime;
+  bool timerEnabled = true;
   late SpriteComponent alarmClock;
   bool alarmClockAdded = false;
   AudioPlayer? alarmClockAudio;
@@ -198,12 +199,14 @@ class RoutePlanningGameForge2d extends Forge2DGame
   }
 
   void gameWin() {
+    alarmClock.removeFromParent();
+    alarmClockAdded = false;
+    alarmClockAudio?.pause();
     countDownTimer?.cancel();
     recordGame('Win');
     FlameAudio.bgm.stop();
     overlays.remove(ExitButton.id);
     overlays.add(GameWin.id);
-    overlays.add(ExitButton.id);
     resetGame();
   }
 
@@ -212,7 +215,6 @@ class RoutePlanningGameForge2d extends Forge2DGame
     FlameAudio.bgm.stop();
     overlays.remove(ExitButton.id);
     overlays.add(GameLose.id);
-    overlays.add(ExitButton.id);
     resetGame();
   }
 
@@ -292,22 +294,25 @@ class RoutePlanningGameForge2d extends Forge2DGame
               addedTime[gameLevel];
       countDownTimer =
           Timer.periodic(const Duration(seconds: 1), (timer) async {
-        Logger().d(timer.tick);
-        remainTime--;
-        //* start alarm clock animation
-        if (remainTime <= 5 && !alarmClockAdded) {
-          add(alarmClock);
-          alarmClockAdded = true;
-          alarmClockAudio =
-              await FlameAudio.loop(RoutePlanningGameConst.tictocAudio);
-        }
-        //* cancel timer and trigger time up event
-        if (remainTime <= 0) {
-          alarmClock.removeFromParent();
-          alarmClockAdded = false;
-          alarmClockAudio?.pause();
-          countDownTimer?.cancel();
-          gameLose();
+        if (timerEnabled) {
+          // Logger().d(timer.tick);
+          remainTime--;
+          Logger().d(remainTime);
+          //* start alarm clock animation
+          if (remainTime <= 5 && !alarmClockAdded) {
+            add(alarmClock);
+            alarmClockAdded = true;
+            alarmClockAudio =
+                await FlameAudio.loop(RoutePlanningGameConst.tictocAudio);
+          }
+          //* cancel timer and trigger time up event
+          if (remainTime <= 0) {
+            alarmClock.removeFromParent();
+            alarmClockAdded = false;
+            alarmClockAudio?.pause();
+            countDownTimer?.cancel();
+            gameLose();
+          }
         }
       });
     }

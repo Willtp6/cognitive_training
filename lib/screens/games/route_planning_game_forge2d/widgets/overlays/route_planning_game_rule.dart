@@ -1,6 +1,7 @@
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:cognitive_training/audio/audio_controller.dart';
 import 'package:cognitive_training/constants/globals.dart';
+import 'package:cognitive_training/constants/route_planning_game_const.dart';
 import 'package:cognitive_training/shared/button_with_text.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -43,6 +44,9 @@ class _RoutePlanningGameRuleState extends State<RoutePlanningGameRule>
   void initState() {
     _controller = AnimationController(
         vsync: this, duration: const Duration(milliseconds: 500));
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      playRuleAudio();
+    });
     super.initState();
   }
 
@@ -142,12 +146,31 @@ class _RoutePlanningGameRuleState extends State<RoutePlanningGameRule>
     );
   }
 
-  void _listenAgain() {}
+  void playRuleAudio() {
+    final Map<String, String> path;
+    switch (widget.game.gameLevel) {
+      case 0:
+        path = RoutePlanningGameConst.gameRuleLevel1;
+        break;
+      case 1:
+        path = RoutePlanningGameConst.gameRuleLevel2;
+        break;
+      default:
+        path = RoutePlanningGameConst.gameRuleLevel3to5;
+        break;
+    }
+    _audioController.playInstructionRecord(path);
+  }
+
+  void _listenAgain() {
+    playRuleAudio();
+  }
 
   void _startGame() {
     if (buttonEnabled) {
       buttonEnabled = false;
       _audioController.playSfx(Globals.clickButtonSound);
+      _audioController.stopPlayingInstruction();
       _controller.forward().whenComplete(() {
         widget.game.overlays.remove(RoutePlanningGameRule.id);
         // widget.game.overlays.remove(FishingGameRule.id);
@@ -172,39 +195,11 @@ class GameRule extends StatelessWidget {
         child: FractionallySizedBox(
           widthFactor: 0.8,
           child: Center(
-            child: AutoSizeText.rich(
-              TextSpan(
-                children: gameLevel == 0
-                    ? const [
-                        TextSpan(
-                            text: '請前往目標地幫家人辦事',
-                            style: TextStyle(color: Colors.black)),
-                        TextSpan(
-                            text: '\n', style: TextStyle(color: Colors.black)),
-                        TextSpan(
-                            text: '越快', style: TextStyle(color: Colors.red)),
-                        TextSpan(
-                            text: '完成越好喔!',
-                            style: TextStyle(color: Colors.black)),
-                      ]
-                    : const [
-                        TextSpan(
-                            text: '請在', style: TextStyle(color: Colors.black)),
-                        TextSpan(
-                            text: '時限內', style: TextStyle(color: Colors.red)),
-                        TextSpan(
-                            text: '前往目標地幫家人辦事\n',
-                            style: TextStyle(color: Colors.black)),
-                        TextSpan(
-                            text: '越快完成越好喔!',
-                            style: TextStyle(color: Colors.black)),
-                      ],
-              ),
-              softWrap: true,
-              maxLines: 2,
-              textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 100, fontFamily: 'GSR_B'),
-            ),
+            child: gameLevel == 0
+                ? RoutePlanningGameConst.level1RuleText
+                : gameLevel == 2
+                    ? RoutePlanningGameConst.level2RuleText
+                    : RoutePlanningGameConst.level3to5RuleText,
           ),
         ),
       ),
