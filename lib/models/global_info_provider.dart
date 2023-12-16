@@ -17,7 +17,7 @@ class GlobalInfoProvider extends ChangeNotifier {
       if (newUser != null) {
         FirebaseFirestore.instance.collection('global_info').get().then(
           (querySnapshot) {
-            Logger().i('succefully completed');
+            // Logger().i('succefully completed');
             _rankingUsers = [];
             for (var docSnapShot in querySnapshot.docs) {
               _rankingUsers.add(

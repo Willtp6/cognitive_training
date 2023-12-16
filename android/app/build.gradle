@@ -38,6 +38,9 @@ android {
 
 
     compileOptions {
+        // Flag to enable support for the new language APIs
+        coreLibraryDesugaringEnabled true
+
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
@@ -57,12 +60,18 @@ android {
         // For more information, see: https://docs.flutter.dev/deployment/android#reviewing-the-gradle-build-configuration.
         //initial
         //minSdkVersion flutter.minSdkVersion
-        minSdkVersion 21
+        // minSdkVersion 21
+        minSdkVersion 26
         //initial
         //targetSdkVersion flutter.targetSdkVersion
-        targetSdkVersion 28
+        //* android 8.0
+        // targetSdkVersion 26
+        //* android 9.0
+        targetSdkVersion 29
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
+        
+        // manifestPlaceholders['foregroundServiceType'] = ''
     }
 
     buildTypes {
@@ -84,4 +93,7 @@ dependencies {
     implementation platform('com.google.firebase:firebase-bom:31.2.3')
     implementation 'com.google.firebase:firebase-analytics-ktx'
     // END: FlutterFire Configuration
+
+    //
+    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:1.2.2'
 }

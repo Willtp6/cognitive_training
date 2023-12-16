@@ -17,4 +17,64 @@ class LocalStorageSettingsPersistence extends SettingsPersistence {
     final pref = await instanceFuture;
     pref.setString('chosenLanguage', language);
   }
+
+  @override
+  Future<bool> getStatusOfDailyNotification() async {
+    final pref = await instanceFuture;
+    return pref.getBool('statusOfDailyNotification') ?? false;
+  }
+
+  @override
+  Future<void> saveStatusOfDailyNotification(bool status) async {
+    final pref = await instanceFuture;
+    pref.setBool('statusOfDailyNotification', status);
+  }
+
+  @override
+  Future<String> getDailyNotificationTime1() async {
+    final pref = await instanceFuture;
+    return pref.getString('timeOfDailyNotification') ?? '';
+  }
+
+  @override
+  Future<void> saveDailyNotificationTime1(String time) async {
+    final pref = await instanceFuture;
+    pref.setString('timeOfDailyNotification', time);
+  }
+
+  @override
+  Future<String> getDailyNotificationTime2() async {
+    final pref = await instanceFuture;
+    return pref.getString('timeOfDailyNotification2') ?? '';
+  }
+
+  @override
+  Future<void> saveDailyNotificationTime2(String time) async {
+    final pref = await instanceFuture;
+    pref.setString('timeOfDailyNotification2', time);
+  }
+
+  @override
+  Future<String> getDailyNotificationTime3() async {
+    final pref = await instanceFuture;
+    return pref.getString('timeOfDailyNotification3') ?? '';
+  }
+
+  @override
+  Future<void> saveDailyNotificationTime3(String time) async {
+    final pref = await instanceFuture;
+    pref.setString('timeOfDailyNotification3', time);
+  }
+
+  @override
+  Future<String> getTimeOfLastDatabaseUpdate() async {
+    final pref = await instanceFuture;
+    return pref.getString('timeOfLastDatabaseUpdate') ?? '';
+  }
+
+  @override
+  Future<void> saveTimeOfLastDatabaseUpdate(String time) async {
+    final pref = await instanceFuture;
+    pref.setString('timeOfLastDatabaseUpdate', time);
+  }
 }

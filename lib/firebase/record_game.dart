@@ -1,8 +1,13 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:logger/logger.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+import '../notifications_util/notification_helper.dart';
 
 class RecordGame {
+  // NotificationHelper _notificationHelper = NotificationHelper();
+
   Future<void> recordLotteryGame({
     required int gameLevel,
     required int numberOfDigits,
@@ -12,7 +17,8 @@ class RecordGame {
     required DateTime start,
     required List<int> answer,
     required List<int> playerInput,
-  }) {
+  }) async {
+    await setLastUpdateTime();
     User? user = FirebaseAuth.instance.currentUser;
     //record the game info
     DocumentReference reference = FirebaseFirestore.instance
@@ -29,10 +35,7 @@ class RecordGame {
         'answer': answer,
         'playerInput': playerInput,
       });
-    }
-    // .then((value) => Logger().d(user?.uid))
-    // .catchError((error) => Logger().d(error.message));
-    else {
+    } else {
       List<String> ruleStrings = ['even', 'max', 'min', 'odd'];
       return reference.set({
         'game_record': {
@@ -53,7 +56,8 @@ class RecordGame {
     required DateTime start,
     required DateTime end,
     required String type,
-  }) {
+  }) async {
+    await setLastUpdateTime();
     User? user = FirebaseAuth.instance.currentUser;
     //record the game info
     DocumentReference reference = FirebaseFirestore.instance
@@ -80,7 +84,8 @@ class RecordGame {
     required String playerRank,
     required String computerSuit,
     required String playerSuit,
-  }) {
+  }) async {
+    await setLastUpdateTime();
     User? user = FirebaseAuth.instance.currentUser;
     //record the game info
     DocumentReference reference = FirebaseFirestore.instance
@@ -110,7 +115,8 @@ class RecordGame {
     required DateTime start,
     required DateTime end,
     required String result,
-  }) {
+  }) async {
+    await setLastUpdateTime();
     User? user = FirebaseAuth.instance.currentUser;
     DocumentReference reference = FirebaseFirestore.instance
         .collection('user_game_info')
@@ -130,5 +136,11 @@ class RecordGame {
         })
         .whenComplete(() => Logger().d(user?.uid))
         .catchError((error) => Logger().d(error));
+  }
+
+  Future<void> setLastUpdateTime() async {
+    Future<SharedPreferences> instanceFuture = SharedPreferences.getInstance();
+    final pref = await instanceFuture;
+    pref.setString('timeOfLastDatabaseUpdate', DateTime.now().toString());
   }
 }

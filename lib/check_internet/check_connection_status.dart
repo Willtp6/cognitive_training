@@ -7,7 +7,7 @@ class CheckConnectionStatus {
       ValueNotifier(Connectivity().checkConnectivity());
   CheckConnectionStatus() {
     Connectivity().onConnectivityChanged.listen((event) {
-      Logger().i(event);
+      // Logger().i(event);
       connectionStatus.value = event;
     });
   }

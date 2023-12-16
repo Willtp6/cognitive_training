@@ -6,6 +6,7 @@ import 'package:flame_audio/flame_audio.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import 'exit_button.dart';
 
 class ExitDialog extends StatelessWidget {
   static const id = "ExitDialog";
@@ -31,24 +32,43 @@ class ExitDialog extends StatelessWidget {
     //   },
     //   isTutorialMode: false,
     // );
-    return Globals.dialogTemplate(
-      title: '確定要離開嗎?',
-      subTitle: '遊戲將不會被記錄下來喔!!!',
-      option1: '確定離開',
-      option1Callback: () {
-        game.overlays.remove(ExitDialog.id);
-        audioController.stopAllAudio();
-        context.pop();
-      },
-      option2: '繼續遊戲',
-      option2Callback: () {
-        game.overlays.remove(ExitDialog.id);
-        game.resumeEngine();
-        game.timerEnabled = true;
-        game.alarmClockAudio?.resume();
-        FlameAudio.bgm.resume();
-        audioController.resumeAllAudio();
-      },
-    );
+    return game.isTutorial
+        ? Globals.dialogTemplate(
+            title: '確定要離開嗎?',
+            subTitle: '直接離開會跳過教學模式喔!!!',
+            option1: '確定離開',
+            option1Callback: () {
+              userInfoProvider.routePlanningGameDoneTutorial();
+              game.overlays.remove(ExitDialog.id);
+              audioController.stopAllAudio();
+              context.pop();
+            },
+            option2: '繼續教學',
+            option2Callback: () {
+              game.overlays.remove(ExitDialog.id);
+              game.overlays.add(ExitButton.id);
+              game.resumeEngine();
+              audioController.resumeAllAudio();
+            },
+          )
+        : Globals.dialogTemplate(
+            title: '確定要離開嗎?',
+            subTitle: '遊戲將不會被記錄下來喔!!!',
+            option1: '確定離開',
+            option1Callback: () {
+              game.overlays.remove(ExitDialog.id);
+              audioController.stopAllAudio();
+              context.pop();
+            },
+            option2: '繼續遊戲',
+            option2Callback: () {
+              game.overlays.remove(ExitDialog.id);
+              game.resumeEngine();
+              game.timerEnabled = true;
+              game.alarmClockAudio?.resume();
+              FlameAudio.bgm.resume();
+              audioController.resumeAllAudio();
+            },
+          );
   }
 }

@@ -2,15 +2,19 @@ class UserModel {}
 
 class LotteryGameDatabase {
   int currentLevel;
+  int currentDigit;
+  int continuousCorrectRateBiggerThan50;
+  int loseInCurrentDigit;
   int historyContinuousWin;
   int historyContinuousLose;
-  int currentDigit;
   bool doneTutorial;
   LotteryGameDatabase({
     required this.currentLevel,
+    required this.currentDigit,
+    required this.continuousCorrectRateBiggerThan50,
+    required this.loseInCurrentDigit,
     required this.historyContinuousWin,
     required this.historyContinuousLose,
-    required this.currentDigit,
     required this.doneTutorial,
   });
 }

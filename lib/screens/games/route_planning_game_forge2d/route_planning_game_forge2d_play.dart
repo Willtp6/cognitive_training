@@ -1,4 +1,5 @@
 import 'package:cognitive_training/models/user_info_provider.dart';
+
 import 'package:provider/provider.dart';
 
 import 'widgets/overlays/exit_button.dart';
@@ -11,6 +12,7 @@ import 'widgets/overlays/route_planning_game_rule.dart';
 import 'widgets/overlays/endgame_button.dart';
 import 'widgets/overlays/game_win.dart';
 import 'widgets/overlays/game_lose.dart';
+import 'widgets/overlays/route_planning_game_tutorial_mode.dart';
 
 class RoutePlanningGameForge2dPlay extends StatelessWidget {
   bool isTutorial;
@@ -39,12 +41,13 @@ class RoutePlanningGameForge2dPlay extends StatelessWidget {
                   .routePlanningGameDatabase.historyContinuousWin,
               continuousLose: userInfoProvider
                   .routePlanningGameDatabase.historyContinuousLose,
+              isTutorial: isTutorial,
               userInfoProvider: userInfoProvider,
             ),
             // Initially only menu overlay will be visible.
             initialActiveOverlays: isTutorial
                 ? const [
-                    RoutePlanningGameRule.id,
+                    RoutePlanningGameTutorialMode.id,
                     ExitButton.id,
                   ]
                 : const [
@@ -70,6 +73,9 @@ class RoutePlanningGameForge2dPlay extends StatelessWidget {
               GameLose.id:
                   (BuildContext context, RoutePlanningGameForge2d game) =>
                       GameLose(game: game),
+              RoutePlanningGameTutorialMode.id:
+                  (BuildContext context, RoutePlanningGameForge2d game) =>
+                      RoutePlanningGameTutorialMode(game: game),
             },
           ),
         ),

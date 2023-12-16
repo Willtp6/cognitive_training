@@ -1,9 +1,16 @@
+// import 'dart:async';
+// import 'dart:io';
+// import 'dart:ui';
+
+import 'dart:async';
+
 import 'package:cognitive_training/app_lifecycle/app_lifecycle.dart';
 import 'package:cognitive_training/audio/audio_controller.dart';
 import 'package:cognitive_training/check_internet/check_connection_status.dart';
 import 'package:cognitive_training/models/global_info_provider.dart';
 import 'package:cognitive_training/models/user_info_provider.dart';
 import 'package:cognitive_training/models/user_checkin_provider.dart';
+import 'package:cognitive_training/notifications_util/notification_helper.dart';
 import 'package:cognitive_training/screens/games/fishing_game/fishing_game_play.dart';
 import 'package:cognitive_training/screens/games/lottery_game/lottery_game_scene.dart';
 import 'package:cognitive_training/screens/games/lottery_game/lottery_game_menu.dart';
@@ -20,7 +27,17 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:cognitive_training/screens/home/home_page.dart';
 import 'package:cognitive_training/screens/login/login_page.dart';
+import 'package:flutter_background_service/flutter_background_service.dart';
+import 'package:flutter_background_service_android/flutter_background_service_android.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+// import 'package:flutter_background_service/flutter_background_service.dart';
+// import 'package:flutter_background_service_android/flutter_background_service_android.dart';
+// import 'package:device_info_plus/device_info_plus.dart';
+// import 'package:flutter_background_service_android/flutter_background_service_android.dart';
+// import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:logger/logger.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'background_service/background_service.dart';
 import 'firebase_options.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
@@ -28,17 +45,140 @@ import 'package:go_router/go_router.dart';
 import 'screens/games/fishing_game/fishing_game_menu.dart';
 import 'settings/setting_controller.dart';
 
+import 'package:timezone/timezone.dart' as tz;
+import 'package:timezone/data/latest.dart' as tz;
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+  NotificationHelper notificationHelper = NotificationHelper();
+  await notificationHelper.initialize();
+  await initializeService();
+
   runApp(
     MyApp(
       settingsPersistence: LocalStorageSettingsPersistence(),
     ),
   );
 }
+
+// Future<void> initializeService() async {
+//   final service = FlutterBackgroundService();
+
+//   await service.configure(
+//     iosConfiguration: IosConfiguration(),
+//     androidConfiguration: AndroidConfiguration(
+//       onStart: onStart,
+//       isForegroundMode: false,
+//     ),
+//   );
+
+//   await service.startService();
+// }
+
+// // AndroidInitializationSettings是一个用于设置Android上的本地通知初始化的类
+// // 使用了app_icon作为参数，这意味着在Android上，应用程序的图标将被用作本地通知的图标。
+// const AndroidInitializationSettings initializationSettingsAndroid =
+//     AndroidInitializationSettings('@mipmap/ic_launcher');
+
+// // 初始化
+// const InitializationSettings initializationSettings =
+//     InitializationSettings(android: initializationSettingsAndroid);
+// const AndroidNotificationDetails androidCustomizeNotificationDetails =
+//     AndroidNotificationDetails(
+//   'cognitive.training.app.customizer.notification',
+//   'user customize notification',
+//   channelDescription: 'to remind user',
+//   importance: Importance.max,
+//   priority: Priority.high,
+//   ticker: 'ticker',
+// );
+// const AndroidNotificationDetails androidLoginReminderNotificationDetails =
+//     AndroidNotificationDetails(
+//   'cognitive.training.app.login.reminder',
+//   'login reminder',
+//   channelDescription: 'to remind user login and play',
+//   importance: Importance.max,
+//   priority: Priority.high,
+//   ticker: 'ticker',
+// );
+// @pragma('vm:entry-point')
+// void onStart(ServiceInstance service) async {
+//   if (service is AndroidServiceInstance) {
+//     service.on('setAsForeground').listen((event) {
+//       service.setAsForegroundService();
+//     });
+
+//     service.on('setAsBackground').listen((event) {
+//       service.setAsBackgroundService();
+//     });
+//   }
+
+//   final FlutterLocalNotificationsPlugin notificationsPlugin =
+//       FlutterLocalNotificationsPlugin();
+
+//   await notificationsPlugin.initialize(initializationSettings);
+//   //  初始化tz
+//   tz.initializeTimeZones();
+
+//   service.on('stopService').listen((event) async {
+//     final List<PendingNotificationRequest> pendingNotificationRequests =
+//         await notificationsPlugin.pendingNotificationRequests();
+//     for (int i = 0; i < pendingNotificationRequests.length; i++) {
+//       Logger().d('${pendingNotificationRequests[i].id}');
+//       notificationsPlugin.cancel(pendingNotificationRequests[i].id);
+//     }
+//     service.stopSelf();
+//   });
+//   setNotification(notificationsPlugin, androidCustomizeNotificationDetails);
+//   Timer.periodic(const Duration(days: 1), (timer) {
+//     setNotification(notificationsPlugin, androidCustomizeNotificationDetails);
+//   });
+// }
+
+// Future<void> setNotification(
+//   FlutterLocalNotificationsPlugin notificationsPlugin,
+//   AndroidNotificationDetails androidNotificationDetails,
+// ) async {
+//   Future<SharedPreferences> instanceFuture = SharedPreferences.getInstance();
+//   final pref = await instanceFuture;
+
+//   if (pref.getBool('statusOfDailyNotification') ?? false) {
+//     final List<String> timeList = [
+//       pref.getString('timeOfDailyNotification') ?? '',
+//       pref.getString('timeOfDailyNotification2') ?? '',
+//       pref.getString('timeOfDailyNotification3') ?? '',
+//     ];
+//     for (int i = 0; i < timeList.length; i++) {
+//       if (timeList[i].isNotEmpty) {
+//         int hour = int.parse(timeList[i].split(':')[0]);
+//         int minute = int.parse(timeList[i].split(':')[1]);
+//         DateTime timeForNotification;
+
+//         DateTime now = DateTime.now();
+//         timeForNotification =
+//             DateTime(now.year, now.month, now.day, hour, minute);
+
+//         if (timeForNotification.isBefore(now)) {
+//           timeForNotification =
+//               timeForNotification.add(const Duration(days: 1));
+//         }
+//         await notificationsPlugin.zonedSchedule(
+//           10 + i,
+//           '每日提醒',
+//           '記得登入遊玩及領取獎勵',
+//           tz.TZDateTime.from(timeForNotification, tz.local),
+//           NotificationDetails(android: androidNotificationDetails),
+//           androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+//           uiLocalNotificationDateInterpretation:
+//               UILocalNotificationDateInterpretation.absoluteTime,
+//         );
+//       }
+//     }
+//   }
+// }
 
 class MyApp extends StatelessWidget {
   MyApp({super.key, required this.settingsPersistence});
@@ -98,6 +238,9 @@ class MyApp extends StatelessWidget {
                         return LotteryGameScene(
                           startLevel: database.currentLevel,
                           startDigit: database.currentDigit,
+                          continuousCorrectRateBiggerThan50:
+                              database.continuousCorrectRateBiggerThan50,
+                          loseInCurrentDigit: database.loseInCurrentDigit,
                           historyContinuousWin: database.historyContinuousWin,
                           historyContinuousLose: database.historyContinuousLose,
                           isTutorial: isTutorial == 'true',
@@ -234,7 +377,7 @@ class MyApp extends StatelessWidget {
           Provider<SettingsController>(
             lazy: false,
             create: (context) => SettingsController(
-              persistence: settingsPersistence,
+              persistence: LocalStorageSettingsPersistence(),
             )..loadStateFromPersistence(),
           ),
           Provider<CheckConnectionStatus>(
@@ -256,7 +399,7 @@ class MyApp extends StatelessWidget {
         ],
         child: MaterialApp.router(
           debugShowCheckedModeBanner: false,
-          theme: ThemeData(fontFamily: 'GSR_R'),
+          theme: ThemeData(fontFamily: 'GSR_B'),
           routerConfig: router,
         ),
       ),
@@ -270,7 +413,7 @@ class Wrapper extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Consumer<User?>(builder: (_, user, child) {
-      Logger().d(user);
+      // Logger().d(user);
       return user != null ? const HomePage() : const LoginPage();
     });
   }

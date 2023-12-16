@@ -25,6 +25,8 @@ class LotteryGameScene extends StatefulWidget {
   final int startLevel;
   final int startDigit;
   final bool isTutorial;
+  final int continuousCorrectRateBiggerThan50;
+  final int loseInCurrentDigit;
   final int historyContinuousWin;
   final int historyContinuousLose;
 
@@ -34,6 +36,8 @@ class LotteryGameScene extends StatefulWidget {
     required this.startDigit,
     required this.historyContinuousWin,
     required this.historyContinuousLose,
+    required this.continuousCorrectRateBiggerThan50,
+    required this.loseInCurrentDigit,
     required this.isTutorial,
   });
 
@@ -64,14 +68,19 @@ class _LotteryGameSceneState extends State<LotteryGameScene>
             gameLevel: 0,
             numberOfDigits: 2,
             continuousCorrectRateBiggerThan50: 0,
-            loseInCurrentDigits: 0,
+            loseInCurrentDigit: 0,
+            continuousWin: 0,
+            continuousLose: 0,
             isTutorial: true,
           )
         : LotteryGame(
             gameLevel: widget.startLevel,
             numberOfDigits: widget.startDigit,
-            continuousCorrectRateBiggerThan50: widget.historyContinuousWin,
-            loseInCurrentDigits: widget.historyContinuousLose,
+            continuousCorrectRateBiggerThan50:
+                widget.continuousCorrectRateBiggerThan50,
+            loseInCurrentDigit: widget.loseInCurrentDigit,
+            continuousWin: widget.historyContinuousWin,
+            continuousLose: widget.historyContinuousLose,
             isTutorial: false,
           );
 
@@ -209,8 +218,11 @@ class _LotteryGameSceneState extends State<LotteryGameScene>
           userInfoProvider.lotteryGameDatabase = LotteryGameDatabase(
             currentLevel: game.gameLevel,
             currentDigit: game.numberOfDigits,
-            historyContinuousWin: game.continuousCorrectRateBiggerThan50,
-            historyContinuousLose: game.loseInCurrentDigits,
+            continuousCorrectRateBiggerThan50:
+                game.continuousCorrectRateBiggerThan50,
+            loseInCurrentDigit: game.loseInCurrentDigit,
+            historyContinuousWin: game.continuousWin,
+            historyContinuousLose: game.continuousLose,
             doneTutorial: userInfoProvider.lotteryGameDatabase.doneTutorial ||
                 game.isTutorial,
           );
@@ -558,8 +570,10 @@ class _LotteryGameSceneState extends State<LotteryGameScene>
                                                     audioController
                                                         .playInstructionRecord(
                                                             LotteryGameConst
-                                                                    .numbers[
-                                                                i + 1]);
+                                                                .numbers[i]);
+                                                    Logger().d(
+                                                        game.isChosen.length);
+                                                    Logger().d(i);
                                                     if (game.isChosen[i + 1]) {
                                                       game.numOfChosen++;
                                                     } else {
@@ -884,9 +898,13 @@ class _LotteryGameSceneState extends State<LotteryGameScene>
             game = LotteryGame(
               gameLevel: userInfoProvider.lotteryGameDatabase.currentLevel,
               numberOfDigits: userInfoProvider.lotteryGameDatabase.currentDigit,
-              continuousCorrectRateBiggerThan50:
+              continuousCorrectRateBiggerThan50: userInfoProvider
+                  .lotteryGameDatabase.continuousCorrectRateBiggerThan50,
+              loseInCurrentDigit:
+                  userInfoProvider.lotteryGameDatabase.loseInCurrentDigit,
+              continuousWin:
                   userInfoProvider.lotteryGameDatabase.historyContinuousWin,
-              loseInCurrentDigits:
+              continuousLose:
                   userInfoProvider.lotteryGameDatabase.historyContinuousLose,
               isTutorial: false,
             );

@@ -41,6 +41,12 @@ class UserInfoProvider with ChangeNotifier {
           _lotteryGameDatabase = LotteryGameDatabase(
             currentLevel: doc.data()!['lotteryGameDatabase']['level'] ?? 0,
             currentDigit: doc.data()!['lotteryGameDatabase']['digit'] ?? 2,
+            continuousCorrectRateBiggerThan50:
+                doc.data()!['lotteryGameDatabase']
+                        ['continuousCorrectRateBiggerThan50'] ??
+                    0,
+            loseInCurrentDigit:
+                doc.data()!['lotteryGameDatabase']['loseInCurrentDigit'] ?? 0,
             historyContinuousWin:
                 doc.data()!['lotteryGameDatabase']['historyContinuousWin'] ?? 0,
             historyContinuousLose: doc.data()!['lotteryGameDatabase']
@@ -53,6 +59,8 @@ class UserInfoProvider with ChangeNotifier {
           _lotteryGameDatabase = LotteryGameDatabase(
             currentLevel: 0,
             currentDigit: 2,
+            continuousCorrectRateBiggerThan50: 0,
+            loseInCurrentDigit: 0,
             historyContinuousWin: 0,
             historyContinuousLose: 0,
             doneTutorial: false,

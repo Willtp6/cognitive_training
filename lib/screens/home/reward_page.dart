@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cognitive_training/constants/globals.dart';
 import 'package:cognitive_training/constants/reward_page_const.dart';
 import 'package:cognitive_training/models/user_checkin_provider.dart';
@@ -111,8 +112,8 @@ class CheckinRewardState extends State<CheckinReward> {
             flex: 5,
             child: Consumer<UserCheckinProvider>(
                 builder: (context, provider, child) {
-              Logger().i(provider.loginCycle);
-              Logger().i(provider.loginRewardCycle);
+              // Logger().i(provider.loginCycle);
+              // Logger().i(provider.loginRewardCycle);
               return Row(
                 mainAxisSize: MainAxisSize.max,
                 children: [
@@ -265,68 +266,25 @@ class _BonusRewardState extends State<BonusReward> {
                     child: Image.asset(RewardPageConst.bonusRewardLabel),
                   ),
                   Expanded(
-                      flex: 2,
-                      child: Row(
+                    flex: 2,
+                    child: Consumer2<UserInfoProvider, UserCheckinProvider>(
+                        builder: (context, userInfoProvider,
+                            userCheckinProvider, child) {
+                      Logger().d(userCheckinProvider.bonusRewardCycle);
+                      return Row(
                         children: [
-                          Expanded(
-                            child: Column(
-                              children: [
-                                Expanded(
-                                  flex: 2,
-                                  child: Image.asset(
-                                    RewardPageConst.bonusRewardBadge,
-                                    fit: BoxFit.contain,
-                                  ),
-                                ),
-                                Expanded(
-                                    flex: 1,
-                                    child: Image.asset(
-                                      RewardPageConst.thirtyStraightMins,
-                                      fit: BoxFit.contain,
-                                    )),
-                              ],
+                          for (int i = 0; i < 3; i++) ...[
+                            Expanded(
+                              child: bonusRewardImage(
+                                index: i,
+                                userCheckinProvider: userCheckinProvider,
+                              ),
                             ),
-                          ),
-                          Expanded(
-                            child: Column(
-                              children: [
-                                Expanded(
-                                  flex: 2,
-                                  child: Image.asset(
-                                    RewardPageConst.bonusRewardBadge,
-                                    fit: BoxFit.contain,
-                                  ),
-                                ),
-                                Expanded(
-                                    flex: 1,
-                                    child: Image.asset(
-                                      RewardPageConst.threeTimesInWeek,
-                                      fit: BoxFit.contain,
-                                    )),
-                              ],
-                            ),
-                          ),
-                          Expanded(
-                            child: Column(
-                              children: [
-                                Expanded(
-                                  flex: 2,
-                                  child: Image.asset(
-                                    RewardPageConst.bonusRewardBadge,
-                                    fit: BoxFit.contain,
-                                  ),
-                                ),
-                                Expanded(
-                                    flex: 1,
-                                    child: Image.asset(
-                                      RewardPageConst.thirtyMinsThreeTimes,
-                                      fit: BoxFit.contain,
-                                    )),
-                              ],
-                            ),
-                          ),
+                          ],
                         ],
-                      )),
+                      );
+                    }),
+                  ),
                 ],
               ),
             ),
@@ -335,6 +293,62 @@ class _BonusRewardState extends State<BonusReward> {
         Expanded(
           flex: 2,
           child: Container(),
+        ),
+      ],
+    );
+  }
+
+  Widget bonusRewardImage({required index, required userCheckinProvider}) {
+    return Column(
+      children: [
+        Expanded(
+          flex: 2,
+          child: GestureDetector(
+            onTap: () {
+              if (userCheckinProvider.bonusRewardCycle[index] ==
+                  'uncollected') {
+                setState(() {
+                  List<String> list = userCheckinProvider.bonusRewardCycle;
+                  list[index] = 'collected';
+                  userCheckinProvider.bonusRewardCycle = list;
+                });
+              }
+            },
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                Opacity(
+                  opacity: userCheckinProvider.bonusRewardCycle[index] ==
+                          'uncollected'
+                      ? 1.0
+                      : 0.3,
+                  child: Image.asset(
+                    RewardPageConst.bonusRewardBadge,
+                    fit: BoxFit.contain,
+                  ),
+                ),
+                if (userCheckinProvider.bonusRewardCycle[index] ==
+                    'collected') ...[
+                  Center(
+                    child: Transform.rotate(
+                      angle: pi / 6,
+                      child: Image.asset(
+                        RewardPageConst.receivedSeal,
+                        fit: BoxFit.contain,
+                      ),
+                    ),
+                  )
+                ],
+              ],
+            ),
+          ),
+        ),
+        Expanded(
+          flex: 1,
+          child: Image.asset(
+            RewardPageConst.thirtyStraightMins,
+            fit: BoxFit.contain,
+          ),
         ),
       ],
     );

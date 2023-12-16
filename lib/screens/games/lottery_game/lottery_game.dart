@@ -7,14 +7,18 @@ class LotteryGame {
   int gameLevel;
   int numberOfDigits;
   bool isTutorial;
-  int loseInCurrentDigits;
+  int loseInCurrentDigit;
   int continuousCorrectRateBiggerThan50;
+  int continuousWin;
+  int continuousLose;
 
   LotteryGame({
     required this.gameLevel,
     required this.numberOfDigits,
     required this.continuousCorrectRateBiggerThan50,
-    required this.loseInCurrentDigits,
+    required this.loseInCurrentDigit,
+    required this.continuousWin,
+    required this.continuousLose,
     required this.isTutorial,
   });
 
@@ -59,21 +63,32 @@ class LotteryGame {
     if (gameProgress == 2) {
       return LotteryGameConst.gameRuleLevel5Sum;
     } else {
-      if (gameLevel == 4) {
-        switch (specialRules) {
-          case 0:
-            return LotteryGameConst.gameRuleLevel5Even;
-          case 1:
-            return LotteryGameConst.gameRuleLevel5Max;
-          case 2:
-            return LotteryGameConst.gameRuleLevel5Min;
-          case 3:
-            return LotteryGameConst.gameRuleLevel5Odd;
-          default:
-        }
+      switch (gameLevel) {
+        case 0:
+          return LotteryGameConst.gameRuleLevel1;
+        case 1:
+          return LotteryGameConst.gameRuleLevel2;
+        case 2:
+          return LotteryGameConst.gameRuleLevel3;
+        case 3:
+          return LotteryGameConst.gameRuleLevel4;
+        case 4:
+          switch (specialRules) {
+            case 0:
+              return LotteryGameConst.gameRuleLevel5Even;
+            case 1:
+              return LotteryGameConst.gameRuleLevel5Max;
+            case 2:
+              return LotteryGameConst.gameRuleLevel5Min;
+            case 3:
+              return LotteryGameConst.gameRuleLevel5Odd;
+            default:
+              return null;
+          }
+        default:
+          return null;
       }
     }
-    return null;
   }
 
   void setArrays(int min, int max) {
@@ -143,6 +158,13 @@ class LotteryGame {
     }
   }
 
+  void levelDowngrades() {
+    if (gameLevel > 0) {
+      gameLevel--;
+      numberOfDigits = 2;
+    }
+  }
+
   void setGame() {
     // * get special game rule
     if (gameLevel == 4) {
@@ -151,9 +173,14 @@ class LotteryGame {
   }
 
   int getNumOfAnsDigits() {
-    return numArray
-        .where((element) => specialRules == 0 ? element.isEven : element.isOdd)
-        .length;
+    if (gameLevel == 4 && (specialRules == 0 || specialRules == 3)) {
+      return numArray
+          .where(
+              (element) => specialRules == 0 ? element.isEven : element.isOdd)
+          .length;
+    } else {
+      return numArray.length;
+    }
   }
 
   void getResult() {
@@ -226,8 +253,7 @@ class LotteryGame {
       default:
         break;
     }
-    // reward is determined by correct rate
-    // correctRate = numOfCorrectAns / numberOfDigits
+    //* reward is determined by correct rate
     correctRate = numOfCorrectAns / numOfAnsDigits;
     gameReward = 0;
     if (correctRate > 0 && correctRate <= 0.5) {
@@ -240,37 +266,55 @@ class LotteryGame {
       gameReward = coinReward[2];
       rewardImagePath = 'assets/lottery_game_scene/feedback/reward_800.png';
     }
-    correctRate != 0.0 ? playerWin = true : playerWin = false;
+    playerWin = correctRate != 0.0;
   }
 
   void changeDigitByResult() {
     if (playerWin) {
-      if (loseInCurrentDigits > 0) loseInCurrentDigits--;
-      // *  if correctrate >= 0.5 continuously two times add the digit
-      if (correctRate >= 0.5) {
-        continuousCorrectRateBiggerThan50++;
+      if (numberOfDigits == maxNumberLength[gameLevel]) {
+        if (correctRate == 1.0) {
+          continuousWin++;
+          continuousLose = 0;
+          if (continuousWin >= 5) {
+            continuousWin = 0;
+            levelUpgrades();
+          }
+        } else {
+          continuousLose++;
+          continuousWin = 0;
+          if (continuousLose >= 5) {
+            numberOfDigits--;
+            continuousLose = 0;
+          }
+        }
       } else {
-        if (continuousCorrectRateBiggerThan50 > 0) {
-          continuousCorrectRateBiggerThan50--;
+        if (correctRate >= 0.5) {
+          continuousCorrectRateBiggerThan50++;
+          // *  if correctrate >= 0.5 continuously two times add the digit
+          if (continuousCorrectRateBiggerThan50 >= 2) {
+            continuousCorrectRateBiggerThan50 = 0;
+            numberOfDigits++;
+            loseInCurrentDigit = 0;
+            // if (numberOfDigits > maxNumberLength[gameLevel]) {
+            //   levelUpgrades();
+            // }
+          }
+        } else {
+          if (continuousCorrectRateBiggerThan50 > 0) {
+            continuousCorrectRateBiggerThan50--;
+          }
         }
       }
-      if (continuousCorrectRateBiggerThan50 >= 2) {
-        continuousCorrectRateBiggerThan50 = 0;
-        numberOfDigits++;
-        loseInCurrentDigits = 0;
-      }
-      if (numberOfDigits > maxNumberLength[gameLevel]) {
-        levelUpgrades();
-      }
     } else {
-      if (continuousCorrectRateBiggerThan50 > 0) {
-        continuousCorrectRateBiggerThan50--;
-      }
-      loseInCurrentDigits++;
-      if (loseInCurrentDigits >= 2) {
+      continuousCorrectRateBiggerThan50 = 0;
+
+      loseInCurrentDigit++;
+      if (loseInCurrentDigit >= 5) {
+        loseInCurrentDigit = 0;
         if (numberOfDigits > 2) {
           numberOfDigits--;
-          loseInCurrentDigits = 0;
+        } else {
+          levelDowngrades();
         }
       }
     }

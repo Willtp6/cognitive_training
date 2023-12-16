@@ -5,6 +5,7 @@ import 'package:cognitive_training/constants/home_page_const.dart';
 import 'package:cognitive_training/constants/login_page_const.dart';
 import 'package:cognitive_training/models/user_checkin_provider.dart';
 import 'package:cognitive_training/models/user_info_provider.dart';
+import 'package:cognitive_training/notifications_util/notification_helper.dart';
 import 'package:cognitive_training/screens/games/shared/exit_button_template.dart';
 import 'package:cognitive_training/screens/home/home_tutorial.dart';
 import 'package:cognitive_training/settings/setting_controller.dart';
@@ -14,10 +15,18 @@ import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/material.dart';
 import 'package:cognitive_training/firebase/auth.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_background_service/flutter_background_service.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+// import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:go_router/go_router.dart';
 import 'package:logger/logger.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:flutter_switch/flutter_switch.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+import '../../background_service/background_service.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -41,6 +50,10 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   List<double> xPositions = [-0.95, -0.3166, 0.3166, 0.95];
   int? chosenGame;
   String? chosenLanguage;
+  String? chosenTime;
+  String? chosenTime2;
+  String? chosenTime3;
+  bool? dailyNotificationStatus;
 
   List<String> gameRoutes = [
     'lottery_game_menu',
@@ -79,13 +92,21 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     _audioController.playInstructionRecord(HomePageConst.tutorialAudio[step]);
   }
 
+  late NotificationHelper _notificationHelper;
+
   @override
   Widget build(BuildContext context) {
     userInfoProvider = context.read<UserInfoProvider>();
     userCheckinProvider = context.read<UserCheckinProvider>();
     final settings = context.watch<SettingsController>();
     chosenLanguage = settings.language.value;
+    chosenTime = settings.timeOfDailyNotification1.value;
+    chosenTime2 = settings.timeOfDailyNotification2.value;
+    chosenTime3 = settings.timeOfDailyNotification3.value;
+    dailyNotificationStatus = settings.statusOfDailyNotification.value;
     _audioController = context.read<AudioController>();
+
+    _notificationHelper = NotificationHelper();
 
     return SafeArea(
       child: Scaffold(
@@ -199,20 +220,6 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
         ),
         ListTile(
           leading: const Icon(
-            Icons.exit_to_app,
-            size: 40,
-            color: Colors.black,
-          ),
-          title: const Text(
-            '登出',
-            style: TextStyle(fontFamily: 'GSR_B', fontSize: 40),
-          ),
-          onTap: () async {
-            _showAlertDialog(context);
-          },
-        ),
-        ListTile(
-          leading: const Icon(
             Icons.language,
             size: 40,
             color: Colors.black,
@@ -245,7 +252,265 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
           onTap: () {
             Navigator.of(context).pop();
           },
-        )
+        ),
+        // ListTile(
+        //   leading: const Icon(
+        //     Icons.exit_to_app,
+        //     size: 40,
+        //     color: Colors.black,
+        //   ),
+        //   title: const Text(
+        //     '退出',
+        //     style: TextStyle(fontFamily: 'GSR_B', fontSize: 40),
+        //   ),
+        //   onTap: () async {
+        //     SystemChannels.platform.invokeMethod('SystemNavigator.pop');
+        //   },
+        // ),
+        // ListTile(
+        //   leading: const Icon(
+        //     Icons.exit_to_app,
+        //     size: 40,
+        //     color: Colors.black,
+        //   ),
+        //   title: const Text(
+        //     '定時通知',
+        //     style: TextStyle(fontFamily: 'GSR_B', fontSize: 40),
+        //   ),
+        //   onTap: () async {
+        //     if (await Permission.notification.isDenied ||
+        //         await Permission.notification.isPermanentlyDenied) {
+        //       Logger().d('open setting');
+
+        //       openAppSettings();
+        //     } else {
+        //       PermissionStatus status = await Permission.notification.request();
+        //       if (status.isGranted) {
+        //         // _notificationHelper.addLoginRemindNotifications();
+        //         // _notificationHelper.scheduleNotification();
+        //         _notificationHelper.scheduleNotification(
+        //             scheduledDateTime:
+        //                 DateTime.now().add(const Duration(seconds: 10)));
+        //       } else {
+        //         Logger().d(status);
+        //       }
+        //     }
+        //   },
+        // ),
+        // ListTile(
+        //   leading: const Icon(
+        //     Icons.exit_to_app,
+        //     size: 40,
+        //     color: Colors.black,
+        //   ),
+        //   title: const Text(
+        //     '取消',
+        //     style: TextStyle(fontFamily: 'GSR_B', fontSize: 40),
+        //   ),
+        //   onTap: () async {
+        //     if (await Permission.notification.isDenied ||
+        //         await Permission.notification.isPermanentlyDenied) {
+        //       Logger().d('open setting');
+
+        //       openAppSettings();
+        //     } else {
+        //       PermissionStatus status = await Permission.notification.request();
+        //       if (status.isGranted) {
+        //         // notification permission is granted
+        //         _notificationHelper.cancelAllNotifications();
+        //       } else {
+        //         Logger().d(status);
+        //       }
+        //     }
+        //   },
+        // ),
+        // ListTile(
+        //   title: const Text(
+        //     'foreground',
+        //     style: TextStyle(fontFamily: 'GSR_B', fontSize: 40),
+        //   ),
+        //   onTap: () async {
+        //     FlutterBackgroundService().invoke("setAsForeground");
+        //   },
+        // ),
+        // ListTile(
+        //   title: const Text(
+        //     'background',
+        //     style: TextStyle(fontFamily: 'GSR_B', fontSize: 40),
+        //   ),
+        //   onTap: () async {
+        //     FlutterBackgroundService().invoke("setAsBackground");
+        //   },
+        // ),
+        // ListTile(
+        //   title: const Text(
+        //     'start/stop',
+        //     style: TextStyle(fontFamily: 'GSR_B', fontSize: 40),
+        //   ),
+        //   onTap: () async {
+        //     final service = FlutterBackgroundService();
+        //     var isRunning = await service.isRunning();
+        //     if (isRunning) {
+        //       FlutterBackgroundService().invoke("stopService");
+        //     } else {
+        //       service.startService();
+        //     }
+        //   },
+        // ),
+        ListTile(
+          title: const Text(
+            '每日提醒',
+            style: TextStyle(fontFamily: 'GSR_B', fontSize: 40),
+          ),
+          trailing: SizedBox(
+            width: 70,
+            height: 40,
+            child: FlutterSwitch(
+              value: dailyNotificationStatus ?? false,
+              onToggle: (value) {
+                setState(() {
+                  dailyNotificationStatus = value;
+                });
+                settings.setStatusOfDailyNotification(value);
+                if (value) {
+                  FlutterBackgroundService().startService();
+                } else {
+                  FlutterBackgroundService().invoke("stopService");
+                }
+              },
+            ),
+          ),
+        ),
+        ListTile(
+          leading: const Icon(
+            Icons.access_time,
+            size: 40,
+            color: Colors.black,
+          ),
+          title: Text(
+            '提醒時間$chosenTime',
+            style: const TextStyle(fontFamily: 'GSR_B', fontSize: 40),
+          ),
+          onTap: () async {
+            TimeOfDay initialTime = chosenTime != null
+                ? TimeOfDay(
+                    hour: int.parse(chosenTime!.split(':')[0]),
+                    minute: int.parse(chosenTime!.split(':')[1]))
+                : TimeOfDay.now();
+            TimeOfDay? newTime = await showTimePicker(
+                  context: context,
+                  initialTime: initialTime,
+                ) ??
+                initialTime;
+            String hourAndMin = newTime.toString().split('(')[1].split(')')[0];
+            settings.setDailyNotificationTime1(hourAndMin);
+            restartBackgroundService();
+            setState(() {});
+          },
+        ),
+        ListTile(
+          leading: const Icon(
+            Icons.access_time,
+            size: 40,
+            color: Colors.black,
+          ),
+          title: Text(
+            '提醒時間$chosenTime2',
+            style: const TextStyle(fontFamily: 'GSR_B', fontSize: 40),
+          ),
+          onTap: () async {
+            TimeOfDay initialTime = chosenTime2 != null
+                ? TimeOfDay(
+                    hour: int.parse(chosenTime2!.split(':')[0]),
+                    minute: int.parse(chosenTime2!.split(':')[1]))
+                : TimeOfDay.now();
+            TimeOfDay? newTime = await showTimePicker(
+                  context: context,
+                  initialTime: initialTime,
+                ) ??
+                initialTime;
+            String hourAndMin = newTime.toString().split('(')[1].split(')')[0];
+            settings.setDailyNotificationTime2(hourAndMin);
+            restartBackgroundService();
+            setState(() {});
+          },
+        ),
+        ListTile(
+          leading: const Icon(
+            Icons.access_time,
+            size: 40,
+            color: Colors.black,
+          ),
+          title: Text(
+            '提醒時間$chosenTime3',
+            style: const TextStyle(fontFamily: 'GSR_B', fontSize: 40),
+          ),
+          onTap: () async {
+            TimeOfDay initialTime = chosenTime3 != null
+                ? TimeOfDay(
+                    hour: int.parse(chosenTime3!.split(':')[0]),
+                    minute: int.parse(chosenTime3!.split(':')[1]))
+                : TimeOfDay.now();
+            TimeOfDay? newTime = await showTimePicker(
+                  context: context,
+                  initialTime: initialTime,
+                ) ??
+                initialTime;
+            String hourAndMin = newTime.toString().split('(')[1].split(')')[0];
+            settings.setDailyNotificationTime3(hourAndMin);
+            restartBackgroundService();
+            setState(() {});
+          },
+        ),
+
+        // ListTile(
+        //   leading: const Icon(
+        //     Icons.exit_to_app,
+        //     size: 40,
+        //     color: Colors.black,
+        //   ),
+        //   title: const Text(
+        //     '顯示通知',
+        //     style: TextStyle(fontFamily: 'GSR_B', fontSize: 40),
+        //   ),
+        //   onTap: () async {
+        //     NotificationHelper not = NotificationHelper();
+        //     not.showAllNotifications();
+        //   },
+        // ),
+        // ListTile(
+        //   leading: const Icon(
+        //     Icons.exit_to_app,
+        //     size: 40,
+        //     color: Colors.black,
+        //   ),
+        //   title: const Text(
+        //     '時間',
+        //     style: TextStyle(fontFamily: 'GSR_B', fontSize: 40),
+        //   ),
+        //   onTap: () async {
+        //     final Future<SharedPreferences> instanceFuture =
+        //         SharedPreferences.getInstance();
+        //     final pref = await instanceFuture;
+        //     final String time =
+        //         pref.getString('timeOfLastDatabaseUpdate') ?? '';
+        //     Logger().d(DateTime.tryParse(time));
+        //   },
+        // ),
+        ListTile(
+          leading: const Icon(
+            Icons.exit_to_app,
+            size: 40,
+            color: Colors.black,
+          ),
+          title: const Text(
+            '登出',
+            style: TextStyle(fontFamily: 'GSR_B', fontSize: 40),
+          ),
+          onTap: () async {
+            _showAlertDialog(context);
+          },
+        ),
       ],
     );
   }

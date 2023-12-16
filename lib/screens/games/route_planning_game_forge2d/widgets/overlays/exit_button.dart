@@ -18,7 +18,7 @@ class ExitButton extends ExitButtonTemplate {
 
     FlameAudio.bgm.pause();
 
-    // game.overlays.remove(ExitButton.id);
+    game.overlays.remove(ExitButton.id);
     game.overlays.add(ExitDialog.id);
   }
 }

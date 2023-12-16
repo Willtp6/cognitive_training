@@ -7,6 +7,7 @@ import 'package:cognitive_training/constants/globals.dart';
 import 'package:cognitive_training/screens/games/shared/progress_bar.dart';
 import 'package:cognitive_training/shared/button_with_text.dart';
 import 'package:flutter/material.dart';
+import 'package:logger/logger.dart';
 
 import '../lottery_game.dart';
 import '../lottery_game_tutorial.dart';
@@ -37,6 +38,7 @@ class _RuleScreenState extends State<RuleScreen> {
     const Alignment(0.5, -0.85),
     const Alignment(1.0, -0.6),
   ];
+
   List<AutoSizeText> rules = [
     const AutoSizeText.rich(
       TextSpan(
@@ -229,11 +231,17 @@ class _RuleScreenState extends State<RuleScreen> {
                         child: FractionallySizedBox(
                           widthFactor: 0.7,
                           heightFactor: 0.2,
-                          child: ProgressBar(
-                            maxProgress: 5,
-                            continuousWin:
-                                widget.game.continuousCorrectRateBiggerThan50,
-                          ),
+                          child: widget.game.numberOfDigits ==
+                                  widget.game
+                                      .maxNumberLength[widget.game.gameLevel]
+                              ? ProgressBar(
+                                  maxProgress: 5,
+                                  continuousWin: widget.game.continuousWin,
+                                )
+                              : ProgressBar(
+                                  maxProgress: 2,
+                                  continuousWin: widget
+                                      .game.continuousCorrectRateBiggerThan50),
                         ),
                       ),
                     ),
@@ -253,14 +261,17 @@ class _RuleScreenState extends State<RuleScreen> {
                               Flexible(
                                 child: Center(
                                   child: ButtonWithText(
-                                      text: '再聽一次', onTapFunction: listenAgain),
+                                    text: '再聽一次',
+                                    onTapFunction: listenAgain,
+                                  ),
                                 ),
                               ),
                               Flexible(
                                 child: Center(
                                   child: ButtonWithText(
-                                      text: isAudioOver ? '開始' : '跳過並開始',
-                                      onTapFunction: startGame),
+                                    text: isAudioOver ? '開始' : '跳過並開始',
+                                    onTapFunction: startGame,
+                                  ),
                                 ),
                               ),
                             ],
@@ -370,6 +381,7 @@ class _RuleScreenState extends State<RuleScreen> {
 
       Future.delayed(const Duration(milliseconds: 200), () {
         final path = widget.game.getInstructionAudioPath();
+        Logger().d(path);
         if (path != null) {
           widget.audioController.playInstructionRecord(path);
           setState(() => isAudioOver = false);

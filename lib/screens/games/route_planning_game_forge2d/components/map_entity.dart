@@ -2,6 +2,7 @@ import 'dart:math';
 import 'package:cognitive_training/screens/games/route_planning_game_forge2d/models/map_info.dart';
 import 'package:cognitive_training/screens/games/route_planning_game_forge2d/route_planning_game_forge2d.dart';
 import 'package:flame/components.dart';
+import 'package:flame/palette.dart';
 import '../models/building.dart';
 import 'street_block.dart';
 
@@ -23,7 +24,8 @@ class MapEntity extends RectangleComponent
 
   List<StreetBlock> blocks = [];
   List<BuildingComponent> buildingComponents = [];
-  // late BuildingComponent homeComponent;
+  late BuildingComponent homeComponent;
+  List<List<Building>> buildingInBlock = [];
 
   @override
   Future<void> onLoad() async {
@@ -31,7 +33,7 @@ class MapEntity extends RectangleComponent
     //* use these to construct the map
     mapWidth = size.x - size.y * 215 / 720;
     mapHeight = size.y;
-
+    paint = BasicPalette.white.withAlpha(0).paint();
     mapInfo = MapInfo(mapWidth: mapWidth, mapHeight: mapHeight);
 
     return super.onLoad();
@@ -56,10 +58,9 @@ class MapEntity extends RectangleComponent
   /// this function will take building list as input that need to put to map
   Future<void> addBuildings({required List<Building> buildings}) async {
     buildingComponents.clear();
-    //* get buildingsize here
-    // buildingSize = buildingSizeList[gameRef.chosenMap];
+
     //* random spread the buildings to all blocks
-    List<List<Building>> buildingInBlock =
+    buildingInBlock =
         List.generate(mapInfo.mapVectors[gameRef.chosenMap].length, (_) => []);
     int index = 0;
     while (index < buildings.length) {
@@ -82,20 +83,19 @@ class MapEntity extends RectangleComponent
       pickedPosition =
           pickedPosition.sublist(0, buildingInBlock[blockId].length);
 
-      //* sort the position by the priority of image layer
-      // pickedPosition.sort(
-      //     (a, b) => priority[a.direction]!.compareTo(priority[b.direction]!));
       //* all building in block
       for (int index = 0; index < buildingInBlock[blockId].length; index++) {
-        buildingComponents.add(BuildingComponent(
-          building: buildingInBlock[blockId][index],
-          buildingSize: Vector2.all(mapInfo.buildingSize),
-          buildingPosition: pickedPosition[index].buildingPosition +
-              plusOffset(
-                  mapInfo.blockStartPosition[gameRef.chosenMap][blockId]),
-          bodyAngle: pickedPosition[index].bodyAngle,
-          flagDirection: pickedPosition[index].direction,
-        ));
+        buildingComponents.add(
+          BuildingComponent(
+            building: buildingInBlock[blockId][index],
+            buildingSize: Vector2.all(mapInfo.buildingSize),
+            buildingPosition: pickedPosition[index].buildingPosition +
+                plusOffset(
+                    mapInfo.blockStartPosition[gameRef.chosenMap][blockId]),
+            bodyAngle: pickedPosition[index].bodyAngle,
+            flagDirection: pickedPosition[index].direction,
+          ),
+        );
       }
     }
     Map<String, int> positionPriority = {
@@ -105,35 +105,25 @@ class MapEntity extends RectangleComponent
       "down": 2,
     };
 
+    homeComponent = BuildingComponent(
+        isHome: true,
+        building: Building(id: -1, isTarget: false),
+        buildingSize: Vector2.all(mapInfo.buildingSize),
+        buildingPosition:
+            mapInfo.homePosition[gameRef.chosenMap].buildingPosition +
+                plusOffset(mapInfo.blockStartPosition[gameRef.chosenMap]
+                    [MapInfo.homeBlock[gameRef.chosenMap]]),
+        bodyAngle: mapInfo.homePosition[gameRef.chosenMap].bodyAngle,
+        flagDirection: mapInfo.homePosition[gameRef.chosenMap].direction);
+
     //* add home
-    buildingComponents.add(
-      BuildingComponent(
-          isHome: true,
-          building: Building(id: -1, isTarget: false),
-          buildingSize: Vector2.all(mapInfo.buildingSize),
-          buildingPosition:
-              mapInfo.homePosition[gameRef.chosenMap].buildingPosition +
-                  plusOffset(mapInfo.blockStartPosition[gameRef.chosenMap]
-                      [MapInfo.homeBlock[gameRef.chosenMap]]),
-          bodyAngle: mapInfo.homePosition[gameRef.chosenMap].bodyAngle,
-          flagDirection: mapInfo.homePosition[gameRef.chosenMap].direction),
-    );
+    buildingComponents.add(homeComponent);
     //* sort the position by the priority of image layer
     buildingComponents.sort((a, b) => positionPriority[a.flagDirection]!
         .compareTo(positionPriority[b.flagDirection]!));
     buildingComponents
         .sort((a, b) => a.buildingPosition.y.compareTo(b.buildingPosition.y));
     addAll(buildingComponents);
-
-    // homeComponent = BuildingComponent(
-    //   isHome: true,
-    //   building: Building(id: -1, isTarget: false),
-    //   buildingSize: Vector2.all(buildingSize),
-    //   buildingPosition: homePosition[gameRef.chosenMap].buildingPosition +
-    //       plusOffset(blockStartPosition[gameRef.chosenMap]
-    //           [homeBlock[gameRef.chosenMap]]),
-    // );
-    // add(homeComponent);
   }
 
   void removeBuildings() {
@@ -141,68 +131,68 @@ class MapEntity extends RectangleComponent
     // remove(homeComponent);
   }
 
-  Future<void> addAllBuildingsAsHome() async {
-    buildingComponents.clear();
-    //* get buildingsize here
-    // buildingSize = buildingSizeList[gameRef.chosenMap];
-    //*
-    for (int blockID = 0;
-        blockID < mapInfo.buildingInfo[gameRef.chosenMap].length;
-        blockID++) {
-      for (int index = 0;
-          index < mapInfo.buildingInfo[gameRef.chosenMap][blockID].length;
-          index++) {
-        buildingComponents.add(
-          BuildingComponent(
-              isHome: true,
-              building: Building(id: -1, isTarget: false),
-              buildingSize: Vector2.all(mapInfo.buildingSize),
-              buildingPosition: mapInfo
-                      .buildingInfo[gameRef.chosenMap][blockID][index]
-                      .buildingPosition +
-                  plusOffset(
-                      mapInfo.blockStartPosition[gameRef.chosenMap][blockID]),
-              bodyAngle: mapInfo
-                  .buildingInfo[gameRef.chosenMap][blockID][index].bodyAngle,
-              flagDirection: mapInfo
-                  .buildingInfo[gameRef.chosenMap][blockID][index].direction),
-        );
-      }
-    }
-    //* add home
-    buildingComponents.add(BuildingComponent(
-      isHome: true,
-      building: Building(id: -1, isTarget: false),
-      buildingSize: Vector2.all(mapInfo.buildingSize),
-      buildingPosition:
-          mapInfo.homePosition[gameRef.chosenMap].buildingPosition +
-              plusOffset(mapInfo.blockStartPosition[gameRef.chosenMap]
-                  [MapInfo.homeBlock[gameRef.chosenMap]]),
-      bodyAngle: mapInfo.homePosition[gameRef.chosenMap].bodyAngle,
-      flagDirection: mapInfo.homePosition[gameRef.chosenMap].direction,
-    ));
-    Map<String, int> positionPriority = {
-      "up": 0,
-      "left": 1,
-      "right": 1,
-      "down": 2,
-    };
-    //* sort the position by the priority of image layer
-    buildingComponents.sort((a, b) => positionPriority[a.flagDirection]!
-        .compareTo(positionPriority[b.flagDirection]!));
-    buildingComponents
-        .sort((a, b) => a.buildingPosition.y.compareTo(b.buildingPosition.y));
-    addAll(buildingComponents);
-    // homeComponent = BuildingComponent(
-    //   isHome: true,
-    //   building: Building(id: -1, isTarget: false),
-    //   buildingSize: Vector2.all(buildingSize),
-    //   buildingPosition: homePosition[gameRef.chosenMap].buildingPosition +
-    //       plusOffset(blockStartPosition[gameRef.chosenMap]
-    //           [homeBlock[gameRef.chosenMap]]),
-    // );
-    // await add(homeComponent);
-  }
+  // Future<void> addAllBuildingsAsHome() async {
+  //   buildingComponents.clear();
+  //   //* get buildingsize here
+  //   // buildingSize = buildingSizeList[gameRef.chosenMap];
+  //   //*
+  //   for (int blockID = 0;
+  //       blockID < mapInfo.buildingInfo[gameRef.chosenMap].length;
+  //       blockID++) {
+  //     for (int index = 0;
+  //         index < mapInfo.buildingInfo[gameRef.chosenMap][blockID].length;
+  //         index++) {
+  //       buildingComponents.add(
+  //         BuildingComponent(
+  //             isHome: true,
+  //             building: Building(id: -1, isTarget: false),
+  //             buildingSize: Vector2.all(mapInfo.buildingSize),
+  //             buildingPosition: mapInfo
+  //                     .buildingInfo[gameRef.chosenMap][blockID][index]
+  //                     .buildingPosition +
+  //                 plusOffset(
+  //                     mapInfo.blockStartPosition[gameRef.chosenMap][blockID]),
+  //             bodyAngle: mapInfo
+  //                 .buildingInfo[gameRef.chosenMap][blockID][index].bodyAngle,
+  //             flagDirection: mapInfo
+  //                 .buildingInfo[gameRef.chosenMap][blockID][index].direction),
+  //       );
+  //     }
+  //   }
+  //   //* add home
+  //   buildingComponents.add(BuildingComponent(
+  //     isHome: true,
+  //     building: Building(id: -1, isTarget: false),
+  //     buildingSize: Vector2.all(mapInfo.buildingSize),
+  //     buildingPosition:
+  //         mapInfo.homePosition[gameRef.chosenMap].buildingPosition +
+  //             plusOffset(mapInfo.blockStartPosition[gameRef.chosenMap]
+  //                 [MapInfo.homeBlock[gameRef.chosenMap]]),
+  //     bodyAngle: mapInfo.homePosition[gameRef.chosenMap].bodyAngle,
+  //     flagDirection: mapInfo.homePosition[gameRef.chosenMap].direction,
+  //   ));
+  //   Map<String, int> positionPriority = {
+  //     "up": 0,
+  //     "left": 1,
+  //     "right": 1,
+  //     "down": 2,
+  //   };
+  //   //* sort the position by the priority of image layer
+  //   buildingComponents.sort((a, b) => positionPriority[a.flagDirection]!
+  //       .compareTo(positionPriority[b.flagDirection]!));
+  //   buildingComponents
+  //       .sort((a, b) => a.buildingPosition.y.compareTo(b.buildingPosition.y));
+  //   addAll(buildingComponents);
+  //   // homeComponent = BuildingComponent(
+  //   //   isHome: true,
+  //   //   building: Building(id: -1, isTarget: false),
+  //   //   buildingSize: Vector2.all(buildingSize),
+  //   //   buildingPosition: homePosition[gameRef.chosenMap].buildingPosition +
+  //   //       plusOffset(blockStartPosition[gameRef.chosenMap]
+  //   //           [homeBlock[gameRef.chosenMap]]),
+  //   // );
+  //   // await add(homeComponent);
+  // }
 
   /// because the map is start from 0, 0
   /// if not the physical body and render body will have a offset

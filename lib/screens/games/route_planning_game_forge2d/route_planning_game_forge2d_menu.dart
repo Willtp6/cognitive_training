@@ -67,21 +67,25 @@ class _RoutePlanningGameForge2dMenuState
   }
 
   void startTutorial() {
-    // if (buttonEnabled) {
-    //   buttonEnabled = false;
-    //   _controller.forward().whenComplete(() {
-    //     context.pushNamed(
-    //       'route_planning_game',
-    //       queryParams: {'isTutorial': true.toString()},
-    //     ).whenComplete(() {
-    //       _controller.reset();
-    //       buttonEnabled = true;
-    //     });
-    //   });
-    //   Timer(Duration(milliseconds: (8000 * 0.2).toInt()), () {
-    //     FlameAudio.play(RoutePlanningGameConst.phoneVibration);
-    //   });
-    // }
+    if (buttonEnabled) {
+      // buttonEnabled = false;
+      // _controller.forward().whenComplete(() {
+      //   context.pushNamed(
+      //     'route_planning_game',
+      //     queryParams: {'isTutorial': true.toString()},
+      //   ).whenComplete(() {
+      //     _controller.reset();
+      //     buttonEnabled = true;
+      //   });
+      // });
+      // Timer(Duration(milliseconds: (8000 * 0.2).toInt()), () {
+      //   FlameAudio.play(RoutePlanningGameConst.phoneVibration);
+      // });
+      context.pushNamed(
+        'route_planning_game',
+        queryParams: {'isTutorial': true.toString()},
+      );
+    }
   }
 
   void goBack() {

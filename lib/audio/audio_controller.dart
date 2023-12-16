@@ -34,13 +34,12 @@ class AudioController {
 
   /// Preloads all sound effects.
   Future<void> initialize() async {
-    _log.i('Preloading sound effects');
     // This assumes there is only a limited number of sound effects in the game.
     // If there are hundreds of long sound effect files, it's better
     // to be more selective when preloading.
     //todo this needs to be modified or skip this function
     //todo maybe load global first and load each game audio in game menu page ?
-    await AudioCache.instance.loadAll(['audio/shared/click_button.wav']);
+    // await AudioCache.instance.loadAll(['audio/shared/click_button.wav']);
   }
 
   // Future<void> loadLotteryGameAudio() async {

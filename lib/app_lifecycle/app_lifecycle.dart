@@ -1,3 +1,5 @@
+import 'package:cognitive_training/background_service/background_service.dart';
+import 'package:cognitive_training/notifications_util/notification_helper.dart';
 import 'package:flutter/widgets.dart';
 import 'package:logger/logger.dart';
 import 'package:provider/provider.dart';
@@ -37,9 +39,12 @@ class _AppLifecycleObserverState extends State<AppLifecycleObserver>
   }
 
   @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
+  void didChangeAppLifecycleState(AppLifecycleState state) async {
     Logger().i('didChangeAppLifecycleState: $state');
     lifecycleListenable.value = state;
+    if (state == AppLifecycleState.paused) {
+      restartBackgroundService();
+    }
   }
 
   @override
@@ -52,6 +57,6 @@ class _AppLifecycleObserverState extends State<AppLifecycleObserver>
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    Logger().i('Subscribed to app lifecycle updates');
+    // Logger().i('Subscribed to app lifecycle updates');
   }
 }

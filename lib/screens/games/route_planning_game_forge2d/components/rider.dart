@@ -67,6 +67,7 @@ class Rider extends BodyComponent<RoutePlanningGameForge2d>
 
   late double speed;
   late SpriteGroupComponent<MoveType> riderSpriteComponent;
+  late SpriteComponent fingerSpriteComponent;
 
   Rider()
       : super(
@@ -80,8 +81,11 @@ class Rider extends BodyComponent<RoutePlanningGameForge2d>
       ..setAsBoxXY(_width / 2 * .75, _height / 2 * .75);
     final fixtureDef = FixtureDef(shape, userData: this);
     final bodyDef = BodyDef(
-      position:
-          startPosition[gameRef.chosenMap] + Vector2(215 / 720 * mapSizeY, 0),
+      position: gameRef.isTutorial
+          ? addOffset(Vector2(
+              streetBlockWidth22Roads * 2 + roadWidth2Roads * 1.5,
+              streetBlockHeight2Roads * 2.5 + roadWidth2Roads * 2))
+          : addOffset(startPosition[gameRef.chosenMap]),
       type: BodyType.dynamic,
       userData: this,
     );
@@ -118,25 +122,34 @@ class Rider extends BodyComponent<RoutePlanningGameForge2d>
       size: Vector2(_width, _height),
       anchor: Anchor.center,
     );
+    // fingerSpriteComponent = SpriteComponent(
+    //   sprite: await gameRef.loadSprite(''),
+    // );
     add(riderSpriteComponent);
     await super.onLoad();
   }
 
   @override
   void update(double dt) {
-    body.linearVelocity = joystick.relativeDelta * speed;
-    joystick.position = body.position * 10;
+    if (!gameRef.isTutorial) {
+      body.linearVelocity = joystick.relativeDelta * speed;
+      joystick.position = body.position * 10;
 
-    //* change the sprite direction
-    if (joystick.direction == JoystickDirection.downRight ||
-        joystick.direction == JoystickDirection.right ||
-        joystick.direction == JoystickDirection.upRight) {
-      riderSpriteComponent.current = MoveType.slideRight;
-    } else if (joystick.direction == JoystickDirection.downLeft ||
-        joystick.direction == JoystickDirection.left ||
-        joystick.direction == JoystickDirection.upLeft) {
-      riderSpriteComponent.current = MoveType.slideLeft;
+      //* change the sprite direction
+      if (joystick.direction == JoystickDirection.downRight ||
+          joystick.direction == JoystickDirection.right ||
+          joystick.direction == JoystickDirection.upRight) {
+        riderSpriteComponent.current = MoveType.slideRight;
+      } else if (joystick.direction == JoystickDirection.downLeft ||
+          joystick.direction == JoystickDirection.left ||
+          joystick.direction == JoystickDirection.upLeft) {
+        riderSpriteComponent.current = MoveType.slideLeft;
+      }
     }
     super.update(dt);
+  }
+
+  Vector2 addOffset(Vector2 original) {
+    return original + Vector2(215 / 720 * mapSizeY, 0);
   }
 }

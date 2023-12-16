@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:cognitive_training/constants/route_planning_game_const.dart';
+import 'package:cognitive_training/firebase/record_game.dart';
 import 'package:cognitive_training/models/user_info_provider.dart';
 import 'package:cognitive_training/models/user_model.dart';
 import 'package:cognitive_training/screens/games/route_planning_game_forge2d/widgets/overlays/exit_button.dart';
@@ -26,11 +27,13 @@ class RoutePlanningGameForge2d extends Forge2DGame
   int gameLevel;
   int continuousWin;
   int continuousLose;
+  bool isTutorial;
   UserInfoProvider userInfoProvider;
   RoutePlanningGameForge2d({
     this.gameLevel = 0,
     this.continuousWin = 0,
     this.continuousLose = 0,
+    this.isTutorial = false,
     required this.userInfoProvider,
   }) : super(gravity: Vector2.zero());
 
@@ -166,10 +169,6 @@ class RoutePlanningGameForge2d extends Forge2DGame
     // map.addAllBuildingsAsHome();
     map.addBuildings(buildings: buildings);
     startTime = DateTime.now();
-    //! for debugging
-    // Timer(const Duration(seconds: 5), () {
-    //   gameWin();
-    // });
   }
 
   /// remove all added dynamic components
@@ -221,18 +220,17 @@ class RoutePlanningGameForge2d extends Forge2DGame
   void recordGame(String result) {
     endTime = DateTime.now();
     //* record game result
-    //! for debugging
-    // RecordGame().recordRoutePlanningGame(
-    //   end: endTime,
-    //   gameDifficulties: gameLevel,
-    //   mapIndex: chosenMap,
-    //   nonTargetError: nonTargetError,
-    //   numOfTargets: numOfTarget[gameLevel],
-    //   repeatedError: repeatedError,
-    //   result: result,
-    //   start: startTime,
-    //   timeToEachHalfwayPoint: timeToEachHalfwayPoint,
-    // );
+    RecordGame().recordRoutePlanningGame(
+      end: endTime,
+      gameDifficulties: gameLevel,
+      mapIndex: chosenMap,
+      nonTargetError: nonTargetError,
+      numOfTargets: numOfTarget[gameLevel],
+      repeatedError: repeatedError,
+      result: result,
+      start: startTime,
+      timeToEachHalfwayPoint: timeToEachHalfwayPoint,
+    );
     //* reset data
     nonTargetError = 0;
     repeatedError = 0;
