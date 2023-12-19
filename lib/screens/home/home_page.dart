@@ -3,9 +3,7 @@ import 'package:cognitive_training/audio/audio_controller.dart';
 import 'package:cognitive_training/constants/globals.dart';
 import 'package:cognitive_training/constants/home_page_const.dart';
 import 'package:cognitive_training/constants/login_page_const.dart';
-import 'package:cognitive_training/models/user_checkin_provider.dart';
-import 'package:cognitive_training/models/user_info_provider.dart';
-import 'package:cognitive_training/notifications_util/notification_helper.dart';
+import 'package:cognitive_training/models/database_info_provider.dart';
 import 'package:cognitive_training/screens/games/shared/exit_button_template.dart';
 import 'package:cognitive_training/screens/home/home_tutorial.dart';
 import 'package:cognitive_training/settings/setting_controller.dart';
@@ -16,15 +14,11 @@ import 'package:flutter/material.dart';
 import 'package:cognitive_training/firebase/auth.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-// import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:go_router/go_router.dart';
 import 'package:logger/logger.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter_switch/flutter_switch.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../background_service/background_service.dart';
 
@@ -38,24 +32,20 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   final AuthService _authService = AuthService();
   final HomeTutorial _homeTutorial = HomeTutorial();
-  late UserInfoProvider userInfoProvider;
-  late UserCheckinProvider userCheckinProvider;
+
   late AudioController _audioController;
+  late SettingsController _settings;
 
-  // // !
-  // final checker = CheckConnectionStatus();
-  // // !
+  List<bool> _isChosen = [false, false, false, false];
+  final List<double> _xPositions = [-0.95, -0.3166, 0.3166, 0.95];
+  int? _chosenGame;
+  String? _chosenLanguage;
+  String? _chosenTime;
+  String? _chosenTime2;
+  String? _chosenTime3;
+  bool? _dailyNotificationStatus;
 
-  List<bool> isChosen = [false, false, false, false];
-  List<double> xPositions = [-0.95, -0.3166, 0.3166, 0.95];
-  int? chosenGame;
-  String? chosenLanguage;
-  String? chosenTime;
-  String? chosenTime2;
-  String? chosenTime3;
-  bool? dailyNotificationStatus;
-
-  List<String> gameRoutes = [
+  final List<String> _gameRoutes = [
     'lottery_game_menu',
     'fishing_game_menu',
     'poker_game_menu',
@@ -92,28 +82,22 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     _audioController.playInstructionRecord(HomePageConst.tutorialAudio[step]);
   }
 
-  late NotificationHelper _notificationHelper;
-
   @override
   Widget build(BuildContext context) {
-    userInfoProvider = context.read<UserInfoProvider>();
-    userCheckinProvider = context.read<UserCheckinProvider>();
-    final settings = context.watch<SettingsController>();
-    chosenLanguage = settings.language.value;
-    chosenTime = settings.timeOfDailyNotification1.value;
-    chosenTime2 = settings.timeOfDailyNotification2.value;
-    chosenTime3 = settings.timeOfDailyNotification3.value;
-    dailyNotificationStatus = settings.statusOfDailyNotification.value;
+    _settings = context.watch<SettingsController>();
     _audioController = context.read<AudioController>();
-
-    _notificationHelper = NotificationHelper();
+    _chosenLanguage = _settings.language.value;
+    _chosenTime = _settings.timeOfDailyNotification1.value;
+    _chosenTime2 = _settings.timeOfDailyNotification2.value;
+    _chosenTime3 = _settings.timeOfDailyNotification3.value;
+    _dailyNotificationStatus = _settings.statusOfDailyNotification.value;
 
     return SafeArea(
       child: Scaffold(
         key: _scaffoldKey,
         resizeToAvoidBottomInset: false,
         drawer: Drawer(
-          child: drawerItem(settings, context),
+          child: drawerItem(_settings, context),
         ),
         body: Container(
           decoration: const BoxDecoration(
@@ -130,8 +114,8 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
               GestureDetector(
                 onTap: () {
                   setState(() {
-                    isChosen = List.generate(4, (index) => false);
-                    chosenGame = null;
+                    _isChosen = List.generate(4, (index) => false);
+                    _chosenGame = null;
                     _homeTutorial.isTutorial = true;
                     _audioController
                         .playInstructionRecord(HomePageConst.tutorialAudio[0]);
@@ -140,7 +124,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                 child: _homeTutorial.tutorialButton(),
               ),
               for (int i = 0; i < 4; i++)
-                if (i != chosenGame) getGameImage(i),
+                if (i != _chosenGame) getGameImage(i),
 
               // mask of background
               if (_homeTutorial.isTutorial)
@@ -148,7 +132,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
 
               gameDescription(),
               startButton(context),
-              if (chosenGame != null) getGameImage(chosenGame!),
+              if (_chosenGame != null) getGameImage(_chosenGame!),
 
               // mask of background
               if (_homeTutorial.isTutorial &&
@@ -178,8 +162,8 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
             color: Colors.blue,
           ),
           margin: const EdgeInsets.only(bottom: 50),
-          child:
-              Consumer<UserInfoProvider>(builder: ((context, provider, child) {
+          child: Consumer<DatabaseInfoProvider>(
+              builder: ((context, provider, child) {
             return Column(
               children: [
                 Expanded(
@@ -229,7 +213,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
             style: TextStyle(fontFamily: 'GSR_B', fontSize: 40),
           ),
           trailing: DropdownButton(
-            value: chosenLanguage,
+            value: _chosenLanguage,
             items: <String>[
               '國語',
               '台語',
@@ -244,7 +228,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
             }).toList(),
             onChanged: (value) {
               setState(() {
-                chosenLanguage = value!;
+                _chosenLanguage = value!;
                 settings.setLanguage(value);
               });
             },
@@ -366,10 +350,10 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
             width: 70,
             height: 40,
             child: FlutterSwitch(
-              value: dailyNotificationStatus ?? false,
+              value: _dailyNotificationStatus ?? false,
               onToggle: (value) {
                 setState(() {
-                  dailyNotificationStatus = value;
+                  _dailyNotificationStatus = value;
                 });
                 settings.setStatusOfDailyNotification(value);
                 if (value) {
@@ -388,14 +372,14 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
             color: Colors.black,
           ),
           title: Text(
-            '提醒時間$chosenTime',
+            '提醒時間$_chosenTime',
             style: const TextStyle(fontFamily: 'GSR_B', fontSize: 40),
           ),
           onTap: () async {
-            TimeOfDay initialTime = chosenTime != null
+            TimeOfDay initialTime = _chosenTime != null
                 ? TimeOfDay(
-                    hour: int.parse(chosenTime!.split(':')[0]),
-                    minute: int.parse(chosenTime!.split(':')[1]))
+                    hour: int.parse(_chosenTime!.split(':')[0]),
+                    minute: int.parse(_chosenTime!.split(':')[1]))
                 : TimeOfDay.now();
             TimeOfDay? newTime = await showTimePicker(
                   context: context,
@@ -415,14 +399,14 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
             color: Colors.black,
           ),
           title: Text(
-            '提醒時間$chosenTime2',
+            '提醒時間$_chosenTime2',
             style: const TextStyle(fontFamily: 'GSR_B', fontSize: 40),
           ),
           onTap: () async {
-            TimeOfDay initialTime = chosenTime2 != null
+            TimeOfDay initialTime = _chosenTime2 != null
                 ? TimeOfDay(
-                    hour: int.parse(chosenTime2!.split(':')[0]),
-                    minute: int.parse(chosenTime2!.split(':')[1]))
+                    hour: int.parse(_chosenTime2!.split(':')[0]),
+                    minute: int.parse(_chosenTime2!.split(':')[1]))
                 : TimeOfDay.now();
             TimeOfDay? newTime = await showTimePicker(
                   context: context,
@@ -442,14 +426,14 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
             color: Colors.black,
           ),
           title: Text(
-            '提醒時間$chosenTime3',
+            '提醒時間$_chosenTime3',
             style: const TextStyle(fontFamily: 'GSR_B', fontSize: 40),
           ),
           onTap: () async {
-            TimeOfDay initialTime = chosenTime3 != null
+            TimeOfDay initialTime = _chosenTime3 != null
                 ? TimeOfDay(
-                    hour: int.parse(chosenTime3!.split(':')[0]),
-                    minute: int.parse(chosenTime3!.split(':')[1]))
+                    hour: int.parse(_chosenTime3!.split(':')[0]),
+                    minute: int.parse(_chosenTime3!.split(':')[1]))
                 : TimeOfDay.now();
             TimeOfDay? newTime = await showTimePicker(
                   context: context,
@@ -552,8 +536,8 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
               ),
               // chceckin reward page
               Expanded(
-                child: Consumer2<UserInfoProvider, UserCheckinProvider>(
-                    builder: (context, infoProvider, checkinProvider, child) {
+                child: Consumer<DatabaseInfoProvider>(
+                    builder: (context, databaseInfoProvider, child) {
                   return Padding(
                     padding: const EdgeInsets.all(2.0),
                     child: Stack(
@@ -568,8 +552,8 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                               },
                               icon: Icon(
                                 Icons.calendar_today_outlined,
-                                color: checkinProvider.haveCheckinReward ||
-                                        checkinProvider.haveBonusReward
+                                color: databaseInfoProvider.haveCheckinReward ||
+                                        databaseInfoProvider.haveBonusReward
                                     ? Colors.amber
                                     : Colors.black,
                               ),
@@ -584,8 +568,9 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                                 style: TextStyle(
                                   fontSize: 100,
                                   color: Colors.red.withOpacity(
-                                      checkinProvider.haveCheckinReward ||
-                                              checkinProvider.haveBonusReward
+                                      databaseInfoProvider.haveCheckinReward ||
+                                              databaseInfoProvider
+                                                  .haveBonusReward
                                           ? 1
                                           : 0),
                                 ),
@@ -628,7 +613,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   AnimatedAlign gameDescription() {
     return AnimatedAlign(
       key: const ValueKey('description'),
-      alignment: isChosen.contains(true)
+      alignment: _isChosen.contains(true)
           ? const Alignment(0.85, -0.6)
           : const Alignment(4.0, -0.6),
       duration: const Duration(milliseconds: 300),
@@ -684,7 +669,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                         child: ExitButton(callBackFunction: () {
                           _audioController.stopPlayingInstruction();
                           setState(() {
-                            isChosen[isChosen.indexOf(true)] = false;
+                            _isChosen[_isChosen.indexOf(true)] = false;
                           });
                         }),
                       ),
@@ -693,12 +678,12 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                 ),
                 Expanded(
                   flex: 8,
-                  child: chosenGame != null
+                  child: _chosenGame != null
                       ? FractionallySizedBox(
                           widthFactor: 0.8,
                           heightFactor: 0.9,
                           child: AutoSizeText(
-                            HomePageConst.gameDescription[chosenGame!],
+                            HomePageConst.gameDescription[_chosenGame!],
                             style: const TextStyle(
                                 fontSize: 1000,
                                 color: Colors.black,
@@ -740,12 +725,12 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                 ),
                 Expanded(
                   flex: 2,
-                  child: chosenGame != null
+                  child: _chosenGame != null
                       ? FractionallySizedBox(
                           widthFactor: 0.8,
                           heightFactor: 0.9,
                           child: AutoSizeText(
-                            HomePageConst.gameTrainingArea[chosenGame!],
+                            HomePageConst.gameTrainingArea[_chosenGame!],
                             style: const TextStyle(
                                 fontSize: 1000,
                                 color: Colors.black,
@@ -767,10 +752,10 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       if (_homeTutorial.tutorialProgress < 2) {
         _homeTutorial.tutorialProgress++;
         if (_homeTutorial.tutorialProgress == 1) {
-          chosenGame = 0;
+          _chosenGame = 0;
           playTutorialAudio(_homeTutorial.tutorialProgress);
         } else if (_homeTutorial.tutorialProgress == 2) {
-          isChosen[0] = true;
+          _isChosen[0] = true;
           playTutorialAudio(_homeTutorial.tutorialProgress);
         }
       } else {
@@ -778,7 +763,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
         Future.delayed(const Duration(milliseconds: 500), () {
           _homeTutorial.tutorialProgress = 0;
         });
-        isChosen = List.generate(4, (index) => false);
+        _isChosen = List.generate(4, (index) => false);
         _homeTutorial.isTutorial = false;
       }
     });
@@ -794,7 +779,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   AnimatedAlign startButton(BuildContext context) {
     return AnimatedAlign(
       key: const ValueKey('start_button'),
-      alignment: isChosen.contains(true)
+      alignment: _isChosen.contains(true)
           ? const Alignment(0.5, 0.9)
           : const Alignment(0.5, 3.0),
       duration: const Duration(milliseconds: 300),
@@ -819,18 +804,18 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   Widget getGameImage(int gameIndex) {
     return AnimatedAlign(
       key: ValueKey(gameIndex),
-      alignment: isChosen[gameIndex]
+      alignment: _isChosen[gameIndex]
           ? const Alignment(-0.95, 0.0)
-          : Alignment(xPositions[gameIndex], 0.4),
+          : Alignment(_xPositions[gameIndex], 0.4),
       duration: const Duration(milliseconds: 300),
       child: AnimatedFractionallySizedBox(
-        widthFactor: isChosen[gameIndex] ? 0.4 : 0.225,
+        widthFactor: _isChosen[gameIndex] ? 0.4 : 0.225,
         duration: const Duration(milliseconds: 300),
         child: AspectRatio(
           aspectRatio: 939 / 1054,
           child: DottedBorder(
             color:
-                _homeTutorial.tutorialProgress == 1 && gameIndex == chosenGame
+                _homeTutorial.tutorialProgress == 1 && gameIndex == _chosenGame
                     ? Colors.red
                     : Colors.white.withOpacity(0),
             borderType: BorderType.RRect,
@@ -843,14 +828,14 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
               onTap: () {
                 if (!_homeTutorial.isTutorial) {
                   setState(() {
-                    if (isChosen.contains(true)) {
-                      if (isChosen.indexOf(true) == gameIndex) {
-                        isChosen[gameIndex] = false;
+                    if (_isChosen.contains(true)) {
+                      if (_isChosen.indexOf(true) == gameIndex) {
+                        _isChosen[gameIndex] = false;
                         _audioController.stopPlayingInstruction();
                       }
                     } else {
-                      isChosen[gameIndex] = !isChosen[gameIndex];
-                      chosenGame = gameIndex;
+                      _isChosen[gameIndex] = !_isChosen[gameIndex];
+                      _chosenGame = gameIndex;
                       // audioController.playGameDescription(gameIndex);
                       _audioController.playGameDescription(gameIndex);
                       // FlameAudio.playLongAudio(
@@ -1008,7 +993,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     } else if (!_homeTutorial.isTutorial) {
       final audioController = context.read<AudioController>();
       audioController.stopPlayingInstruction();
-      String route = gameRoutes[isChosen.indexOf(true)];
+      String route = _gameRoutes[_isChosen.indexOf(true)];
       GoRouter.of(context).pushNamed(route);
     }
     _audioController.playSfx(Globals.clickButtonSound);

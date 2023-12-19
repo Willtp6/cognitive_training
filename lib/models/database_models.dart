@@ -1,5 +1,3 @@
-class UserModel {}
-
 class LotteryGameDatabase {
   int currentLevel;
   int currentDigit;
@@ -60,5 +58,16 @@ class RoutePlanningGameDatabase {
     required this.historyContinuousLose,
     required this.doneTutorial,
     required this.responseTimeList,
+  });
+}
+
+class RankingUser {
+  String username;
+  String userid;
+  int ownedCoins;
+  RankingUser({
+    this.username = '未找到玩家',
+    this.userid = 'usernotfound',
+    this.ownedCoins = 0,
   });
 }

@@ -3,12 +3,10 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:logger/logger.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../notifications_util/notification_helper.dart';
-
 class RecordGame {
-  // NotificationHelper _notificationHelper = NotificationHelper();
+  RecordGame._();
 
-  Future<void> recordLotteryGame({
+  static Future<void> recordLotteryGame({
     required int gameLevel,
     required int numberOfDigits,
     required int numOfCorrectAns,
@@ -51,7 +49,7 @@ class RecordGame {
     }
   }
 
-  Future<void> recordFishingGame({
+  static Future<void> recordFishingGame({
     required int gameLevel,
     required DateTime start,
     required DateTime end,
@@ -75,7 +73,7 @@ class RecordGame {
         .catchError((error) => Logger().d(error.message));
   }
 
-  Future<void> recordPokerGame({
+  static Future<void> recordPokerGame({
     required int gameLevel,
     required String result,
     required DateTime end,
@@ -105,7 +103,7 @@ class RecordGame {
         .catchError((error) => Logger().d(error.message));
   }
 
-  Future<void> recordRoutePlanningGame({
+  static Future<void> recordRoutePlanningGame({
     required List<int> timeToEachHalfwayPoint,
     required int nonTargetError,
     required int repeatedError,
@@ -138,7 +136,7 @@ class RecordGame {
         .catchError((error) => Logger().d(error));
   }
 
-  Future<void> setLastUpdateTime() async {
+  static Future<void> setLastUpdateTime() async {
     Future<SharedPreferences> instanceFuture = SharedPreferences.getInstance();
     final pref = await instanceFuture;
     pref.setString('timeOfLastDatabaseUpdate', DateTime.now().toString());

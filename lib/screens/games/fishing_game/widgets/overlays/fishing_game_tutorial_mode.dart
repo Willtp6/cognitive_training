@@ -2,7 +2,7 @@ import 'dart:math';
 
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:cognitive_training/constants/tutorial_mode_const.dart';
-import 'package:cognitive_training/models/user_info_provider.dart';
+import 'package:cognitive_training/models/database_info_provider.dart';
 import 'package:cognitive_training/screens/games/fishing_game/fishing_game.dart';
 import 'package:cognitive_training/screens/games/fishing_game/widgets/overlays/fishing_game_rule.dart';
 import 'package:cognitive_training/shared/button_with_text.dart';
@@ -32,7 +32,7 @@ class _FishingGameTutorialModeState extends State<FishingGameTutorialMode> {
   bool buttonEnabled = true;
   late RectangleComponent background;
 
-  late UserInfoProvider userInfoProvider;
+  late DatabaseInfoProvider databaseInfoProvider;
 
   @override
   void initState() {
@@ -95,14 +95,14 @@ class _FishingGameTutorialModeState extends State<FishingGameTutorialMode> {
         }
       });
     } else {
-      userInfoProvider.fishingGameDoneTutorial();
+      databaseInfoProvider.fishingGameDoneTutorial();
       await showEndTutorialDialog();
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    userInfoProvider = context.read<UserInfoProvider>();
+    databaseInfoProvider = context.read<DatabaseInfoProvider>();
     return SafeArea(
       child: WillPopScope(
         onWillPop: () async => false,

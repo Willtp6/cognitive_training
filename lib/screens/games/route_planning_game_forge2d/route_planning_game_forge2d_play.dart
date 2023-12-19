@@ -1,4 +1,4 @@
-import 'package:cognitive_training/models/user_info_provider.dart';
+import 'package:cognitive_training/models/database_info_provider.dart';
 
 import 'package:provider/provider.dart';
 
@@ -19,14 +19,11 @@ class RoutePlanningGameForge2dPlay extends StatelessWidget {
   RoutePlanningGameForge2dPlay({Key? key, required this.isTutorial})
       : super(key: key);
 
-  late UserInfoProvider userInfoProvider;
-  // final RoutePlanningGame _routePlanningGame = RoutePlanningGame();
-  // final RoutePlanningGameForge2d _routePlanningGameForge2d =
-  //     RoutePlanningGameForge2d();
+  late DatabaseInfoProvider databaseInfoProvider;
 
   @override
   Widget build(BuildContext context) {
-    userInfoProvider = context.read<UserInfoProvider>();
+    databaseInfoProvider = context.read<DatabaseInfoProvider>();
     return SafeArea(
       child: Scaffold(
         body: WillPopScope(
@@ -36,13 +33,13 @@ class RoutePlanningGameForge2dPlay extends StatelessWidget {
           child: GameWidget(
             game: RoutePlanningGameForge2d(
               gameLevel:
-                  userInfoProvider.routePlanningGameDatabase.currentLevel,
-              continuousWin: userInfoProvider
+                  databaseInfoProvider.routePlanningGameDatabase.currentLevel,
+              continuousWin: databaseInfoProvider
                   .routePlanningGameDatabase.historyContinuousWin,
-              continuousLose: userInfoProvider
+              continuousLose: databaseInfoProvider
                   .routePlanningGameDatabase.historyContinuousLose,
               isTutorial: isTutorial,
-              userInfoProvider: userInfoProvider,
+              databaseInfoProvider: databaseInfoProvider,
             ),
             // Initially only menu overlay will be visible.
             initialActiveOverlays: isTutorial

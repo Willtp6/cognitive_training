@@ -2,15 +2,14 @@ import 'dart:async';
 import 'package:cognitive_training/audio/audio_controller.dart';
 import 'package:cognitive_training/constants/globals.dart';
 import 'package:cognitive_training/constants/lottery_game_const.dart';
-import 'package:cognitive_training/models/user_info_provider.dart';
+import 'package:cognitive_training/models/database_info_provider.dart';
 import 'package:cognitive_training/screens/games/lottery_game/lottery_game.dart';
 import 'package:cognitive_training/shared/button_with_text.dart';
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:logger/logger.dart';
 import 'package:provider/provider.dart';
 import 'package:auto_size_text/auto_size_text.dart';
-import 'package:cognitive_training/models/user_model.dart';
+import 'package:cognitive_training/models/database_models.dart';
 import 'package:rive/rive.dart';
 import '../../../shared/design_type.dart';
 import 'lottery_game_tutorial.dart';
@@ -52,7 +51,7 @@ class _LotteryGameSceneState extends State<LotteryGameScene>
 
   late AudioController audioController;
 
-  late UserInfoProvider userInfoProvider;
+  late DatabaseInfoProvider databaseInfoProvider;
 
   late LotteryGame game;
   late AnimationController _controller;
@@ -182,6 +181,7 @@ class _LotteryGameSceneState extends State<LotteryGameScene>
           game.end = DateTime.now();
           if (!game.isTutorial) {
             game.record();
+            databaseInfoProvider.addPlayTime(game.start, game.end);
           }
           Future.delayed(const Duration(seconds: 2, milliseconds: 500), () {
             setState(() {
@@ -193,7 +193,7 @@ class _LotteryGameSceneState extends State<LotteryGameScene>
           Future.delayed(const Duration(seconds: 1, milliseconds: 300), () {
             audioController.playSfx(LotteryGameConst.spendMoney);
             setState(() {
-              userInfoProvider.coins -= 200;
+              databaseInfoProvider.coins -= 200;
             });
           });
           break;
@@ -207,7 +207,7 @@ class _LotteryGameSceneState extends State<LotteryGameScene>
         case 5:
           Future.delayed(const Duration(milliseconds: 250), () {
             if (game.playerWin) {
-              userInfoProvider.coins += game.gameReward;
+              databaseInfoProvider.coins += game.gameReward;
               audioController.playSfx(LotteryGameConst.winApplause);
               audioController.playSfx(LotteryGameConst.winFireworks);
             } else {
@@ -215,7 +215,7 @@ class _LotteryGameSceneState extends State<LotteryGameScene>
             }
           });
           game.changeDigitByResult();
-          userInfoProvider.lotteryGameDatabase = LotteryGameDatabase(
+          databaseInfoProvider.lotteryGameDatabase = LotteryGameDatabase(
             currentLevel: game.gameLevel,
             currentDigit: game.numberOfDigits,
             continuousCorrectRateBiggerThan50:
@@ -223,8 +223,9 @@ class _LotteryGameSceneState extends State<LotteryGameScene>
             loseInCurrentDigit: game.loseInCurrentDigit,
             historyContinuousWin: game.continuousWin,
             historyContinuousLose: game.continuousLose,
-            doneTutorial: userInfoProvider.lotteryGameDatabase.doneTutorial ||
-                game.isTutorial,
+            doneTutorial:
+                databaseInfoProvider.lotteryGameDatabase.doneTutorial ||
+                    game.isTutorial,
           );
           Future.delayed(const Duration(seconds: 3, milliseconds: 500),
               () => _showGameEndDialog());
@@ -245,7 +246,7 @@ class _LotteryGameSceneState extends State<LotteryGameScene>
           game.changeCurrentImage();
           break;
         case 10:
-          userInfoProvider.lotteryGameDoneTutorial();
+          databaseInfoProvider.lotteryGameDoneTutorial();
           _showTutorialEndDialog();
           break;
         default:
@@ -261,7 +262,7 @@ class _LotteryGameSceneState extends State<LotteryGameScene>
   @override
   Widget build(BuildContext context) {
     //listen and reset the state
-    userInfoProvider = context.read<UserInfoProvider>();
+    databaseInfoProvider = context.read<DatabaseInfoProvider>();
     audioController = context.read<AudioController>();
     if (!game.isTutorial) {
       gameFunctions(context);
@@ -815,7 +816,7 @@ class _LotteryGameSceneState extends State<LotteryGameScene>
           subTitle: '要退出教學模式嗎?',
           option1: '確定離開',
           option1Callback: () {
-            userInfoProvider.lotteryGameDoneTutorial();
+            databaseInfoProvider.lotteryGameDoneTutorial();
             Navigator.of(context)
               ..pop()
               ..pop();
@@ -896,16 +897,17 @@ class _LotteryGameSceneState extends State<LotteryGameScene>
           option2Callback: () {
             Navigator.of(context).pop();
             game = LotteryGame(
-              gameLevel: userInfoProvider.lotteryGameDatabase.currentLevel,
-              numberOfDigits: userInfoProvider.lotteryGameDatabase.currentDigit,
-              continuousCorrectRateBiggerThan50: userInfoProvider
+              gameLevel: databaseInfoProvider.lotteryGameDatabase.currentLevel,
+              numberOfDigits:
+                  databaseInfoProvider.lotteryGameDatabase.currentDigit,
+              continuousCorrectRateBiggerThan50: databaseInfoProvider
                   .lotteryGameDatabase.continuousCorrectRateBiggerThan50,
               loseInCurrentDigit:
-                  userInfoProvider.lotteryGameDatabase.loseInCurrentDigit,
+                  databaseInfoProvider.lotteryGameDatabase.loseInCurrentDigit,
               continuousWin:
-                  userInfoProvider.lotteryGameDatabase.historyContinuousWin,
-              continuousLose:
-                  userInfoProvider.lotteryGameDatabase.historyContinuousLose,
+                  databaseInfoProvider.lotteryGameDatabase.historyContinuousWin,
+              continuousLose: databaseInfoProvider
+                  .lotteryGameDatabase.historyContinuousLose,
               isTutorial: false,
             );
             game.setNextGame();

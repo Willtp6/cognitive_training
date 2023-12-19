@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:flutter_background_service/flutter_background_service.dart';
-import 'package:flutter_background_service_android/flutter_background_service_android.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:logger/logger.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -89,19 +88,6 @@ void onStart(ServiceInstance service) async {
     setCustomizedNotification(notificationsPlugin);
     setLoginRemindNotification(notificationsPlugin);
   });
-  // Timer.periodic(const Duration(seconds: 10), (timer) async {
-  //   await notificationsPlugin.zonedSchedule(
-  //     10,
-  //     '每日提醒',
-  //     '記得登入遊玩及領取獎勵',
-  //     tz.TZDateTime.from(
-  //         DateTime.now().add(const Duration(seconds: 5)), tz.local),
-  //     NotificationDetails(android: androidCustomizeNotificationDetails),
-  //     androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-  //     uiLocalNotificationDateInterpretation:
-  //         UILocalNotificationDateInterpretation.absoluteTime,
-  //   );
-  // });
 }
 
 void restartBackgroundService() async {

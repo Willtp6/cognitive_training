@@ -1,5 +1,5 @@
 import 'package:auto_size_text/auto_size_text.dart';
-import 'package:cognitive_training/models/user_info_provider.dart';
+import 'package:cognitive_training/models/database_info_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -21,7 +21,7 @@ class TopCoin extends StatelessWidget {
         child: FractionallySizedBox(
           widthFactor: 0.12,
           heightFactor: 0.1,
-          child: Consumer<UserInfoProvider>(
+          child: Consumer<DatabaseInfoProvider>(
             builder: (context, value, child) {
               return AutoSizeText(
                 value.coins.toString(),

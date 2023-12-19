@@ -2,11 +2,12 @@ import 'dart:async';
 import 'package:cognitive_training/audio/audio_controller.dart';
 import 'package:cognitive_training/constants/globals.dart';
 import 'package:cognitive_training/constants/route_planning_game_const.dart';
-import 'package:cognitive_training/models/user_info_provider.dart';
+import 'package:cognitive_training/models/database_info_provider.dart';
 import 'package:cognitive_training/screens/games/shared/game_label.dart';
 import 'package:flame_audio/flame_audio.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:logger/logger.dart';
 import 'package:provider/provider.dart';
 
 import '../../../shared/button_with_text.dart';
@@ -23,11 +24,15 @@ class RoutePlanningGameForge2dMenu extends StatefulWidget {
 
 class _RoutePlanningGameForge2dMenuState
     extends State<RoutePlanningGameForge2dMenu>
-    with SingleTickerProviderStateMixin {
+    with SingleTickerProviderStateMixin, WidgetsBindingObserver {
   late AnimationController _controller;
-  late UserInfoProvider userInfoProvider;
+  late DatabaseInfoProvider databaseInfoProvider;
   late AudioController audioController;
   bool buttonEnabled = true;
+
+  late Timer _timer;
+  int passedTime = 0;
+  bool appPaused = false;
 
   @override
   void initState() {
@@ -36,12 +41,35 @@ class _RoutePlanningGameForge2dMenuState
       duration: const Duration(seconds: 8),
       vsync: this,
     );
+    WidgetsBinding.instance.addObserver(this);
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (!appPaused) {
+        passedTime++;
+        Logger().d('$passedTime second passed');
+      }
+    });
   }
 
   @override
   void dispose() {
     _controller.dispose();
+
+    databaseInfoProvider.updateMaxPlayTime(passedTime);
+    _timer.cancel();
+    WidgetsBinding.instance.removeObserver(this);
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    Logger().d(state);
+    if (state == AppLifecycleState.paused) {
+      // App is paused
+      appPaused = true;
+    } else if (state == AppLifecycleState.resumed) {
+      // App is resumed
+      appPaused = false;
+    }
   }
 
   void startGame() {
@@ -50,7 +78,7 @@ class _RoutePlanningGameForge2dMenuState
       audioController.playSfx(Globals.clickButtonSound);
       _controller.forward().whenComplete(() {
         String isTutorial =
-            (!userInfoProvider.routePlanningGameDatabase.doneTutorial)
+            (!databaseInfoProvider.routePlanningGameDatabase.doneTutorial)
                 .toString();
         context.pushNamed(
           'route_planning_game',
@@ -97,7 +125,7 @@ class _RoutePlanningGameForge2dMenuState
 
   @override
   Widget build(BuildContext context) {
-    userInfoProvider = context.read<UserInfoProvider>();
+    databaseInfoProvider = context.read<DatabaseInfoProvider>();
     audioController = context.read<AudioController>();
     return SafeArea(
       child: Scaffold(
@@ -108,8 +136,8 @@ class _RoutePlanningGameForge2dMenuState
               opacity: Tween(begin: 1.0, end: 0.0)
                   .chain(CurveTween(curve: const Interval(0.0, 0.2)))
                   .animate(_controller),
-              child: Consumer<UserInfoProvider>(
-                builder: (context, userInfoProvider, child) {
+              child: Consumer<DatabaseInfoProvider>(
+                builder: (context, databaseInfoProvider, child) {
                   return Stack(
                     children: [
                       const GameLabel(labelText: '路線規劃'),

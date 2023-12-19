@@ -193,7 +193,7 @@ class GameInstance {
       ResultType.tie: 'Tie',
       ResultType.lose: 'Lose',
     };
-    RecordGame().recordPokerGame(
+    RecordGame.recordPokerGame(
       gameLevel: gameLevel,
       result: results[resultType] ?? 'error',
       start: start,

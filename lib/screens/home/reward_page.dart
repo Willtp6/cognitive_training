@@ -1,10 +1,8 @@
 import 'dart:math';
 
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cognitive_training/constants/globals.dart';
 import 'package:cognitive_training/constants/reward_page_const.dart';
-import 'package:cognitive_training/models/user_checkin_provider.dart';
-import 'package:cognitive_training/models/user_info_provider.dart';
+import 'package:cognitive_training/models/database_info_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:logger/logger.dart';
@@ -110,8 +108,8 @@ class CheckinRewardState extends State<CheckinReward> {
           ),
           Expanded(
             flex: 5,
-            child: Consumer<UserCheckinProvider>(
-                builder: (context, provider, child) {
+            child: Consumer<DatabaseInfoProvider>(
+                builder: (context, databaseInfoProvider, child) {
               // Logger().i(provider.loginCycle);
               // Logger().i(provider.loginRewardCycle);
               return Row(
@@ -121,13 +119,13 @@ class CheckinRewardState extends State<CheckinReward> {
                       i < RewardPageConst.numString.length;
                       i++) ...[
                     Expanded(
-                      child:
-                          provider.loginCycle[i] && provider.loginRewardCycle[i]
-                              ? rewardImage(i, rewardTaken: true)
-                              : provider.loginCycle[i] &&
-                                      !provider.loginRewardCycle[i]
-                                  ? rewardImage(i, haveReward: true)
-                                  : rewardImage(i),
+                      child: databaseInfoProvider.loginCycle[i] &&
+                              databaseInfoProvider.loginRewardCycle[i]
+                          ? rewardImage(i, rewardTaken: true)
+                          : databaseInfoProvider.loginCycle[i] &&
+                                  !databaseInfoProvider.loginRewardCycle[i]
+                              ? rewardImage(i, haveReward: true)
+                              : rewardImage(i),
                     ),
                     // if (provider.loginCycle[i] &&
                     //     provider.loginRewardCycle[i]) ...[
@@ -159,16 +157,13 @@ class CheckinRewardState extends State<CheckinReward> {
             aspectRatio: 1,
             child: LayoutBuilder(
               builder: (BuildContext buildContext, BoxConstraints constraints) {
-                // double minValue =
-                //     min(constraints.maxHeight, constraints.maxWidth);
-                return Consumer2<UserInfoProvider, UserCheckinProvider>(
-                    builder: (_, userInfoProvider, userCheckinProvider, child) {
+                return Consumer<DatabaseInfoProvider>(
+                    builder: (_, databaseInfoProvider, child) {
                   return GestureDetector(
                     onTap: () {
                       if (haveReward) {
                         Logger().i(day);
-                        userInfoProvider.coins +=
-                            userCheckinProvider.updateRewardStatus(day);
+                        databaseInfoProvider.updateRewardStatus(day);
                       }
                     },
                     child: Stack(
@@ -267,17 +262,16 @@ class _BonusRewardState extends State<BonusReward> {
                   ),
                   Expanded(
                     flex: 2,
-                    child: Consumer2<UserInfoProvider, UserCheckinProvider>(
-                        builder: (context, userInfoProvider,
-                            userCheckinProvider, child) {
-                      Logger().d(userCheckinProvider.bonusRewardCycle);
+                    child: Consumer<DatabaseInfoProvider>(
+                        builder: (context, databaseInfoProvider, child) {
+                      Logger().d(databaseInfoProvider.bonusRewardCycle);
                       return Row(
                         children: [
                           for (int i = 0; i < 3; i++) ...[
                             Expanded(
                               child: bonusRewardImage(
                                 index: i,
-                                userCheckinProvider: userCheckinProvider,
+                                databaseInfoProvider: databaseInfoProvider,
                               ),
                             ),
                           ],
@@ -298,19 +292,17 @@ class _BonusRewardState extends State<BonusReward> {
     );
   }
 
-  Widget bonusRewardImage({required index, required userCheckinProvider}) {
+  Widget bonusRewardImage({required index, required databaseInfoProvider}) {
     return Column(
       children: [
         Expanded(
           flex: 2,
           child: GestureDetector(
             onTap: () {
-              if (userCheckinProvider.bonusRewardCycle[index] ==
+              if (databaseInfoProvider.bonusRewardCycle[index] ==
                   'uncollected') {
                 setState(() {
-                  List<String> list = userCheckinProvider.bonusRewardCycle;
-                  list[index] = 'collected';
-                  userCheckinProvider.bonusRewardCycle = list;
+                  databaseInfoProvider.achieveBonusReward(index);
                 });
               }
             },
@@ -318,7 +310,7 @@ class _BonusRewardState extends State<BonusReward> {
               alignment: Alignment.center,
               children: [
                 Opacity(
-                  opacity: userCheckinProvider.bonusRewardCycle[index] ==
+                  opacity: databaseInfoProvider.bonusRewardCycle[index] ==
                           'uncollected'
                       ? 1.0
                       : 0.3,
@@ -327,7 +319,7 @@ class _BonusRewardState extends State<BonusReward> {
                     fit: BoxFit.contain,
                   ),
                 ),
-                if (userCheckinProvider.bonusRewardCycle[index] ==
+                if (databaseInfoProvider.bonusRewardCycle[index] ==
                     'collected') ...[
                   Center(
                     child: Transform.rotate(
@@ -346,7 +338,11 @@ class _BonusRewardState extends State<BonusReward> {
         Expanded(
           flex: 1,
           child: Image.asset(
-            RewardPageConst.thirtyStraightMins,
+            index == 0
+                ? RewardPageConst.thirtyStraightMins
+                : index == 1
+                    ? RewardPageConst.threeTimesInWeek
+                    : RewardPageConst.thirtyMinsThreeTimes,
             fit: BoxFit.contain,
           ),
         ),

@@ -1,6 +1,6 @@
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:cognitive_training/constants/tutorial_mode_const.dart';
-import 'package:cognitive_training/models/user_info_provider.dart';
+import 'package:cognitive_training/models/database_info_provider.dart';
 import 'package:cognitive_training/screens/games/route_planning_game_forge2d/components/building_component.dart';
 import 'package:cognitive_training/screens/games/route_planning_game_forge2d/components/rider.dart';
 import 'package:cognitive_training/screens/games/route_planning_game_forge2d/route_planning_game_forge2d.dart';
@@ -31,7 +31,7 @@ class _RoutePlanningGameTutorialModeState
     extends State<RoutePlanningGameTutorialMode> {
   late RectangleComponent background;
 
-  late UserInfoProvider _userInfoProvider;
+  late DatabaseInfoProvider databaseInfoProvider;
 
   BuildingComponent? _targetComponent;
 
@@ -126,12 +126,12 @@ class _RoutePlanningGameTutorialModeState
         //* add ping
         break;
       case 10:
-        _userInfoProvider.routePlanningGameDoneTutorial();
+        databaseInfoProvider.routePlanningGameDoneTutorial();
         widget.game.isTutorial = false;
 
         //* set the game level back to it's original status
         widget.game.gameLevel =
-            _userInfoProvider.routePlanningGameDatabase.currentLevel;
+            databaseInfoProvider.routePlanningGameDatabase.currentLevel;
         //* remove rider
         widget.game.resetGame();
         // widget.game.rider.removeFromParent();
@@ -169,7 +169,7 @@ class _RoutePlanningGameTutorialModeState
 
   @override
   Widget build(BuildContext context) {
-    _userInfoProvider = context.read<UserInfoProvider>();
+    databaseInfoProvider = context.read<DatabaseInfoProvider>();
     final padding = MediaQuery.of(context).viewPadding;
     Logger().d('${padding.bottom}_${padding.top}');
     final height =

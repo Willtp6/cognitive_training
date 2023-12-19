@@ -139,7 +139,7 @@ class LotteryGame {
     } else {
       userArray.remove(-1);
     }
-    RecordGame().recordLotteryGame(
+    RecordGame.recordLotteryGame(
       gameLevel: gameLevel,
       numberOfDigits: numberOfDigits,
       numOfCorrectAns: numOfCorrectAns,

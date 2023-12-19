@@ -3,8 +3,8 @@ import 'dart:math';
 import 'package:cognitive_training/audio/audio_controller.dart';
 import 'package:cognitive_training/constants/globals.dart';
 import 'package:cognitive_training/constants/poker_game_const.dart';
-import 'package:cognitive_training/models/user_info_provider.dart';
-import 'package:cognitive_training/models/user_model.dart';
+import 'package:cognitive_training/models/database_info_provider.dart';
+import 'package:cognitive_training/models/database_models.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:logger/logger.dart';
@@ -22,13 +22,14 @@ import 'widgets/response_word.dart';
 import 'widgets/showed_coins.dart';
 
 class PokerGameScene extends StatefulWidget {
-  PokerGameScene(
-      {super.key,
-      required this.startLevel,
-      required this.historyContinuousWin,
-      required this.historyContinuousLose,
-      required this.isTutorial,
-      required this.responseTimeList});
+  PokerGameScene({
+    super.key,
+    required this.startLevel,
+    required this.historyContinuousWin,
+    required this.historyContinuousLose,
+    required this.isTutorial,
+    required this.responseTimeList,
+  });
   final int startLevel;
   final int historyContinuousWin;
   final int historyContinuousLose;
@@ -52,7 +53,7 @@ class _PokerGameStateScene extends State<PokerGameScene>
   Timer? timerForDelayingRoundresult;
   bool isPlayerTurn = false;
   bool showWord = false;
-  late UserInfoProvider userInfoProvider;
+  late DatabaseInfoProvider databaseInfoProvider;
   final PokerGameTutorial _pokerGameTutorial = PokerGameTutorial();
 
   String playerCoinChange = "";
@@ -159,7 +160,7 @@ class _PokerGameStateScene extends State<PokerGameScene>
 
         break;
     }
-    userInfoProvider.pokerGameDatabase = PokerGameDatabase(
+    databaseInfoProvider.pokerGameDatabase = PokerGameDatabase(
       currentLevel: game.gameLevel,
       historyContinuousWin: game.continuousWin,
       historyContinuousLose: game.continuousLose,
@@ -205,7 +206,7 @@ class _PokerGameStateScene extends State<PokerGameScene>
     //* thus the value of money is always correct and seperate by the aniamtion status
     playerCoinChange = "-${game.coinLose[game.gameLevel]}";
     opponentCoinChange = "+${game.coinWin[game.gameLevel]}";
-    userInfoProvider.coins -= game.coinLose[game.gameLevel];
+    databaseInfoProvider.coins -= game.coinLose[game.gameLevel];
     game.opponentCoin += game.coinWin[game.gameLevel];
     //* start the animation for money value change
     _controllerChangeMoney.reset();
@@ -238,6 +239,7 @@ class _PokerGameStateScene extends State<PokerGameScene>
     audioController.stopAllSfx();
     setState(() {
       game.getResult();
+      databaseInfoProvider.addPlayTime(game.start, game.end);
     });
     //* get the value about reward & penalty
     //* also change money in database here
@@ -246,12 +248,12 @@ class _PokerGameStateScene extends State<PokerGameScene>
     if (game.resultType == ResultType.win) {
       playerCoinChange = "+${game.coinWin[game.gameLevel]}";
       opponentCoinChange = "-${game.coinLose[game.gameLevel]}";
-      userInfoProvider.coins += game.coinWin[game.gameLevel];
+      databaseInfoProvider.coins += game.coinWin[game.gameLevel];
       game.opponentCoin -= game.coinLose[game.gameLevel];
     } else if (game.resultType == ResultType.lose) {
       playerCoinChange = "-${game.coinLose[game.gameLevel]}";
       opponentCoinChange = "+${game.coinWin[game.gameLevel]}";
-      userInfoProvider.coins -= game.coinLose[game.gameLevel];
+      databaseInfoProvider.coins -= game.coinLose[game.gameLevel];
       game.opponentCoin += game.coinWin[game.gameLevel];
     } else if (game.resultType == ResultType.tie) {
       playerCoinChange = "+0";
@@ -325,7 +327,7 @@ class _PokerGameStateScene extends State<PokerGameScene>
 
   @override
   Widget build(BuildContext context) {
-    userInfoProvider = context.read<UserInfoProvider>();
+    databaseInfoProvider = context.read<DatabaseInfoProvider>();
     audioController = context.read<AudioController>();
     return SafeArea(
       child: WillPopScope(
@@ -674,7 +676,7 @@ class _PokerGameStateScene extends State<PokerGameScene>
           option1: '確定離開',
           option1Callback: () {
             audioController.stopAllAudio();
-            userInfoProvider.pokerGameDoneTutorial();
+            databaseInfoProvider.pokerGameDoneTutorial();
             Navigator.of(context).pop();
             context.pop();
           },
@@ -716,7 +718,7 @@ class _PokerGameStateScene extends State<PokerGameScene>
   // }
 
   void _showTutorialEndDialog() {
-    userInfoProvider.pokerGameDoneTutorial();
+    databaseInfoProvider.pokerGameDoneTutorial();
     showDialog(
       context: context,
       barrierDismissible: false,

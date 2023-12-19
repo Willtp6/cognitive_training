@@ -1,6 +1,5 @@
 import 'package:cognitive_training/audio/audio_controller.dart';
-import 'package:cognitive_training/models/global_info_provider.dart';
-import 'package:cognitive_training/models/user_info_provider.dart';
+import 'package:cognitive_training/models/database_info_provider.dart';
 import 'package:cognitive_training/screens/games/fishing_game/widgets/overlays/fishing_game_rule.dart';
 import 'package:provider/provider.dart';
 
@@ -16,34 +15,28 @@ import 'widgets/overlays/confirm_button.dart';
 import 'widgets/overlays/fishing_game_tutorial_mode.dart';
 
 class FishingGamePlay extends StatelessWidget {
-  FishingGamePlay(
-      {super.key, required this.gameLevel, required this.isTutorial});
+  FishingGamePlay({super.key, required this.isTutorial});
 
-  late UserInfoProvider userInfoProvider;
-  late GlobalInfoProvider globalInfoProvider;
+  late DatabaseInfoProvider databaseInfoProvider;
   late AudioController audioController;
-  int gameLevel;
   bool isTutorial;
-  // final FishingGame game = FishingGame(userInfoProvider: userInfoProvider);
 
   @override
   Widget build(BuildContext context) {
-    userInfoProvider = context.read<UserInfoProvider>();
-    globalInfoProvider = context.read<GlobalInfoProvider>();
+    databaseInfoProvider = context.read<DatabaseInfoProvider>();
     audioController = context.read<AudioController>();
     return SafeArea(
       child: Scaffold(
         body: WillPopScope(
           child: GameWidget(
             game: FishingGame(
-              gameLevel: gameLevel,
+              gameLevel: databaseInfoProvider.fishingGameDatabase.currentLevel,
               continuousWin:
-                  userInfoProvider.fishingGameDatabase.historyContinuousWin,
-              continuousLose:
-                  userInfoProvider.fishingGameDatabase.historyContinuousLose,
+                  databaseInfoProvider.fishingGameDatabase.historyContinuousWin,
+              continuousLose: databaseInfoProvider
+                  .fishingGameDatabase.historyContinuousLose,
               isTutorial: isTutorial,
-              userInfoProvider: userInfoProvider,
-              globalInfoProvider: globalInfoProvider,
+              databaseInfoProvider: databaseInfoProvider,
               audioController: audioController,
             ),
             initialActiveOverlays: isTutorial

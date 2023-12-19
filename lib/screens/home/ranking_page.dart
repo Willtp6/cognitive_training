@@ -1,5 +1,5 @@
 import 'package:auto_size_text/auto_size_text.dart';
-import 'package:cognitive_training/models/global_info_provider.dart';
+import 'package:cognitive_training/models/database_info_provider.dart';
 import 'package:cognitive_training/screens/home/home_page.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -17,8 +17,8 @@ class _RankingPageState extends State<RankingPage> {
   Widget build(BuildContext context) {
     return SafeArea(
       child: Scaffold(
-        body: Consumer<GlobalInfoProvider>(
-          builder: (BuildContext context, globalInfoProvider, child) {
+        body: Consumer<DatabaseInfoProvider>(
+          builder: (BuildContext context, databaseInfoProvider, child) {
             return Container(
               decoration: BoxDecoration(
                 color: Colors.lightBlue[100],
@@ -28,43 +28,43 @@ class _RankingPageState extends State<RankingPage> {
                   fit: BoxFit.fill,
                 ),
               ),
-              child: globalInfoProvider.rankingUsers.length != 0 &&
-                      globalInfoProvider.currentUser != null
+              child: databaseInfoProvider.rankingUsers.length != 0 &&
+                      databaseInfoProvider.currentUser != null
                   ? Stack(
                       children: [
                         Align(
                           alignment: const Alignment(0.0, -0.6),
                           child: UserIndexBar(
                             userName:
-                                globalInfoProvider.rankingUsers[0].username,
+                                databaseInfoProvider.rankingUsers[0].username,
                             numOfCoins:
-                                globalInfoProvider.rankingUsers[0].ownedCoins,
+                                databaseInfoProvider.rankingUsers[0].ownedCoins,
                           ),
                         ),
                         Align(
                           alignment: const Alignment(0.0, -0.15),
                           child: UserIndexBar(
                             userName:
-                                globalInfoProvider.rankingUsers[1].username,
+                                databaseInfoProvider.rankingUsers[1].username,
                             numOfCoins:
-                                globalInfoProvider.rankingUsers[1].ownedCoins,
+                                databaseInfoProvider.rankingUsers[1].ownedCoins,
                           ),
                         ),
                         Align(
                           alignment: const Alignment(0.0, 0.325),
                           child: UserIndexBar(
                             userName:
-                                globalInfoProvider.rankingUsers[2].username,
+                                databaseInfoProvider.rankingUsers[2].username,
                             numOfCoins:
-                                globalInfoProvider.rankingUsers[2].ownedCoins,
+                                databaseInfoProvider.rankingUsers[2].ownedCoins,
                           ),
                         ),
                         Align(
                           alignment: const Alignment(0.0, 0.95),
                           child: UserIndexBar(
-                            userName: globalInfoProvider.currentUser.username,
+                            userName: databaseInfoProvider.currentUser.username,
                             numOfCoins:
-                                globalInfoProvider.currentUser.ownedCoins,
+                                databaseInfoProvider.currentUser.ownedCoins,
                           ),
                         ),
                         Align(
@@ -72,7 +72,7 @@ class _RankingPageState extends State<RankingPage> {
                           child: GestureDetector(
                             onTap: () {
                               // Logger().d('tapped');
-                              globalInfoProvider.updateRanking();
+                              databaseInfoProvider.updateRanking();
                             },
                             child: FractionallySizedBox(
                               heightFactor: 0.1,

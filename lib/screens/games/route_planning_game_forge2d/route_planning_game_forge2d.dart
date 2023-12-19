@@ -3,8 +3,8 @@ import 'dart:math';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:cognitive_training/constants/route_planning_game_const.dart';
 import 'package:cognitive_training/firebase/record_game.dart';
-import 'package:cognitive_training/models/user_info_provider.dart';
-import 'package:cognitive_training/models/user_model.dart';
+import 'package:cognitive_training/models/database_info_provider.dart';
+import 'package:cognitive_training/models/database_models.dart';
 import 'package:cognitive_training/screens/games/route_planning_game_forge2d/widgets/overlays/exit_button.dart';
 import 'package:flame/components.dart' hide Timer;
 import 'package:flame/effects.dart';
@@ -28,13 +28,13 @@ class RoutePlanningGameForge2d extends Forge2DGame
   int continuousWin;
   int continuousLose;
   bool isTutorial;
-  UserInfoProvider userInfoProvider;
+  DatabaseInfoProvider databaseInfoProvider;
   RoutePlanningGameForge2d({
     this.gameLevel = 0,
     this.continuousWin = 0,
     this.continuousLose = 0,
     this.isTutorial = false,
-    required this.userInfoProvider,
+    required this.databaseInfoProvider,
   }) : super(gravity: Vector2.zero());
 
   static const List<int> numOfBuildings = [6, 8, 8, 8, 10];
@@ -220,7 +220,7 @@ class RoutePlanningGameForge2d extends Forge2DGame
   void recordGame(String result) {
     endTime = DateTime.now();
     //* record game result
-    RecordGame().recordRoutePlanningGame(
+    RecordGame.recordRoutePlanningGame(
       end: endTime,
       gameDifficulties: gameLevel,
       mapIndex: chosenMap,
@@ -231,6 +231,7 @@ class RoutePlanningGameForge2d extends Forge2DGame
       start: startTime,
       timeToEachHalfwayPoint: timeToEachHalfwayPoint,
     );
+    databaseInfoProvider.addPlayTime(startTime, endTime);
     //* reset data
     nonTargetError = 0;
     repeatedError = 0;
@@ -262,7 +263,7 @@ class RoutePlanningGameForge2d extends Forge2DGame
   void updateDatabase() {
     //* update list of response time
     RoutePlanningGameDatabase database =
-        userInfoProvider.routePlanningGameDatabase;
+        databaseInfoProvider.routePlanningGameDatabase;
     database.responseTimeList
       ..add(endTime.difference(startTime).inMilliseconds)
       ..sort();
@@ -272,7 +273,7 @@ class RoutePlanningGameForge2d extends Forge2DGame
         ..removeAt(0)
         ..removeLast();
     }
-    userInfoProvider.routePlanningGameDatabase = RoutePlanningGameDatabase(
+    databaseInfoProvider.routePlanningGameDatabase = RoutePlanningGameDatabase(
       currentLevel: gameLevel,
       historyContinuousWin: continuousWin,
       historyContinuousLose: continuousLose,
@@ -286,7 +287,7 @@ class RoutePlanningGameForge2d extends Forge2DGame
     if (gameLevel > 0) {
       final List<int> addedTime = [0, 10, 8, 5, 3];
       final responseTimeList =
-          userInfoProvider.routePlanningGameDatabase.responseTimeList;
+          databaseInfoProvider.routePlanningGameDatabase.responseTimeList;
       remainTime =
           (responseTimeList[responseTimeList.length ~/ 2] / 1000).ceil() +
               addedTime[gameLevel];

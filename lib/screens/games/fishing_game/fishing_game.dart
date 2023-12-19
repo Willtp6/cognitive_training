@@ -5,9 +5,8 @@ import 'package:audioplayers/audioplayers.dart';
 import 'package:cognitive_training/audio/audio_controller.dart';
 import 'package:cognitive_training/constants/fishing_game_const.dart';
 import 'package:cognitive_training/firebase/record_game.dart';
-import 'package:cognitive_training/models/global_info_provider.dart';
-import 'package:cognitive_training/models/user_info_provider.dart';
-import 'package:cognitive_training/models/user_model.dart';
+import 'package:cognitive_training/models/database_info_provider.dart';
+import 'package:cognitive_training/models/database_models.dart';
 import 'components/rod_component.dart';
 import 'components/result_component.dart';
 import 'package:flame/components.dart';
@@ -26,8 +25,7 @@ class FishingGame extends FlameGame with HasCollisionDetection, HasTappables {
     required this.continuousWin,
     required this.continuousLose,
     this.isTutorial = false,
-    required this.userInfoProvider,
-    required this.globalInfoProvider,
+    required this.databaseInfoProvider,
     required this.audioController,
   });
   final List<List<int>> possibleRippleList = [
@@ -52,8 +50,7 @@ class FishingGame extends FlameGame with HasCollisionDetection, HasTappables {
   bool isTutorial;
   int continuousWin;
   int continuousLose;
-  UserInfoProvider userInfoProvider;
-  GlobalInfoProvider globalInfoProvider;
+  DatabaseInfoProvider databaseInfoProvider;
   AudioController audioController;
 
   late BackGroundComponent backGroundComponent;
@@ -328,7 +325,7 @@ class FishingGame extends FlameGame with HasCollisionDetection, HasTappables {
         coinChangeValue +=
             possibleSizeReward[Random().nextInt(possibleSizeReward.length)];
       }
-      userInfoProvider.coins += coinChangeValue;
+      databaseInfoProvider.coins += coinChangeValue;
       //* set for change level
       continuousWin++;
       continuousLose = 0;
@@ -336,20 +333,20 @@ class FishingGame extends FlameGame with HasCollisionDetection, HasTappables {
       resultComponent.isEmpty();
       FlameAudio.play(FishingGameConst.loseAudio);
       // todo minus coins
-      userInfoProvider.coins -= penalty[gameLevel][playerChosenRodRipple]!;
+      databaseInfoProvider.coins -= penalty[gameLevel][playerChosenRodRipple]!;
       //* set for change level
       continuousWin = 0;
       continuousLose++;
     }
     //* get end time
     endTime = DateTime.now();
-    RecordGame().recordFishingGame(
+    RecordGame.recordFishingGame(
       gameLevel: gameLevel,
       start: startTime,
       end: endTime,
       type: ansRod == playerChosenRod ? "fish" : "none",
     );
-
+    databaseInfoProvider.addPlayTime(startTime, endTime);
     if (continuousWin == 5 && gameLevel < 4) {
       gameLevel++;
       continuousWin = 0;
@@ -359,11 +356,11 @@ class FishingGame extends FlameGame with HasCollisionDetection, HasTappables {
       continuousLose = 0;
       gameLevelChanged = true;
     }
-    userInfoProvider.fishingGameDatabase = FishingGameDatabase(
+    databaseInfoProvider.fishingGameDatabase = FishingGameDatabase(
       currentLevel: gameLevel,
       historyContinuousWin: continuousWin,
       historyContinuousLose: continuousLose,
-      doneTutorial: userInfoProvider.fishingGameDatabase.doneTutorial,
+      doneTutorial: databaseInfoProvider.fishingGameDatabase.doneTutorial,
     );
     resultDialogTimer.timer.start();
   }

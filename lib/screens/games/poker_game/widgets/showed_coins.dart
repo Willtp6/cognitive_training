@@ -1,5 +1,5 @@
 import 'package:auto_size_text/auto_size_text.dart';
-import 'package:cognitive_training/models/user_info_provider.dart';
+import 'package:cognitive_training/models/database_info_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -48,7 +48,8 @@ class PlayerCoin extends StatelessWidget {
       child: FractionallySizedBox(
         heightFactor: 0.08,
         widthFactor: 0.1,
-        child: Consumer<UserInfoProvider>(builder: (context, provider, child) {
+        child:
+            Consumer<DatabaseInfoProvider>(builder: (context, provider, child) {
           return Center(
             child: AutoSizeText(
               provider.coins.toString(),

@@ -1,8 +1,7 @@
 import 'package:cognitive_training/audio/audio_controller.dart';
 import 'package:cognitive_training/constants/globals.dart';
-import 'package:cognitive_training/models/user_info_provider.dart';
+import 'package:cognitive_training/models/database_info_provider.dart';
 import 'package:go_router/go_router.dart';
-import 'package:logger/logger.dart';
 import 'package:provider/provider.dart';
 
 import '../../fishing_game.dart';
@@ -17,7 +16,8 @@ class ExitDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    UserInfoProvider userInfoProvider = context.read<UserInfoProvider>();
+    DatabaseInfoProvider databaseInfoProvider =
+        context.read<DatabaseInfoProvider>();
     AudioController audioController = context.read<AudioController>();
     audioController.pauseAllAudio();
     return game.isTutorial
@@ -26,7 +26,7 @@ class ExitDialog extends StatelessWidget {
             subTitle: '直接離開會跳過教學模式喔!!!',
             option1: '確定離開',
             option1Callback: () {
-              userInfoProvider.fishingGameDoneTutorial();
+              databaseInfoProvider.fishingGameDoneTutorial();
               game.overlays.remove(ExitDialog.id);
               audioController.stopAllAudio();
               context.pop();

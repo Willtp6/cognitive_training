@@ -4,11 +4,10 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:cognitive_training/audio/audio_controller.dart';
 import 'package:cognitive_training/constants/globals.dart';
 import 'package:cognitive_training/constants/lottery_game_const.dart';
-import 'package:cognitive_training/models/user_info_provider.dart';
+import 'package:cognitive_training/models/database_info_provider.dart';
 import 'package:cognitive_training/shared/button_with_text.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:logger/logger.dart';
 import 'package:provider/provider.dart';
 
 class LotteryGameMenu extends StatefulWidget {
@@ -19,11 +18,15 @@ class LotteryGameMenu extends StatefulWidget {
 }
 
 class _LotteryGameMenu extends State<LotteryGameMenu>
-    with TickerProviderStateMixin {
+    with TickerProviderStateMixin, WidgetsBindingObserver {
   late AnimationController _controller;
-  late UserInfoProvider userInfoProvider;
+  late DatabaseInfoProvider databaseInfoProvider;
   late AudioController _audioController;
   bool buttonEnabled = true;
+
+  late Timer _timer;
+  int passedTime = 0;
+  bool appPaused = false;
 
   @override
   void initState() {
@@ -32,12 +35,31 @@ class _LotteryGameMenu extends State<LotteryGameMenu>
       duration: const Duration(seconds: 2),
       vsync: this,
     );
+    WidgetsBinding.instance.addObserver(this);
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (!appPaused) {
+        passedTime++;
+      }
+    });
   }
 
   @override
   void dispose() {
     _controller.dispose();
+    _timer.cancel();
+    WidgetsBinding.instance.removeObserver(this);
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.paused) {
+      // App is paused
+      appPaused = true;
+    } else if (state == AppLifecycleState.resumed) {
+      // App is resumed
+      appPaused = false;
+    }
   }
 
   void startGame() {
@@ -52,7 +74,8 @@ class _LotteryGameMenu extends State<LotteryGameMenu>
         //     userInfoProvider.lotteryGameDatabase.historyContinuousWin;
         // final historyLose =
         //     userInfoProvider.lotteryGameDatabase.historyContinuousLose;
-        final doneTutorial = userInfoProvider.lotteryGameDatabase.doneTutorial;
+        final doneTutorial =
+            databaseInfoProvider.lotteryGameDatabase.doneTutorial;
         if (doneTutorial) {
           GoRouter.of(context).pushNamed(
             'lottery_game',
@@ -111,7 +134,7 @@ class _LotteryGameMenu extends State<LotteryGameMenu>
 
   @override
   Widget build(BuildContext context) {
-    userInfoProvider = context.read<UserInfoProvider>();
+    databaseInfoProvider = context.read<DatabaseInfoProvider>();
     _audioController = context.read<AudioController>();
     return SafeArea(
       child: Scaffold(
@@ -146,8 +169,8 @@ class _LotteryGameMenu extends State<LotteryGameMenu>
               opacity: Tween(begin: 1.0, end: 0.0)
                   .chain(CurveTween(curve: const Interval(0.0, 0.7)))
                   .animate(_controller),
-              child: Consumer<UserInfoProvider>(
-                builder: (context, userInfoProvider, child) {
+              child: Consumer<DatabaseInfoProvider>(
+                builder: (context, databaseInfoProvider, child) {
                   return Stack(
                     children: [
                       gameLabel(),

@@ -1,7 +1,9 @@
+import 'dart:async';
+
 import 'package:cognitive_training/audio/audio_controller.dart';
 import 'package:cognitive_training/constants/fishing_game_const.dart';
 import 'package:cognitive_training/constants/globals.dart';
-import 'package:cognitive_training/models/user_info_provider.dart';
+import 'package:cognitive_training/models/database_info_provider.dart';
 import 'package:cognitive_training/screens/games/shared/game_label.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -19,11 +21,15 @@ class FishingGameMenu extends StatefulWidget {
 }
 
 class _FishingGameMenuState extends State<FishingGameMenu>
-    with SingleTickerProviderStateMixin {
+    with SingleTickerProviderStateMixin, WidgetsBindingObserver {
   late AnimationController _controller;
-  late UserInfoProvider _userInfoProvider;
+  late DatabaseInfoProvider databaseInfoProvider;
   late AudioController _audioController;
   bool buttonEnabled = true;
+
+  late Timer _timer;
+  int passedTime = 0;
+  bool appPaused = false;
 
   @override
   void initState() {
@@ -32,19 +38,38 @@ class _FishingGameMenuState extends State<FishingGameMenu>
       duration: const Duration(milliseconds: 600),
       vsync: this,
     );
+    WidgetsBinding.instance.addObserver(this);
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (!appPaused) {
+        passedTime++;
+      }
+    });
   }
 
   @override
   void dispose() {
     _controller.dispose();
+    _timer.cancel();
+    WidgetsBinding.instance.removeObserver(this);
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.paused) {
+      // App is paused
+      appPaused = true;
+    } else if (state == AppLifecycleState.resumed) {
+      // App is resumed
+      appPaused = false;
+    }
   }
 
   void startGame() {
     if (buttonEnabled) {
       buttonEnabled = false;
       _controller.forward().whenComplete(() {
-        final db = _userInfoProvider.fishingGameDatabase;
+        final db = databaseInfoProvider.fishingGameDatabase;
         context.pushNamed(
           'fishing_game',
           queryParams: {
@@ -88,7 +113,7 @@ class _FishingGameMenuState extends State<FishingGameMenu>
   @override
   Widget build(BuildContext context) {
     _audioController = context.read<AudioController>();
-    _userInfoProvider = context.read<UserInfoProvider>();
+    databaseInfoProvider = context.read<DatabaseInfoProvider>();
     return SafeArea(
       child: Scaffold(
         body: Stack(
