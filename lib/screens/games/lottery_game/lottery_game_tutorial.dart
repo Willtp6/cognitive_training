@@ -12,12 +12,9 @@ class LotteryGameTutorial {
     const AutoSizeText.rich(
       TextSpan(
         children: [
-          TextSpan(text: '哈囉! 我是小幫', style: TextStyle(color: Colors.black)),
-          TextSpan(text: '\n'),
-          TextSpan(text: '手! 接下來我會', style: TextStyle(color: Colors.black)),
-          TextSpan(text: '\n'),
-          TextSpan(text: '教你怎麼玩這個', style: TextStyle(color: Colors.black)),
-          TextSpan(text: '\n'),
+          TextSpan(text: '哈囉! 我是小幫\n', style: TextStyle(color: Colors.black)),
+          TextSpan(text: '手! 接下來我會\n', style: TextStyle(color: Colors.black)),
+          TextSpan(text: '教你怎麼玩這個\n', style: TextStyle(color: Colors.black)),
           TextSpan(text: '遊戲!', style: TextStyle(color: Colors.black)),
         ],
       ),
@@ -29,12 +26,9 @@ class LotteryGameTutorial {
     const AutoSizeText.rich(
       TextSpan(
         children: [
-          TextSpan(text: '畫面中央會出現', style: TextStyle(color: Colors.black)),
-          TextSpan(text: '\n'),
-          TextSpan(text: '指導與說明，請', style: TextStyle(color: Colors.black)),
-          TextSpan(text: '\n'),
-          TextSpan(text: '按照這關的指示', style: TextStyle(color: Colors.black)),
-          TextSpan(text: '\n'),
+          TextSpan(text: '畫面中央會出現\n', style: TextStyle(color: Colors.black)),
+          TextSpan(text: '指導與說明，請\n', style: TextStyle(color: Colors.black)),
+          TextSpan(text: '按照這關的指示\n', style: TextStyle(color: Colors.black)),
           TextSpan(text: '完成遊戲!', style: TextStyle(color: Colors.black)),
         ],
       ),
@@ -46,10 +40,8 @@ class LotteryGameTutorial {
     const AutoSizeText.rich(
       TextSpan(
         children: [
-          TextSpan(text: '難度與星星數量', style: TextStyle(color: Colors.black)),
-          TextSpan(text: '\n'),
-          TextSpan(text: '代表這關的困難', style: TextStyle(color: Colors.black)),
-          TextSpan(text: '\n'),
+          TextSpan(text: '難度與星星數量\n', style: TextStyle(color: Colors.black)),
+          TextSpan(text: '代表這關的困難\n', style: TextStyle(color: Colors.black)),
           TextSpan(text: '程度', style: TextStyle(color: Colors.black)),
         ],
       ),
@@ -61,10 +53,8 @@ class LotteryGameTutorial {
     const AutoSizeText.rich(
       TextSpan(
         children: [
-          TextSpan(text: '號碼數量則代表，', style: TextStyle(color: Colors.black)),
-          TextSpan(text: '\n'),
-          TextSpan(text: '遊戲中需要記憶的', style: TextStyle(color: Colors.black)),
-          TextSpan(text: '\n'),
+          TextSpan(text: '號碼數量則代表，\n', style: TextStyle(color: Colors.black)),
+          TextSpan(text: '遊戲中需要記憶的\n', style: TextStyle(color: Colors.black)),
           TextSpan(text: '號碼數量', style: TextStyle(color: Colors.black)),
         ],
       ),
@@ -76,10 +66,8 @@ class LotteryGameTutorial {
     const AutoSizeText.rich(
       TextSpan(
         children: [
-          TextSpan(text: '因此號碼數量越', style: TextStyle(color: Colors.black)),
-          TextSpan(text: '\n'),
-          TextSpan(text: '多，遊戲也就越', style: TextStyle(color: Colors.black)),
-          TextSpan(text: '\n'),
+          TextSpan(text: '因此號碼數量越\n', style: TextStyle(color: Colors.black)),
+          TextSpan(text: '多，遊戲也就越\n', style: TextStyle(color: Colors.black)),
           TextSpan(text: '有挑戰性!', style: TextStyle(color: Colors.black)),
         ],
       ),
@@ -91,10 +79,8 @@ class LotteryGameTutorial {
     const AutoSizeText.rich(
       TextSpan(
         children: [
-          TextSpan(text: '最後按下「開', style: TextStyle(color: Colors.black)),
-          TextSpan(text: '\n'),
-          TextSpan(text: '始」，就可以進', style: TextStyle(color: Colors.black)),
-          TextSpan(text: '\n'),
+          TextSpan(text: '最後按下「開\n', style: TextStyle(color: Colors.black)),
+          TextSpan(text: '始」，就可以進\n', style: TextStyle(color: Colors.black)),
           TextSpan(text: '入遊戲囉!', style: TextStyle(color: Colors.black)),
         ],
       ),
@@ -106,10 +92,8 @@ class LotteryGameTutorial {
     const AutoSizeText.rich(
       TextSpan(
         children: [
-          TextSpan(text: '遊戲開始後，中', style: TextStyle(color: Colors.black)),
-          TextSpan(text: '\n'),
-          TextSpan(text: '央的神明將會告', style: TextStyle(color: Colors.black)),
-          TextSpan(text: '\n'),
+          TextSpan(text: '遊戲開始後，中\n', style: TextStyle(color: Colors.black)),
+          TextSpan(text: '央的神明將會告\n', style: TextStyle(color: Colors.black)),
           TextSpan(text: '知一系列號碼', style: TextStyle(color: Colors.black)),
         ],
       ),
@@ -121,12 +105,9 @@ class LotteryGameTutorial {
     const AutoSizeText.rich(
       TextSpan(
         children: [
-          TextSpan(text: '請將看到或聽到', style: TextStyle(color: Colors.black)),
-          TextSpan(text: '\n'),
-          TextSpan(text: '的數字記憶下來', style: TextStyle(color: Colors.black)),
-          TextSpan(text: '\n'),
-          TextSpan(text: '，並於彩券上劃', style: TextStyle(color: Colors.black)),
-          TextSpan(text: '\n'),
+          TextSpan(text: '請將看到或聽到\n', style: TextStyle(color: Colors.black)),
+          TextSpan(text: '的數字記憶下來\n', style: TextStyle(color: Colors.black)),
+          TextSpan(text: '，並於彩券上劃\n', style: TextStyle(color: Colors.black)),
           TextSpan(text: '記!', style: TextStyle(color: Colors.black)),
         ],
       ),
@@ -138,10 +119,8 @@ class LotteryGameTutorial {
     const AutoSizeText.rich(
       TextSpan(
         children: [
-          TextSpan(text: '接著按照遊戲指', style: TextStyle(color: Colors.black)),
-          TextSpan(text: '\n'),
-          TextSpan(text: '示，在彩券上點', style: TextStyle(color: Colors.black)),
-          TextSpan(text: '\n'),
+          TextSpan(text: '接著按照遊戲指\n', style: TextStyle(color: Colors.black)),
+          TextSpan(text: '示，在彩券上點\n', style: TextStyle(color: Colors.black)),
           TextSpan(text: '選記憶中的號碼', style: TextStyle(color: Colors.black)),
         ],
       ),
@@ -153,10 +132,8 @@ class LotteryGameTutorial {
     const AutoSizeText.rich(
       TextSpan(
         children: [
-          TextSpan(text: '畫記完畢後，案', style: TextStyle(color: Colors.black)),
-          TextSpan(text: '\n'),
-          TextSpan(text: '下「填好了」，', style: TextStyle(color: Colors.black)),
-          TextSpan(text: '\n'),
+          TextSpan(text: '畫記完畢後，案\n', style: TextStyle(color: Colors.black)),
+          TextSpan(text: '下「填好了」，\n', style: TextStyle(color: Colors.black)),
           TextSpan(text: '就可以開獎囉!', style: TextStyle(color: Colors.black)),
         ],
       ),

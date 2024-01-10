@@ -12,12 +12,9 @@ class PokerGameTutorial {
     const AutoSizeText.rich(
       TextSpan(
         children: [
-          TextSpan(text: '畫面中央會出現', style: TextStyle(color: Colors.black)),
-          TextSpan(text: '\n'),
-          TextSpan(text: '指導與說明，請', style: TextStyle(color: Colors.black)),
-          TextSpan(text: '\n'),
-          TextSpan(text: '按照這關的指示', style: TextStyle(color: Colors.black)),
-          TextSpan(text: '\n'),
+          TextSpan(text: '畫面中央會出現\n', style: TextStyle(color: Colors.black)),
+          TextSpan(text: '指導與說明，請\n', style: TextStyle(color: Colors.black)),
+          TextSpan(text: '按照這關的指示\n', style: TextStyle(color: Colors.black)),
           TextSpan(text: '完成遊戲!', style: TextStyle(color: Colors.black)),
         ],
       ),
@@ -29,12 +26,9 @@ class PokerGameTutorial {
     const AutoSizeText.rich(
       TextSpan(
         children: [
-          TextSpan(text: '點選右上方的問', style: TextStyle(color: Colors.black)),
-          TextSpan(text: '\n'),
-          TextSpan(text: '號後，可以得到', style: TextStyle(color: Colors.black)),
-          TextSpan(text: '\n'),
-          TextSpan(text: '比大小遊戲更詳', style: TextStyle(color: Colors.black)),
-          TextSpan(text: '\n'),
+          TextSpan(text: '點選右上方的問\n', style: TextStyle(color: Colors.black)),
+          TextSpan(text: '號後，可以得到\n', style: TextStyle(color: Colors.black)),
+          TextSpan(text: '比大小遊戲更詳\n', style: TextStyle(color: Colors.black)),
           TextSpan(text: '細的說明', style: TextStyle(color: Colors.black)),
         ],
       ),
@@ -46,8 +40,7 @@ class PokerGameTutorial {
     const AutoSizeText.rich(
       TextSpan(
         children: [
-          TextSpan(text: '星星數量代表這', style: TextStyle(color: Colors.black)),
-          TextSpan(text: '\n'),
+          TextSpan(text: '星星數量代表這\n', style: TextStyle(color: Colors.black)),
           TextSpan(text: '關的困難程度', style: TextStyle(color: Colors.black)),
         ],
       ),
@@ -59,10 +52,8 @@ class PokerGameTutorial {
     const AutoSizeText.rich(
       TextSpan(
         children: [
-          TextSpan(text: '按下「開始」，', style: TextStyle(color: Colors.black)),
-          TextSpan(text: '\n'),
-          TextSpan(text: '就可以進入遊戲', style: TextStyle(color: Colors.black)),
-          TextSpan(text: '\n'),
+          TextSpan(text: '按下「開始」，\n', style: TextStyle(color: Colors.black)),
+          TextSpan(text: '就可以進入遊戲\n', style: TextStyle(color: Colors.black)),
           TextSpan(text: '囉!', style: TextStyle(color: Colors.black)),
         ],
       ),
@@ -74,10 +65,8 @@ class PokerGameTutorial {
     const AutoSizeText.rich(
       TextSpan(
         children: [
-          TextSpan(text: '進入遊戲後，電', style: TextStyle(color: Colors.black)),
-          TextSpan(text: '\n'),
-          TextSpan(text: '腦爺爺會從他的', style: TextStyle(color: Colors.black)),
-          TextSpan(text: '\n'),
+          TextSpan(text: '進入遊戲後，電\n', style: TextStyle(color: Colors.black)),
+          TextSpan(text: '腦爺爺會從他的\n', style: TextStyle(color: Colors.black)),
           TextSpan(text: '牌中打出一張牌', style: TextStyle(color: Colors.black)),
         ],
       ),
@@ -89,12 +78,9 @@ class PokerGameTutorial {
     const AutoSizeText.rich(
       TextSpan(
         children: [
-          TextSpan(text: '接著，請從自己', style: TextStyle(color: Colors.black)),
-          TextSpan(text: '\n'),
-          TextSpan(text: '的牌中選出適合', style: TextStyle(color: Colors.black)),
-          TextSpan(text: '\n'),
-          TextSpan(text: '的牌打出去，並', style: TextStyle(color: Colors.black)),
-          TextSpan(text: '\n'),
+          TextSpan(text: '接著，請從自己\n', style: TextStyle(color: Colors.black)),
+          TextSpan(text: '的牌中選出適合\n', style: TextStyle(color: Colors.black)),
+          TextSpan(text: '的牌打出去，並\n', style: TextStyle(color: Colors.black)),
           TextSpan(text: '贏得遊戲!', style: TextStyle(color: Colors.black)),
         ],
       ),
@@ -106,10 +92,8 @@ class PokerGameTutorial {
     const AutoSizeText.rich(
       TextSpan(
         children: [
-          TextSpan(text: '旁邊的小鬧鈴是', style: TextStyle(color: Colors.black)),
-          TextSpan(text: '\n'),
-          TextSpan(text: '在提醒你要在時', style: TextStyle(color: Colors.black)),
-          TextSpan(text: '\n'),
+          TextSpan(text: '旁邊的小鬧鈴是\n', style: TextStyle(color: Colors.black)),
+          TextSpan(text: '在提醒你要在時\n', style: TextStyle(color: Colors.black)),
           TextSpan(text: '限內選出牌', style: TextStyle(color: Colors.black)),
         ],
       ),
@@ -121,10 +105,8 @@ class PokerGameTutorial {
     const AutoSizeText.rich(
       TextSpan(
         children: [
-          TextSpan(text: '選出正確的牌，', style: TextStyle(color: Colors.black)),
-          TextSpan(text: '\n'),
-          TextSpan(text: '就可以贏得遊戲', style: TextStyle(color: Colors.black)),
-          TextSpan(text: '\n'),
+          TextSpan(text: '選出正確的牌，\n', style: TextStyle(color: Colors.black)),
+          TextSpan(text: '就可以贏得遊戲\n', style: TextStyle(color: Colors.black)),
           TextSpan(text: '了! 加油吧!', style: TextStyle(color: Colors.black)),
         ],
       ),

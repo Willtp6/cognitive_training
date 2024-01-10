@@ -33,13 +33,13 @@ class LocalStorageSettingsPersistence extends SettingsPersistence {
   @override
   Future<String> getDailyNotificationTime1() async {
     final pref = await instanceFuture;
-    return pref.getString('timeOfDailyNotification') ?? '';
+    return pref.getString('timeOfDailyNotification1') ?? '';
   }
 
   @override
   Future<void> saveDailyNotificationTime1(String time) async {
     final pref = await instanceFuture;
-    pref.setString('timeOfDailyNotification', time);
+    pref.setString('timeOfDailyNotification1', time);
   }
 
   @override

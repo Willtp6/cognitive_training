@@ -127,9 +127,12 @@ class _FishingGameTutorialModeState extends State<FishingGameTutorialMode> {
               if (tutorialProgress == 6) ...[
                 Align(
                   alignment: const Alignment(0.0, -0.2),
-                  child: FractionallySizedBox(
-                    heightFactor: 0.15,
-                    child: ButtonWithText(text: '確定', onTapFunction: () {}),
+                  child: Opacity(
+                    opacity: 0.3,
+                    child: FractionallySizedBox(
+                      heightFactor: 0.15,
+                      child: ButtonWithText(text: '確定', onTapFunction: () {}),
+                    ),
                   ),
                 ),
               ],
@@ -333,7 +336,7 @@ class ChatBubble extends StatelessWidget {
       child: Align(
         alignment: const Alignment(1, -0.3),
         child: FractionallySizedBox(
-          heightFactor: 0.55,
+          heightFactor: 0.65,
           child: AspectRatio(
             aspectRatio: 1,
             child: Container(

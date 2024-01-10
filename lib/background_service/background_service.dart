@@ -112,7 +112,7 @@ Future<void> setCustomizedNotification(
 
   if (pref.getBool('statusOfDailyNotification') ?? false) {
     final List<String> timeList = [
-      pref.getString('timeOfDailyNotification') ?? '',
+      pref.getString('timeOfDailyNotification1') ?? '',
       pref.getString('timeOfDailyNotification2') ?? '',
       pref.getString('timeOfDailyNotification3') ?? '',
     ];

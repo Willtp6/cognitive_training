@@ -747,10 +747,7 @@ class _LotteryGameSceneState extends State<LotteryGameScene>
           flex: 1,
           child: game.gameLevel < 2
               ? Opacity(
-                  opacity: game.isTutorial &&
-                          _lotteryGameTutorial.tutorialProgress != 9
-                      ? 0.3
-                      : 1,
+                  opacity: game.isTutorial ? 0.3 : 1,
                   child: Align(
                     alignment: Alignment.center,
                     child: FractionallySizedBox(

@@ -189,16 +189,25 @@ class MyApp extends StatelessWidget {
             create: (context) => FirebaseAuth.instance.authStateChanges(),
             initialData: null,
           ),
-          ChangeNotifierProvider(
-            lazy: false,
-            create: (_) => DatabaseInfoProvider(),
-          ),
           Provider<SettingsController>(
             lazy: false,
             create: (context) => SettingsController(
               persistence: LocalStorageSettingsPersistence(),
             )..loadStateFromPersistence(),
           ),
+          ChangeNotifierProvider(
+            lazy: false,
+            create: (_) => DatabaseInfoProvider(),
+          ),
+          // ProxyProvider<SettingsController, DatabaseInfoProvider>(
+          //   lazy: false,
+          //   create: (_) => DatabaseInfoProvider(),
+          //   update: (_, settings, databaseprovider) {
+          //     if (databaseprovider == null) throw ArgumentError.notNull();
+          //     databaseprovider.attachSettings(settings);
+          //     return databaseprovider;
+          //   },
+          // ),
           Provider<CheckConnectionStatus>(
             lazy: false,
             create: (context) => CheckConnectionStatus(),

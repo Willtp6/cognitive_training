@@ -402,7 +402,7 @@ class ChatBubble extends StatelessWidget {
             ? const Alignment(1.0, -0.3)
             : const Alignment(0.0, -0.3),
         child: FractionallySizedBox(
-          heightFactor: 0.55,
+          heightFactor: 0.65,
           child: AspectRatio(
             aspectRatio: 1,
             child: Container(

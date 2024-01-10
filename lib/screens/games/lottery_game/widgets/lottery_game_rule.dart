@@ -247,10 +247,7 @@ class _RuleScreenState extends State<RuleScreen> {
                     ),
                     gameRule(),
                     Opacity(
-                      opacity: widget.game.isTutorial &&
-                              widget.lotteryGameTutorial.tutorialProgress != 5
-                          ? 0.3
-                          : 1,
+                      opacity: widget.game.isTutorial ? 0.3 : 1,
                       child: Align(
                         alignment: const Alignment(0.0, 0.9),
                         child: FractionallySizedBox(

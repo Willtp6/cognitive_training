@@ -4,10 +4,13 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cognitive_training/firebase/user_database_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
-import 'package:logger/logger.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'database_models.dart';
 
 class DatabaseInfoProvider extends ChangeNotifier {
+  final Future<SharedPreferences> instanceFuture =
+      SharedPreferences.getInstance();
+
   User? _user;
   User? get usr => _user;
 
@@ -21,13 +24,14 @@ class DatabaseInfoProvider extends ChangeNotifier {
       if (newUser != _user && newUser != null) {
         _user = newUser;
         await updateUserData(newUser).whenComplete(() => notifyListeners());
-        // delay for the consumer initilaize time
-        // Future.delayed(const Duration(milliseconds: 200), () {
-        //   notifyListeners();
-        // });
       }
     });
   }
+
+  // void attachSettings(SettingsController settingsController) {
+  //   if (_settings == settingsController) return;
+  //   _settings = settingsController;
+  // }
 
   /// update all data if user update
   /// create new data if data not exists
@@ -41,6 +45,17 @@ class DatabaseInfoProvider extends ChangeNotifier {
       if (doc.exists) {
         _coins = doc.data()!['coins'] ?? 1200;
         _userName = doc.data()!['userName'] ?? newUser!.displayName;
+
+        //* flush the data because there may have different users
+        _openNotifications = doc.data()!['openNotifications'] ?? false;
+        setNotoficationStatus(_openNotifications);
+        _chosenTime1 = doc.data()!['chosenTime1'] ?? '';
+        setNewTime('timeOfDailyNotification1', _chosenTime1);
+        _chosenTime2 = doc.data()!['chosenTime2'] ?? '';
+        setNewTime('timeOfDailyNotification2', _chosenTime2);
+        _chosenTime3 = doc.data()!['chosenTime3'] ?? '';
+        setNewTime('timeOfDailyNotification3', _chosenTime3);
+
         //* part of lottery game
         checkLotteryGameDatabaseStatus(doc);
         //* part of fishing game
@@ -243,6 +258,18 @@ class DatabaseInfoProvider extends ChangeNotifier {
     }
   }
 
+  /// udpate local shared preference data
+  void setNewTime(String timeName, String newTime) async {
+    var pref = await instanceFuture;
+    pref.setString(timeName, newTime);
+  }
+
+  /// update local shared preference data
+  void setNotoficationStatus(newValue) async {
+    var pref = await instanceFuture;
+    pref.setBool('statusOfDailyNotification', newValue);
+  }
+
   String _userName = '';
   String get userName => _userName;
 
@@ -257,6 +284,46 @@ class DatabaseInfoProvider extends ChangeNotifier {
     FirebaseFirestore.instance.collection('global_info').doc(_user?.uid).set({
       'coins': _coins,
       'user_name': _userName,
+    }).whenComplete(() => notifyListeners());
+  }
+
+  bool _openNotifications = true;
+  bool get openNotifications => _openNotifications;
+  set openNotifications(bool value) {
+    _openNotifications = value;
+    setNotoficationStatus(value);
+    userInfoCollection.doc(_user?.uid).update({
+      'openNotifications': value,
+    }).whenComplete(() => notifyListeners());
+  }
+
+  String _chosenTime1 = '';
+  String get chosenTime1 => _chosenTime1;
+  set chosenTime1(String newTime) {
+    _chosenTime1 = newTime;
+    setNewTime('timeOfDailyNotification1', newTime);
+    userInfoCollection.doc(_user?.uid).update({
+      'chosenTime1': newTime,
+    }).whenComplete(() => notifyListeners());
+  }
+
+  String _chosenTime2 = '';
+  String get chosenTime2 => _chosenTime2;
+  set chosenTime2(String newTime) {
+    _chosenTime2 = newTime;
+    setNewTime('timeOfDailyNotification2', newTime);
+    userInfoCollection.doc(_user?.uid).update({
+      'chosenTime2': newTime,
+    }).whenComplete(() => notifyListeners());
+  }
+
+  String _chosenTime3 = '';
+  String get chosenTime3 => _chosenTime3;
+  set chosenTime3(String newTime) {
+    _chosenTime3 = newTime;
+    setNewTime('timeOfDailyNotification3', newTime);
+    userInfoCollection.doc(_user?.uid).update({
+      'chosenTime3': newTime,
     }).whenComplete(() => notifyListeners());
   }
 

@@ -77,7 +77,7 @@ class HomeTutorial {
               ? const Alignment(1, -0.9)
               : const Alignment(-1, -0.9),
           child: FractionallySizedBox(
-            heightFactor: 0.65,
+            heightFactor: 0.7,
             child: AspectRatio(
               aspectRatio: 1,
               child: Container(
