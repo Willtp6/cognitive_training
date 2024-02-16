@@ -78,7 +78,7 @@ class Rider extends BodyComponent<RoutePlanningGameForge2d>
   @override
   Body createBody() {
     final shape = PolygonShape()
-      ..setAsBoxXY(_width / 2 * .75, _height / 2 * .75);
+      ..setAsBoxXY(_width / 2 * .75 * .75, _height / 2 * .75 * .75);
     final fixtureDef = FixtureDef(shape, userData: this);
     final bodyDef = BodyDef(
       position: gameRef.isTutorial
@@ -110,7 +110,8 @@ class Rider extends BodyComponent<RoutePlanningGameForge2d>
     joystick = gameRef.joystick;
 
     _width = _height = riderScale[gameRef.chosenMap] * gameRef.size.y * 0.9;
-    speed = gameRef.size.x / 10;
+    // speed = gameRef.size.x / 10;
+    speed = gameRef.size.x / 5;
     riderSpriteComponent = SpriteGroupComponent<MoveType>(
       sprites: {
         MoveType.slideLeft:
@@ -119,7 +120,7 @@ class Rider extends BodyComponent<RoutePlanningGameForge2d>
             await gameRef.loadSprite(RoutePlanningGameConst.riderRight),
       },
       current: MoveType.slideRight,
-      size: Vector2(_width, _height),
+      size: Vector2(_width * 1.5, _height * 1.5),
       anchor: Anchor.center,
     );
     // fingerSpriteComponent = SpriteComponent(

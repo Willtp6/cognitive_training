@@ -35,16 +35,25 @@ class RecordGame {
       });
     } else {
       List<String> ruleStrings = ['even', 'max', 'min', 'odd'];
+      // return reference.set({
+      //   'game_record': {
+      //     'gameDifficulties': gameLevel + 1,
+      //     'numOfDigits': numberOfDigits,
+      //     'specialRule': ruleStrings[specialRule],
+      //     'accuracy': numOfCorrectAns / numberOfDigits,
+      //     'responseTime(Milliseconds)': end.difference(start).inMilliseconds,
+      //     'answer': answer,
+      //     'playerInput': playerInput,
+      //   }
+      // });
       return reference.set({
-        'game_record': {
-          'gameDifficulties': gameLevel + 1,
-          'numOfDigits': numberOfDigits,
-          'specialRule': ruleStrings[specialRule],
-          'accuracy': numOfCorrectAns / numberOfDigits,
-          'responseTime(Milliseconds)': end.difference(start).inMilliseconds,
-          'answer': answer,
-          'playerInput': playerInput,
-        }
+        'gameDifficulties': gameLevel + 1,
+        'numOfDigits': numberOfDigits,
+        'specialRule': ruleStrings[specialRule],
+        'accuracy': numOfCorrectAns / numberOfDigits,
+        'responseTime(Milliseconds)': end.difference(start).inMilliseconds,
+        'answer': answer,
+        'playerInput': playerInput,
       });
     }
   }

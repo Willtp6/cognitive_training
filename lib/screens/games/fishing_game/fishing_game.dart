@@ -72,6 +72,8 @@ class FishingGame extends FlameGame with HasCollisionDetection, HasTappables {
 
   bool gameLevelChanged = false;
 
+  bool winThisTurn = false;
+
   late DateTime startTime;
   late DateTime endTime;
 
@@ -310,7 +312,7 @@ class FishingGame extends FlameGame with HasCollisionDetection, HasTappables {
 
         break;
     }
-
+    winThisTurn = isPlayerWin;
     if (isPlayerWin) {
       resultComponent.isFish();
       FlameAudio.play(FishingGameConst.winAudio);

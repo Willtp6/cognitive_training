@@ -217,9 +217,10 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                             '${provider.coins}\$',
                             textAlign: TextAlign.right,
                             style: const TextStyle(
-                                fontFamily: 'GSR_B',
-                                color: Colors.white,
-                                fontSize: 100),
+                              fontFamily: 'GSR_B',
+                              color: Colors.white,
+                              fontSize: 100,
+                            ),
                           ),
                         ),
                       ],

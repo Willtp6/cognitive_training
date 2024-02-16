@@ -24,8 +24,12 @@ class ResultDialog extends StatelessWidget {
         child: ListBody(
           children: <Widget>[
             Center(
+              // child: Text(
+              //   game.ansRod == game.playerChosenRod ? '釣到大魚囉' : '可惜沒有釣到',
+              //   style: const TextStyle(fontFamily: 'GSR_B', fontSize: 30),
+              // ),
               child: Text(
-                game.ansRod == game.playerChosenRod ? '釣到大魚囉' : '可惜沒有釣到',
+                game.winThisTurn ? '釣到大魚囉' : '可惜沒有釣到',
                 style: const TextStyle(fontFamily: 'GSR_B', fontSize: 30),
               ),
             ),
