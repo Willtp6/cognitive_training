@@ -6,6 +6,7 @@ import 'package:flame/events.dart';
 import 'package:flame/palette.dart';
 import 'package:flame_audio/flame_audio.dart';
 import 'package:flame_forge2d/flame_forge2d.dart';
+import 'package:logger/logger.dart';
 
 import '../../../../constants/route_planning_game_const.dart';
 
@@ -49,6 +50,8 @@ class BuildingComponent extends BodyComponent<RoutePlanningGameForge2d>
   bool isContactToRider = false;
   bool isTappable = true;
   bool isTargetAchieved = false;
+
+  int contactCounter = 0;
 
   @override
   Future<void> onLoad() async {
@@ -120,26 +123,71 @@ class BuildingComponent extends BodyComponent<RoutePlanningGameForge2d>
 
   @override
   void beginContact(Object other, Contact contact) {
-    isContactToRider = true;
-    if (isHome) {
-      if (gameRef.targetList.allVisited()) {
-        buildingSprite.current = ImageType.light;
-        buildingSprite.size *= 2;
-      }
-    } else {
-      buildingSprite.current = ImageType.light;
-      buildingSprite.size *= 2;
-    }
+    //* if multiple contact happened
+    if (contactCounter++ > 1) return;
+    //* do not change image if there is any target not visited by rider
+    if (isHome && !gameRef.targetList.allVisited()) return;
+    buildingSprite.current = ImageType.light;
+    buildingSprite.size *= 2;
     super.beginContact(other, contact);
   }
 
   @override
   void endContact(Object other, Contact contact) {
-    isContactToRider = false;
-    //* only when previous state is lighted up
-    if (buildingSprite.current == ImageType.light) buildingSprite.size /= 2;
+    //* if multiple contact happened
+    if (contactCounter-- >= 1) return;
+    //* this situation happen only when home building is not changed but still visited by user
+    if (buildingSprite.current == ImageType.normal) return;
     buildingSprite.current = ImageType.normal;
+    buildingSprite.size /= 2;
     super.endContact(other, contact);
+  }
+
+  void repeatedTapped() {
+    //* if remained show time is not 0
+    if (gameRef.remainRepeatedHintShowTime > 0) {
+      gameRef.remainRepeatedHintShowTime--;
+      repeatedSprite.add(OpacityEffect.to(1, EffectController(duration: 0.3)));
+      repeatedSprite.add(OpacityEffect.to(
+          0, EffectController(duration: 0.3, startDelay: 2.4)));
+    }
+    gameRef.repeatedError++;
+    //* penalty time
+    if (gameRef.gameLevel > 0) gameRef.remainTime -= 3;
+    FlameAudio.play(RoutePlanningGameConst.tapWrongBuilding);
+  }
+
+  void firstTapped() {
+    //* add effect if game level is smaller than 2
+    if (gameRef.gameLevel < 2 && building.isTarget) {
+      flagSprite.add(
+        ScaleEffect.by(
+          Vector2.all(3),
+          EffectController(duration: 1, onMax: () => flagSprite.opacity = 0),
+        ),
+      );
+    }
+    //* let building image in target list become translucent
+    gameRef.targetList.reachTarget(reachedIndex: building.id);
+    //* get every first reach time
+    gameRef.timeToEachHalfwayPoint
+        .add(DateTime.now().difference(gameRef.startTime).inMilliseconds);
+    Logger().d(gameRef.timeToEachHalfwayPoint);
+    isTargetAchieved = true;
+    FlameAudio.play(RoutePlanningGameConst.pickFlagAudio);
+  }
+
+  void errorTapped() {
+    if (gameRef.remainErrorHintShowTime > 0) {
+      gameRef.remainErrorHintShowTime--;
+      errorSprite.add(OpacityEffect.to(1, EffectController(duration: 0.3)));
+      errorSprite.add(OpacityEffect.to(
+          0, EffectController(duration: 0.3, startDelay: 2.4)));
+    }
+    gameRef.nonTargetError++;
+    //* penalty time
+    if (gameRef.gameLevel > 0) gameRef.remainTime -= 3;
+    FlameAudio.play(RoutePlanningGameConst.tapWrongBuilding);
   }
 
   @override
@@ -150,51 +198,12 @@ class BuildingComponent extends BodyComponent<RoutePlanningGameForge2d>
       } else if (building.isTarget) {
         //* repeated
         if (isTargetAchieved) {
-          //* if remained show time is not 0
-          if (gameRef.remainRepeatedHintShowTime > 0) {
-            gameRef.remainRepeatedHintShowTime--;
-            repeatedSprite
-                .add(OpacityEffect.to(1, EffectController(duration: 0.3)));
-            repeatedSprite.add(OpacityEffect.to(
-                0, EffectController(duration: 0.3, startDelay: 2.4)));
-          }
-          gameRef.repeatedError++;
-          //* penalty time
-          if (gameRef.gameLevel > 0) gameRef.remainTime -= 3;
-          FlameAudio.play(RoutePlanningGameConst.tapWrongBuilding);
-        }
-        //* first tapped
-        else {
-          if (gameRef.gameLevel < 2 && building.isTarget) {
-            flagSprite.add(
-              ScaleEffect.by(
-                  Vector2.all(3),
-                  EffectController(
-                      duration: 1,
-                      onMax: () {
-                        flagSprite.opacity = 0;
-                      })),
-            );
-          }
-          //* let building image in target list become translucent
-          gameRef.targetList.reachTarget(reachedIndex: building.id);
-          //* get every first reach time
-          gameRef.timeToEachHalfwayPoint
-              .add(DateTime.now().difference(gameRef.startTime).inMilliseconds);
-          isTargetAchieved = true;
-          FlameAudio.play(RoutePlanningGameConst.pickFlagAudio);
+          repeatedTapped();
+        } else {
+          firstTapped();
         }
       } else {
-        if (gameRef.remainErrorHintShowTime > 0) {
-          gameRef.remainErrorHintShowTime--;
-          errorSprite.add(OpacityEffect.to(1, EffectController(duration: 0.3)));
-          errorSprite.add(OpacityEffect.to(
-              0, EffectController(duration: 0.3, startDelay: 2.4)));
-        }
-        gameRef.nonTargetError++;
-        //* penalty time
-        if (gameRef.gameLevel > 0) gameRef.remainTime -= 3;
-        FlameAudio.play(RoutePlanningGameConst.tapWrongBuilding);
+        errorTapped();
       }
       //* delayed for next tap event
       isTappable = false;

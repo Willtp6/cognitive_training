@@ -7,6 +7,7 @@ import 'package:cognitive_training/screens/games/lottery_game/lottery_game.dart'
 import 'package:cognitive_training/shared/button_with_text.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
+import 'package:pausable_timer/pausable_timer.dart';
 import 'package:provider/provider.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:cognitive_training/models/database_models.dart';
@@ -46,7 +47,7 @@ class LotteryGameScene extends StatefulWidget {
 
 class _LotteryGameSceneState extends State<LotteryGameScene>
     with TickerProviderStateMixin {
-  Timer? mytimer;
+  PausableTimer? countdownTimer;
   final formKey = GlobalKey<FormState>();
 
   late AudioController audioController;
@@ -58,20 +59,14 @@ class _LotteryGameSceneState extends State<LotteryGameScene>
 
   final _lotteryGameTutorial = LotteryGameTutorial();
 
+  bool pagePaused = false;
+
   @override
   void initState() {
     super.initState();
 
     game = widget.isTutorial
-        ? LotteryGame(
-            gameLevel: 0,
-            numberOfDigits: 2,
-            continuousCorrectRateBiggerThan50: 0,
-            loseInCurrentDigit: 0,
-            continuousWin: 0,
-            continuousLose: 0,
-            isTutorial: true,
-          )
+        ? LotteryGame()
         : LotteryGame(
             gameLevel: widget.startLevel,
             numberOfDigits: widget.startDigit,
@@ -100,7 +95,7 @@ class _LotteryGameSceneState extends State<LotteryGameScene>
   @override
   void dispose() {
     _controller.dispose();
-    mytimer?.cancel();
+    countdownTimer?.cancel();
     super.dispose();
   }
 
@@ -117,6 +112,14 @@ class _LotteryGameSceneState extends State<LotteryGameScene>
     });
   }
 
+  void setPeriodicTimer() {
+    countdownTimer = PausableTimer(const Duration(seconds: 2), () {
+      Logger().d('time up');
+      _playNumberSound();
+    });
+    countdownTimer?.start();
+  }
+
   void _playNumberSound() async {
     if (game.currentIndex < game.numberOfDigits) {
       audioController.playInstructionRecord(
@@ -124,11 +127,11 @@ class _LotteryGameSceneState extends State<LotteryGameScene>
       setState(() {
         game.showNumber = game.numArray[game.currentIndex].toString();
       });
-      Timer(const Duration(seconds: 1), () {
-        setState(() {
-          game.showNumber = "";
-        });
+      countdownTimer = PausableTimer(const Duration(seconds: 1), () {
+        setState(() => game.showNumber = '');
+        setPeriodicTimer();
       });
+      countdownTimer?.start();
     } else {
       cancelTimer();
     }
@@ -136,9 +139,7 @@ class _LotteryGameSceneState extends State<LotteryGameScene>
   }
 
   void startTimer() {
-    mytimer = Timer.periodic(const Duration(seconds: 2), (timer) {
-      if (!game.isPaused) _playNumberSound();
-    });
+    setPeriodicTimer();
     setState(() {
       game.isCaseFunctioned = true;
       game.disableButton = true;
@@ -146,16 +147,14 @@ class _LotteryGameSceneState extends State<LotteryGameScene>
   }
 
   void cancelTimer() {
-    if (mytimer != null) {
-      mytimer!.cancel();
-      setState(() {
-        game.disableButton = false;
-        game.changeCurrentImage();
-      });
-    }
+    countdownTimer?.cancel();
+    setState(() {
+      game.disableButton = false;
+      game.changeCurrentImage();
+    });
   }
 
-  void gameFunctions(BuildContext context) {
+  void gameFunctions() {
     if (!game.isCaseFunctioned) {
       game.isCaseFunctioned = true;
       switch (game.gameProgress) {
@@ -176,36 +175,39 @@ class _LotteryGameSceneState extends State<LotteryGameScene>
           game.start = DateTime.now();
           break;
         case 3:
-          // player.stop();
-          // player.release();
           game.end = DateTime.now();
           if (!game.isTutorial) {
             game.record();
             databaseInfoProvider.addPlayTime(game.start, game.end);
           }
-          Future.delayed(const Duration(seconds: 2, milliseconds: 500), () {
-            setState(() {
-              game.changeCurrentImage();
-              _controller.reset();
-            });
-          });
           _controller.forward();
-          Future.delayed(const Duration(seconds: 1, milliseconds: 300), () {
+          countdownTimer =
+              PausableTimer(const Duration(seconds: 1, milliseconds: 300), () {
             audioController.playSfx(LotteryGameConst.spendMoney);
             setState(() {
               databaseInfoProvider.coins -= 200;
             });
-          });
+            countdownTimer = PausableTimer(
+                const Duration(seconds: 1, milliseconds: 200), () {
+              setState(() {
+                game.changeCurrentImage();
+                _controller.reset();
+              });
+            })
+              ..start();
+          })
+                ..start();
           break;
         case 4:
-          Future.delayed(const Duration(seconds: 2), () {
-            setState(() {
-              game.changeCurrentImage();
-            });
-          });
+          countdownTimer = PausableTimer(const Duration(seconds: 2), () {
+            setState(
+              () => game.changeCurrentImage(),
+            );
+          })
+            ..start();
           break;
         case 5:
-          Future.delayed(const Duration(milliseconds: 250), () {
+          countdownTimer = PausableTimer(const Duration(milliseconds: 250), () {
             if (game.playerWin) {
               databaseInfoProvider.coins += game.gameReward;
               audioController.playSfx(LotteryGameConst.winApplause);
@@ -213,7 +215,12 @@ class _LotteryGameSceneState extends State<LotteryGameScene>
             } else {
               audioController.playSfx(LotteryGameConst.loseAudio);
             }
-          });
+            countdownTimer = PausableTimer(
+              const Duration(seconds: 3, milliseconds: 250),
+              () => _showGameEndDialog(),
+            )..start();
+          })
+            ..start();
           game.changeDigitByResult();
           databaseInfoProvider.lotteryGameDatabase = LotteryGameDatabase(
             currentLevel: game.gameLevel,
@@ -227,8 +234,6 @@ class _LotteryGameSceneState extends State<LotteryGameScene>
                 databaseInfoProvider.lotteryGameDatabase.doneTutorial ||
                     game.isTutorial,
           );
-          Future.delayed(const Duration(seconds: 3, milliseconds: 500),
-              () => _showGameEndDialog());
           break;
       }
     }
@@ -261,23 +266,14 @@ class _LotteryGameSceneState extends State<LotteryGameScene>
 
   @override
   Widget build(BuildContext context) {
-    //listen and reset the state
     databaseInfoProvider = context.read<DatabaseInfoProvider>();
     audioController = context.read<AudioController>();
     if (!game.isTutorial) {
-      gameFunctions(context);
+      gameFunctions();
     }
     return SafeArea(
-      child: WillPopScope(
-        // onWillPop: () async {
-        //   audioController.pauseAudio();
-        //   if (isTutorialModePop()) {
-        //     return await _showSkipTutorialDialog();
-        //   } else {
-        //     return await _showAlertDialog();
-        //   }
-        // },
-        onWillPop: () async => false,
+      child: PopScope(
+        canPop: false,
         child: Scaffold(
           body: SingleChildScrollView(
             child: Container(
@@ -298,7 +294,6 @@ class _LotteryGameSceneState extends State<LotteryGameScene>
                       color: Colors.white.withOpacity(0.7),
                     )
                   ],
-                  exitButton(),
                   if (game.gameLevel != 1) ...[
                     ShowNumber(number: game.showNumber),
                   ],
@@ -420,6 +415,7 @@ class _LotteryGameSceneState extends State<LotteryGameScene>
                     _lotteryGameTutorial
                         .getContinueButton(_nextTutorialProgress),
                   ],
+                  exitButton(),
                 ],
               ),
             ),
@@ -431,14 +427,15 @@ class _LotteryGameSceneState extends State<LotteryGameScene>
 
   Align exitButton() {
     return Align(
-      alignment: const Alignment(-0.95, -0.9),
+      alignment: const Alignment(0.95, -0.9),
       child: FractionallySizedBox(
         widthFactor: 0.5 * 1 / 7,
         child: AspectRatio(
           aspectRatio: 1,
           child: GestureDetector(
             onTap: () async {
-              game.isPaused = true;
+              pagePaused = true;
+              countdownTimer?.pause();
               if (isTutorialModePop()) {
                 _showSkipTutorialDialog();
               } else {
@@ -472,7 +469,7 @@ class _LotteryGameSceneState extends State<LotteryGameScene>
     );
   }
 
-  Widget _getForm() {
+  Row _getForm() {
     return Row(
       children: [
         Flexible(flex: 1, child: Container()),
@@ -552,37 +549,7 @@ class _LotteryGameSceneState extends State<LotteryGameScene>
                                       child: GestureDetector(
                                         onTap: game.isTutorial
                                             ? null
-                                            : () {
-                                                setState(() {
-                                                  if (game.numOfChosen ==
-                                                          game.numberOfDigits &&
-                                                      game.isChosen[i + 1] ==
-                                                          false) {
-                                                    game.isPaused = true;
-                                                    //show that need to cancel one of them first
-                                                    _showExceedLimitDialog();
-
-                                                    // _exceedLimitAlertDialog()
-                                                    //     .then((_) => game
-                                                    //         .isPaused = false);
-                                                  } else {
-                                                    game.isChosen[i + 1] =
-                                                        !game.isChosen[i + 1];
-                                                    audioController
-                                                        .playInstructionRecord(
-                                                            LotteryGameConst
-                                                                .numbers[i]);
-                                                    Logger().d(
-                                                        game.isChosen.length);
-                                                    Logger().d(i);
-                                                    if (game.isChosen[i + 1]) {
-                                                      game.numOfChosen++;
-                                                    } else {
-                                                      game.numOfChosen--;
-                                                    }
-                                                  }
-                                                });
-                                              },
+                                            : () => tapANumber(i),
                                         child: Container(
                                           decoration: BoxDecoration(
                                             border:
@@ -626,8 +593,9 @@ class _LotteryGameSceneState extends State<LotteryGameScene>
                     children: <Widget>[
                       Expanded(flex: 1, child: Container()),
                       Expanded(
-                          flex: 13,
-                          child: Column(children: <Widget>[
+                        flex: 13,
+                        child: Column(
+                          children: <Widget>[
                             Expanded(flex: 1, child: Container()),
                             Expanded(
                               flex: 6,
@@ -678,7 +646,9 @@ class _LotteryGameSceneState extends State<LotteryGameScene>
                               ),
                             ),
                             Expanded(flex: 1, child: Container()),
-                          ])),
+                          ],
+                        ),
+                      ),
                       Expanded(
                         flex: 11,
                         child: Align(
@@ -686,53 +656,9 @@ class _LotteryGameSceneState extends State<LotteryGameScene>
                           child: FractionallySizedBox(
                             widthFactor: 0.5,
                             child: ButtonWithText(
-                                text: '決定好了',
-                                onTapFunction: () {
-                                  if (formKey.currentState!.validate()) {
-                                    game.end = DateTime.now();
-                                    //judge the result
-                                    game.getResult();
-                                    setState(() {
-                                      game.changeCurrentImage();
-                                    });
-                                  }
-                                }),
-                            // child: AspectRatio(
-                            //   aspectRatio: 835 / 353,
-                            //   child: GestureDetector(
-                            //     onTap: () {
-                            //       if (formKey.currentState!.validate()) {
-                            //         game.end = DateTime.now();
-                            //         //judge the result
-                            //         game.getResult();
-                            //         setState(() {
-                            //           game.changeCurrentImage();
-                            //         });
-                            //       }
-                            //     },
-                            //     child: Container(
-                            //       decoration: const BoxDecoration(
-                            //         image: DecorationImage(
-                            //           image: AssetImage(Globals.orangeButton),
-                            //         ),
-                            //       ),
-                            //       child: const FractionallySizedBox(
-                            //         heightFactor: 0.5,
-                            //         widthFactor: 0.8,
-                            //         child: Center(
-                            //           child: AutoSizeText(
-                            //             '決定好了',
-                            //             style: TextStyle(
-                            //               fontFamily: 'GSR_B',
-                            //               color: Colors.white,
-                            //               fontSize: 100,
-                            //             ),
-                            //           ),
-                            //         ),
-                            //       ),
-                            //     ),
-                            //   ),
-                            // ),
+                              text: '決定好了',
+                              onTapFunction: confirmNumber,
+                            ),
                           ),
                         ),
                       ),
@@ -773,6 +699,39 @@ class _LotteryGameSceneState extends State<LotteryGameScene>
     );
   }
 
+  void tapANumber(int i) {
+    setState(() {
+      if (game.numOfChosen == game.numberOfDigits &&
+          game.isChosen[i + 1] == false) {
+        pagePaused = true;
+        countdownTimer?.pause();
+        //* show that need to cancel one of them first
+        _showExceedLimitDialog();
+      } else {
+        game.isChosen[i + 1] = !game.isChosen[i + 1];
+        audioController.playInstructionRecord(LotteryGameConst.numbers[i]);
+        Logger().d(game.isChosen.length);
+        Logger().d(i);
+        if (game.isChosen[i + 1]) {
+          game.numOfChosen++;
+        } else {
+          game.numOfChosen--;
+        }
+      }
+    });
+  }
+
+  void confirmNumber() {
+    if (formKey.currentState!.validate()) {
+      game.end = DateTime.now();
+      //* judge the result
+      game.getResult();
+      setState(() {
+        game.changeCurrentImage();
+      });
+    }
+  }
+
   void _showExitDialog() {
     audioController.pauseAllAudio();
 
@@ -793,7 +752,8 @@ class _LotteryGameSceneState extends State<LotteryGameScene>
           },
           option2: '繼續遊戲',
           option2Callback: () {
-            game.isPaused = false;
+            pagePaused = false;
+            countdownTimer?.start();
             audioController.resumeAllAudio();
             Navigator.of(context).pop();
           },
@@ -820,9 +780,10 @@ class _LotteryGameSceneState extends State<LotteryGameScene>
           },
           option2: '繼續教學',
           option2Callback: () {
-            game.isPaused = false;
+            pagePaused = false;
+            countdownTimer?.start();
             audioController.resumeAllAudio();
-            Navigator.of(context).pop(false);
+            Navigator.of(context).pop();
           },
         );
       },
@@ -839,7 +800,8 @@ class _LotteryGameSceneState extends State<LotteryGameScene>
           subTitle: '最多只能劃記${game.numberOfDigits}個數字',
           option1: 'OK',
           option1Callback: () {
-            game.isPaused = false;
+            pagePaused = false;
+            countdownTimer?.start();
             Navigator.of(context).pop();
           },
         );
@@ -864,7 +826,7 @@ class _LotteryGameSceneState extends State<LotteryGameScene>
           option2: '繼續遊戲',
           option2Callback: () {
             Navigator.of(context).pop();
-            Timer(const Duration(seconds: 1), () {
+            Future.delayed(const Duration(seconds: 1), () {
               game.setNextGame();
               setState(() {
                 game.changeCurrentImage();

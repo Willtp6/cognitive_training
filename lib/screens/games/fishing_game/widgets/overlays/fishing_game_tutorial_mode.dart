@@ -104,8 +104,8 @@ class _FishingGameTutorialModeState extends State<FishingGameTutorialMode> {
   Widget build(BuildContext context) {
     databaseInfoProvider = context.read<DatabaseInfoProvider>();
     return SafeArea(
-      child: WillPopScope(
-        onWillPop: () async => false,
+      child: PopScope(
+        canPop: false,
         child: Container(
           decoration: BoxDecoration(
             color: Colors.grey.withOpacity(0),
@@ -158,9 +158,9 @@ class _FishingGameTutorialModeState extends State<FishingGameTutorialMode> {
             ),
           ),
           // this part can put multiple messages
-          content: SingleChildScrollView(
+          content: const SingleChildScrollView(
             child: ListBody(
-              children: const <Widget>[
+              children: <Widget>[
                 Center(
                   child: Text(
                     '直接開始遊戲嗎?',

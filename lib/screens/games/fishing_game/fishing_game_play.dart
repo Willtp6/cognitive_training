@@ -15,19 +15,19 @@ import 'widgets/overlays/confirm_button.dart';
 import 'widgets/overlays/fishing_game_tutorial_mode.dart';
 
 class FishingGamePlay extends StatelessWidget {
-  FishingGamePlay({super.key, required this.isTutorial});
+  const FishingGamePlay({super.key, required this.enterWithTutorialMode});
 
-  late DatabaseInfoProvider databaseInfoProvider;
-  late AudioController audioController;
-  bool isTutorial;
+  final bool enterWithTutorialMode;
 
   @override
   Widget build(BuildContext context) {
-    databaseInfoProvider = context.read<DatabaseInfoProvider>();
-    audioController = context.read<AudioController>();
+    DatabaseInfoProvider databaseInfoProvider =
+        context.read<DatabaseInfoProvider>();
+    AudioController audioController = context.read<AudioController>();
     return SafeArea(
       child: Scaffold(
-        body: WillPopScope(
+        body: PopScope(
+          canPop: false,
           child: GameWidget(
             game: FishingGame(
               gameLevel: databaseInfoProvider.fishingGameDatabase.currentLevel,
@@ -35,11 +35,11 @@ class FishingGamePlay extends StatelessWidget {
                   databaseInfoProvider.fishingGameDatabase.historyContinuousWin,
               continuousLose: databaseInfoProvider
                   .fishingGameDatabase.historyContinuousLose,
-              isTutorial: isTutorial,
+              isTutorial: enterWithTutorialMode,
               databaseInfoProvider: databaseInfoProvider,
               audioController: audioController,
             ),
-            initialActiveOverlays: isTutorial
+            initialActiveOverlays: enterWithTutorialMode
                 ? [
                     FishingGameTutorialMode.id,
                     ExitButton.id,
@@ -66,7 +66,6 @@ class FishingGamePlay extends StatelessWidget {
                       FishingGameTutorialMode(game: game),
             },
           ),
-          onWillPop: () async => false,
         ),
       ),
     );

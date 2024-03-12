@@ -15,19 +15,19 @@ import 'widgets/overlays/game_lose.dart';
 import 'widgets/overlays/route_planning_game_tutorial_mode.dart';
 
 class RoutePlanningGameForge2dPlay extends StatelessWidget {
-  bool isTutorial;
-  RoutePlanningGameForge2dPlay({Key? key, required this.isTutorial})
-      : super(key: key);
+  const RoutePlanningGameForge2dPlay(
+      {super.key, required this.enterWithTutorialMode});
 
-  late DatabaseInfoProvider databaseInfoProvider;
+  final bool enterWithTutorialMode;
 
   @override
   Widget build(BuildContext context) {
-    databaseInfoProvider = context.read<DatabaseInfoProvider>();
+    DatabaseInfoProvider databaseInfoProvider =
+        context.read<DatabaseInfoProvider>();
     return SafeArea(
       child: Scaffold(
-        body: WillPopScope(
-          onWillPop: () async => false,
+        body: PopScope(
+          canPop: false,
           // GameWidget is useful to inject the underlying
           // widget of any class extending from Flame's Game class.
           child: GameWidget(
@@ -38,11 +38,11 @@ class RoutePlanningGameForge2dPlay extends StatelessWidget {
                   .routePlanningGameDatabase.historyContinuousWin,
               continuousLose: databaseInfoProvider
                   .routePlanningGameDatabase.historyContinuousLose,
-              isTutorial: isTutorial,
+              isTutorial: enterWithTutorialMode,
               databaseInfoProvider: databaseInfoProvider,
             ),
             // Initially only menu overlay will be visible.
-            initialActiveOverlays: isTutorial
+            initialActiveOverlays: enterWithTutorialMode
                 ? const [
                     RoutePlanningGameTutorialMode.id,
                     ExitButton.id,

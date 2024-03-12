@@ -236,7 +236,7 @@ class _LoginPageState extends State<LoginPage> {
                     setState(() {
                       isLoading = true;
                     });
-                    //dynamic result = await _auth.login(userId);
+
                     dynamic result = await _auth.loginOrCreateAccountWithId(
                         userId, userName);
 

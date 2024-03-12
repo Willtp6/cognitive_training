@@ -72,12 +72,7 @@ class _FishingGameMenuState extends State<FishingGameMenu>
         final db = databaseInfoProvider.fishingGameDatabase;
         context.pushNamed(
           'fishing_game',
-          queryParams: {
-            // 'startLevel': db.currentLevel.toString(),
-            // 'historyContinuousWin': db.historyContinuousWin.toString(),
-            // 'historyContinuousLose': db.historyContinuousLose.toString(),
-            'isTutorial': (!db.doneTutorial).toString(),
-          },
+          queryParams: {'enterTutotialMode': (!db.doneTutorial).toString()},
         );
       }).whenComplete(() {
         _controller.reset();

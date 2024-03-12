@@ -1,11 +1,11 @@
 import 'dart:async';
 import 'package:audioplayers/audioplayers.dart';
-import 'package:auto_size_text/auto_size_text.dart';
 import 'package:cognitive_training/audio/audio_controller.dart';
 import 'package:cognitive_training/constants/globals.dart';
 import 'package:cognitive_training/constants/poker_game_const.dart';
 import 'package:cognitive_training/shared/button_with_text.dart';
 import 'package:flutter/material.dart';
+import 'package:logger/logger.dart';
 
 import '../../shared/progress_bar.dart';
 import '../poker_game_instance.dart';
@@ -36,71 +36,26 @@ class _RuleScreenState extends State<RuleScreen> {
     const Alignment(0.3, -0.5),
     const Alignment(0.9, -0.5),
   ];
-  AutoSizeText getBigger = const AutoSizeText.rich(
-    TextSpan(
-      children: [
-        TextSpan(text: '請從牌中挑選出', style: TextStyle(color: Colors.black)),
-        TextSpan(text: '比我數字還大', style: TextStyle(color: Colors.red)),
-        TextSpan(text: '的牌！', style: TextStyle(color: Colors.black)),
-        TextSpan(text: '\n'),
-        TextSpan(text: '只要你在', style: TextStyle(color: Colors.black)),
-        TextSpan(text: '時限內', style: TextStyle(color: Colors.red)),
-        TextSpan(text: '找到這張牌就是你贏了！', style: TextStyle(color: Colors.black)),
-        TextSpan(text: '\n'),
-        TextSpan(
-            text: '如果牌裡面沒有比我數字還大的牌，請按下', style: TextStyle(color: Colors.black)),
-        TextSpan(text: '「沒有」', style: TextStyle(color: Colors.red)),
-        TextSpan(text: '的按鈕！', style: TextStyle(color: Colors.black)),
-      ],
-    ),
-    softWrap: true,
-    maxLines: 4,
-    textAlign: TextAlign.center,
-    style: TextStyle(fontSize: 100, fontFamily: 'GSR_B'),
-  );
-  AutoSizeText getSameRankOrSuit = const AutoSizeText.rich(
-    TextSpan(
-      children: [
-        TextSpan(text: '請從牌中挑選出', style: TextStyle(color: Colors.black)),
-        TextSpan(text: '數字或花色一樣', style: TextStyle(color: Colors.red)),
-        TextSpan(text: '的牌！', style: TextStyle(color: Colors.black)),
-        TextSpan(text: '\n'),
-        TextSpan(text: '只要你在', style: TextStyle(color: Colors.black)),
-        TextSpan(text: '時限內', style: TextStyle(color: Colors.red)),
-        TextSpan(text: '找到這張牌就是你贏了！', style: TextStyle(color: Colors.black)),
-        TextSpan(text: '\n'),
-        TextSpan(
-            text: '如果牌裡面沒有跟我一樣數字或花色的牌，請按下',
-            style: TextStyle(color: Colors.black)),
-        TextSpan(text: '「沒有」', style: TextStyle(color: Colors.red)),
-        TextSpan(text: '的按鈕！', style: TextStyle(color: Colors.black)),
-      ],
-    ),
-    softWrap: true,
-    maxLines: 4,
-    textAlign: TextAlign.center,
-    style: TextStyle(fontSize: 100, fontFamily: 'GSR_B'),
-  );
-  AutoSizeText getSizeRule = const AutoSizeText.rich(
-    TextSpan(
-      children: [
-        TextSpan(text: '比大小規則:', style: TextStyle(color: Colors.black)),
-        TextSpan(text: '\n'),
-        TextSpan(text: '黑桃>愛心>方塊>梅花', style: TextStyle(color: Colors.black)),
-        TextSpan(text: '\n'),
-        TextSpan(
-            text: 'A>K>Q>J>10>9>8>7>6>5>4>3>2',
-            style: TextStyle(color: Colors.black)),
-      ],
-    ),
-    softWrap: true,
-    maxLines: 3,
-    textAlign: TextAlign.center,
-    style: TextStyle(fontSize: 100, fontFamily: 'GSR_B'),
-  );
 
-  late StreamSubscription<PlayerState> listener;
   bool isAudioOver = false;
+  late StreamSubscription<PlayerState> listener;
+
+  void showButton() {
+    if (mounted) {
+      setState(() {
+        isAudioOver = true;
+      });
+    }
+  }
+
+  void hideButton() {
+    if (mounted && isAudioOver) {
+      Logger().d('set');
+      setState(() {
+        isAudioOver = false;
+      });
+    }
+  }
 
   @override
   void initState() {
@@ -116,12 +71,10 @@ class _RuleScreenState extends State<RuleScreen> {
         .listen((event) {
       switch (event) {
         case PlayerState.playing:
-          if (isAudioOver = true) {
-            setState(() => isAudioOver = false);
-          }
+          hideButton();
           break;
         case PlayerState.completed:
-          setState(() => isAudioOver = true);
+          showButton();
           break;
         default:
           break;
@@ -217,9 +170,13 @@ class _RuleScreenState extends State<RuleScreen> {
                               ),
                               Flexible(
                                 child: Center(
-                                  child: ButtonWithText(
-                                      text: isAudioOver ? '開始' : '跳過並開始',
-                                      onTapFunction: startGame),
+                                  child: isAudioOver
+                                      ? ButtonWithText(
+                                          // text: isAudioOver ? '開始' : '跳過並開始',
+                                          text: isAudioOver ? '開始' : '開始',
+                                          onTapFunction: startGame,
+                                        )
+                                      : Container(),
                                 ),
                               ),
                             ],
@@ -297,9 +254,11 @@ class _RuleScreenState extends State<RuleScreen> {
           },
           child: AspectRatio(
             aspectRatio: 1,
-            child: Image.asset(questionIconPressed
-                ? PokerGameConst.questionDark
-                : PokerGameConst.questionLight),
+            child: Image.asset(
+              questionIconPressed
+                  ? PokerGameConst.questionDark
+                  : PokerGameConst.questionLight,
+            ),
           ),
         ),
       ),
@@ -322,13 +281,8 @@ class _RuleScreenState extends State<RuleScreen> {
                   child: Container(
                     decoration: BoxDecoration(
                       color: Colors.white.withOpacity(0.9),
-                      border: Border.all(
-                        color: Colors.green,
-                        width: 3,
-                      ),
-                      borderRadius: const BorderRadius.all(
-                        Radius.circular(30),
-                      ),
+                      border: Border.all(color: Colors.green, width: 3),
+                      borderRadius: const BorderRadius.all(Radius.circular(30)),
                     ),
                     child: const Center(child: PokerGameConst.getSizeRule),
                   ),

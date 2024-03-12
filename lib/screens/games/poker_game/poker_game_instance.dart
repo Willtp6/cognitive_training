@@ -44,12 +44,13 @@ class GameInstance {
   final List<int> coinWin = [100, 200, 250, 300];
   final List<int> coinLose = [100, 100, 150, 150];
 
-  GameInstance(
-      {required this.gameLevel,
-      required this.continuousWin,
-      required this.continuousLose,
-      required this.responseTimeList,
-      required this.isTutorial}) {
+  GameInstance({
+    this.gameLevel = 0,
+    this.continuousWin = 0,
+    this.continuousLose = 0,
+    this.responseTimeList = const [10000, 10000, 10000],
+    this.isTutorial = true,
+  }) {
     deck = Deck()..shuffle();
   }
 
@@ -85,7 +86,7 @@ class GameInstance {
 
   void getResult() {
     end = DateTime.now();
-    List<String> suits = ['Spades', 'Hearts', 'Diamonds', 'Clubs'];
+    // List<String> suits = ['Spades', 'Hearts', 'Diamonds', 'Clubs'];
     resultType = ResultType.none;
 
     if (playerCard != null) {
@@ -100,11 +101,17 @@ class GameInstance {
       } else {
         int playerRank = playerCard!.rank == 1 ? 14 : playerCard!.rank;
         int computerRank = computerCard!.rank == 1 ? 14 : computerCard!.rank;
-        int playerSuitIndex = suits.indexOf(playerCard!.suit);
-        int computerSuitIndex = suits.indexOf(computerCard!.suit);
-        if (playerRank > computerRank ||
-            (playerRank == computerRank &&
-                playerSuitIndex < computerSuitIndex)) {
+        // int playerSuitIndex = suits.indexOf(playerCard!.suit);
+        // int computerSuitIndex = suits.indexOf(computerCard!.suit);
+        // if (playerRank > computerRank ||
+        //     (playerRank == computerRank &&
+        //         playerSuitIndex < computerSuitIndex)) {
+        //   resultType = ResultType.win;
+        // } else {
+        //   resultType = ResultType.lose;
+        // }
+        //* don't care about suit
+        if (playerRank > computerRank) {
           resultType = ResultType.win;
         } else {
           resultType = ResultType.lose;
@@ -125,11 +132,18 @@ class GameInstance {
         } else {
           int cardRank = card.rank == 1 ? 14 : card.rank;
           int computerRank = computerCard!.rank == 1 ? 14 : computerCard!.rank;
-          int playerSuitIndex = suits.indexOf(card.suit);
-          int computerSuitIndex = suits.indexOf(computerCard!.suit);
-          if (cardRank > computerRank ||
-              (cardRank == computerRank &&
-                  playerSuitIndex < computerSuitIndex)) {
+          // int playerSuitIndex = suits.indexOf(card.suit);
+          // int computerSuitIndex = suits.indexOf(computerCard!.suit);
+          // if (cardRank > computerRank ||
+          //     (cardRank == computerRank &&
+          //         playerSuitIndex < computerSuitIndex)) {
+          //   resultType = ResultType.lose;
+          //   break;
+          // } else {
+          //   resultType = ResultType.tie;
+          // }
+          //* don't care about suit
+          if (cardRank > computerRank) {
             resultType = ResultType.lose;
             break;
           } else {

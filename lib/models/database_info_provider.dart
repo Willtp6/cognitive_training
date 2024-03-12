@@ -65,7 +65,6 @@ class DatabaseInfoProvider extends ChangeNotifier {
         //* part of route planning game
         checkRoutePlanningGameDatabaseStatus(doc);
       } else {
-        //TODO add some function which will notice the user to developer or someone who can modify the database
         //* maybe just create a new one
         UserDatabaseService(
           docId: newUser!.uid,

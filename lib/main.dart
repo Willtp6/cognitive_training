@@ -22,7 +22,6 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:cognitive_training/screens/home/home_page.dart';
 import 'package:cognitive_training/screens/login/login_page.dart';
-import 'package:logger/logger.dart';
 import 'background_service/background_service.dart';
 import 'firebase_options.dart';
 import 'package:provider/provider.dart';
@@ -119,9 +118,10 @@ class MyApp extends StatelessWidget {
                     path: 'fishing_game',
                     builder: (context, state) {
                       final parameters = state.queryParams;
-                      final isTutorial = parameters['isTutorial'] ?? 'false';
+                      final enterTutotialMode =
+                          parameters['enterTutotialMode'] ?? 'false';
                       return FishingGamePlay(
-                        isTutorial: isTutorial == 'true',
+                        enterWithTutorialMode: enterTutotialMode == 'true',
                       );
                     },
                   ),
@@ -137,7 +137,8 @@ class MyApp extends StatelessWidget {
                     path: 'poker_game',
                     builder: (context, state) {
                       final parameters = state.queryParams;
-                      final isTutorial = parameters['isTutorial'] ?? 'false';
+                      final isTutorial =
+                          parameters['enterWithTutorialMode'] ?? 'false';
                       final databaseInfoProvider =
                           context.read<DatabaseInfoProvider>();
                       final database = databaseInfoProvider.pokerGameDatabase;
@@ -145,7 +146,7 @@ class MyApp extends StatelessWidget {
                         startLevel: database.currentLevel,
                         historyContinuousWin: database.historyContinuousWin,
                         historyContinuousLose: database.historyContinuousLose,
-                        isTutorial: isTutorial == 'true',
+                        enterWithTutorialMode: isTutorial == 'true',
                         responseTimeList: database.responseTimeList,
                       );
                     },
@@ -164,10 +165,9 @@ class MyApp extends StatelessWidget {
                     builder: (context, state) {
                       final parameters = state.queryParams;
                       final enterTutotialMode =
-                          parameters['isTutorial'] ?? 'false';
-                      Logger().i(enterTutotialMode);
+                          parameters['enterTutotialMode'] ?? 'false';
                       return RoutePlanningGameForge2dPlay(
-                        isTutorial: enterTutotialMode == 'true',
+                        enterWithTutorialMode: enterTutotialMode == 'true',
                       );
                     },
                   ),
@@ -199,15 +199,6 @@ class MyApp extends StatelessWidget {
             lazy: false,
             create: (_) => DatabaseInfoProvider(),
           ),
-          // ProxyProvider<SettingsController, DatabaseInfoProvider>(
-          //   lazy: false,
-          //   create: (_) => DatabaseInfoProvider(),
-          //   update: (_, settings, databaseprovider) {
-          //     if (databaseprovider == null) throw ArgumentError.notNull();
-          //     databaseprovider.attachSettings(settings);
-          //     return databaseprovider;
-          //   },
-          // ),
           Provider<CheckConnectionStatus>(
             lazy: false,
             create: (context) => CheckConnectionStatus(),

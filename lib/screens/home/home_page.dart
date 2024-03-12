@@ -3,7 +3,6 @@ import 'package:cognitive_training/audio/audio_controller.dart';
 import 'package:cognitive_training/constants/globals.dart';
 import 'package:cognitive_training/constants/home_page_const.dart';
 import 'package:cognitive_training/constants/login_page_const.dart';
-import 'package:cognitive_training/firebase/user_database_service.dart';
 import 'package:cognitive_training/models/database_info_provider.dart';
 import 'package:cognitive_training/screens/games/shared/exit_button_template.dart';
 import 'package:cognitive_training/screens/home/home_tutorial.dart';
@@ -27,7 +26,7 @@ class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
   @override
-  _HomePageState createState() => _HomePageState();
+  State<HomePage> createState() => _HomePageState();
 }
 
 class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
@@ -105,8 +104,6 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
         default:
           break;
       }
-      // _databaseInfoProvider.chosenTime1 = hourAndMin;
-      // _settings.setDailyNotificationTime2(hourAndMin);
       restartBackgroundService();
     });
   }
@@ -230,6 +227,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
               );
             })),
           ),
+          //* choose different audio language
           ListTile(
             leading: const Icon(
               Icons.language,
@@ -369,6 +367,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
           //     }
           //   },
           // ),
+          //* open daily notification or not
           ListTile(
             title: const Text(
               '每日提醒',
@@ -397,6 +396,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
               ),
             ),
           ),
+          //* set notification 1
           ListTile(
             leading: const Icon(
               Icons.access_time,
@@ -409,6 +409,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
             ),
             onTap: () => setNewTime(provider.chosenTime1, 1),
           ),
+          //* set notification 2
           ListTile(
             leading: const Icon(
               Icons.access_time,
@@ -421,6 +422,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
             ),
             onTap: () => setNewTime(provider.chosenTime2, 2),
           ),
+          //* set notification 3
           ListTile(
             leading: const Icon(
               Icons.access_time,
@@ -468,6 +470,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
           //     Logger().d(DateTime.tryParse(time));
           //   },
           // ),
+          //* log out
           ListTile(
             leading: const Icon(
               Icons.exit_to_app,
@@ -789,7 +792,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     );
   }
 
-  Widget getGameImage(int gameIndex) {
+  AnimatedAlign getGameImage(int gameIndex) {
     return AnimatedAlign(
       key: ValueKey(gameIndex),
       alignment: _isChosen[gameIndex]
@@ -883,9 +886,9 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
             ),
           ),
           // this part can put multiple messages
-          content: SingleChildScrollView(
+          content: const SingleChildScrollView(
             child: ListBody(
-              children: const <Widget>[
+              children: <Widget>[
                 Text(
                   '確定要登出嗎?\n登出後需要重新登入',
                   style: TextStyle(fontFamily: 'GSR_B', fontSize: 40),
@@ -937,9 +940,9 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
             ),
           ),
           // this part can put multiple messages
-          content: SingleChildScrollView(
+          content: const SingleChildScrollView(
             child: ListBody(
-              children: const <Widget>[
+              children: <Widget>[
                 Text(
                   '遊戲內紀錄需要網路連線',
                   style: TextStyle(fontFamily: 'GSR_B', fontSize: 30),

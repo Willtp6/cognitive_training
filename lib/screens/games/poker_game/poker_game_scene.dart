@@ -22,20 +22,20 @@ import 'widgets/response_word.dart';
 import 'widgets/showed_coins.dart';
 
 class PokerGameScene extends StatefulWidget {
-  PokerGameScene({
+  const PokerGameScene({
     super.key,
     required this.startLevel,
     required this.historyContinuousWin,
     required this.historyContinuousLose,
-    required this.isTutorial,
+    required this.enterWithTutorialMode,
     required this.responseTimeList,
   });
   final int startLevel;
   final int historyContinuousWin;
   final int historyContinuousLose;
 
-  bool isTutorial;
-  List<int> responseTimeList;
+  final bool enterWithTutorialMode;
+  final List<int> responseTimeList;
   @override
   State<PokerGameScene> createState() => _PokerGameStateScene();
 }
@@ -78,20 +78,15 @@ class _PokerGameStateScene extends State<PokerGameScene>
       duration: const Duration(milliseconds: 1400),
       vsync: this,
     );
-    game = widget.isTutorial
-        ? GameInstance(
-            gameLevel: 0,
-            continuousWin: 0,
-            continuousLose: 0,
-            responseTimeList: [10000, 10000, 10000],
-            isTutorial: true,
-          )
+    game = widget.enterWithTutorialMode
+        ? GameInstance()
         : GameInstance(
             gameLevel: widget.startLevel,
             continuousWin: widget.historyContinuousWin,
             continuousLose: widget.historyContinuousLose,
             responseTimeList: widget.responseTimeList,
-            isTutorial: false);
+            isTutorial: false,
+          );
   }
 
   @override
@@ -152,7 +147,6 @@ class _PokerGameStateScene extends State<PokerGameScene>
       case 1:
         Logger().i('level upgrade');
         _showLevelUpgradeDialog();
-
         break;
       case 2:
         Logger().i('level downgrade');
@@ -330,8 +324,8 @@ class _PokerGameStateScene extends State<PokerGameScene>
     databaseInfoProvider = context.read<DatabaseInfoProvider>();
     audioController = context.read<AudioController>();
     return SafeArea(
-      child: WillPopScope(
-        onWillPop: () async => false,
+      child: PopScope(
+        canPop: false,
         child: Scaffold(
           body: SizedBox(
             child: Container(
@@ -345,7 +339,7 @@ class _PokerGameStateScene extends State<PokerGameScene>
                 children: [
                   OpponentCoin(game: game),
                   const PlayerCoin(),
-                  if (widget.isTutorial &&
+                  if (game.isTutorial &&
                       _pokerGameTutorial.tutorialProgress <= 4) ...[
                     Container(
                       color: Colors.white.withOpacity(0.7),
@@ -368,7 +362,7 @@ class _PokerGameStateScene extends State<PokerGameScene>
                     NoCardButton(
                       callBack: noCardCallBack,
                     ),
-                    if (widget.isTutorial &&
+                    if (game.isTutorial &&
                         (_pokerGameTutorial.tutorialProgress == 5 ||
                             _pokerGameTutorial.tutorialProgress == 6)) ...[
                       Container(
@@ -446,7 +440,7 @@ class _PokerGameStateScene extends State<PokerGameScene>
                       ),
                     ),
                   ),
-                  if (widget.isTutorial &&
+                  if (game.isTutorial &&
                       _pokerGameTutorial.tutorialProgress == 7) ...[
                     Container(
                       color: Colors.white.withOpacity(0.7),
@@ -461,8 +455,8 @@ class _PokerGameStateScene extends State<PokerGameScene>
                   PlayerCoinAnimation(
                       controller: _controllerChangeMoney,
                       string: playerCoinChange),
-                  exitButton(),
-                  if (widget.isTutorial &&
+
+                  if (game.isTutorial &&
                       _pokerGameTutorial.tutorialProgress < 8) ...[
                     if (_pokerGameTutorial.tutorialProgress < 7) ...[
                       _pokerGameTutorial.dottedLineContainer(),
@@ -472,6 +466,7 @@ class _PokerGameStateScene extends State<PokerGameScene>
                     _pokerGameTutorial.chatBubble(),
                     _pokerGameTutorial.getContinueButton(nextTutorialProgress),
                   ],
+                  exitButton(),
                 ],
               ),
             ),
@@ -515,7 +510,7 @@ class _PokerGameStateScene extends State<PokerGameScene>
 
   Align exitButton() {
     return Align(
-      alignment: const Alignment(-0.95, -0.5),
+      alignment: const Alignment(0.95, -0.5),
       child: FractionallySizedBox(
         widthFactor: 0.5 * 1 / 7,
         child: AspectRatio(
@@ -690,33 +685,6 @@ class _PokerGameStateScene extends State<PokerGameScene>
     );
   }
 
-  // void _showAlertDialog({bool isTutorial = false}) {
-  //   audioController.pauseAllAudio();
-  //   showDialog(
-  //     context: context,
-  //     builder: (BuildContext context) {
-  //       return Globals.exitDialog(
-  //         continueCallback: () {
-  //           //game.isPaused = false;
-  //           audioController.resumeAllAudio();
-  //           // Navigator.of(context).pop(false);+
-  //           Navigator.of(context).pop(false);
-  //           // context.pop();
-  //         },
-  //         exitCallback: () {
-  //           audioController.stopAllSfx();
-  //           audioController.stopPlayingInstruction();
-  //           //* if is tutorial mode which means skipping tutorual
-  //           if (isTutorial) userInfoProvider.pokerGameDoneTutorial();
-  //           Navigator.of(context).pop(false);
-  //           context.pop();
-  //         },
-  //         isTutorialMode: isTutorial,
-  //       );
-  //     },
-  //   );
-  // }
-
   void _showTutorialEndDialog() {
     databaseInfoProvider.pokerGameDoneTutorial();
     showDialog(
@@ -738,7 +706,6 @@ class _PokerGameStateScene extends State<PokerGameScene>
             game.putBack();
             game.shuffleBack();
             setState(() {
-              widget.isTutorial = false;
               game = GameInstance(
                 gameLevel: widget.startLevel,
                 continuousWin: widget.historyContinuousWin,

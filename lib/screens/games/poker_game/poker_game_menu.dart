@@ -171,7 +171,7 @@ class _PokerGameMenu extends State<PokerGameMenu>
       _controller.forward();
       Future.delayed(const Duration(seconds: 1), () {
         GoRouter.of(context).pushNamed('poker_game', queryParams: {
-          'isTutorial': true.toString(),
+          'enterWithTutorialMode': true.toString(),
         });
         buttonEnabled = true;
       });

@@ -45,7 +45,7 @@ class _RoutePlanningGameForge2dMenuState
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (!appPaused) {
         passedTime++;
-        Logger().d('$passedTime second passed');
+        // Logger().d('$passedTime second passed');
       }
     });
   }
@@ -111,7 +111,7 @@ class _RoutePlanningGameForge2dMenuState
       // });
       context.pushNamed(
         'route_planning_game',
-        queryParams: {'isTutorial': true.toString()},
+        queryParams: {'enterTutotialMode': true.toString()},
       );
     }
   }

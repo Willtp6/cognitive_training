@@ -7,19 +7,14 @@ class ButtonWithText extends StatelessWidget {
     super.key,
     required text,
     required onTapFunction,
-    useTextLength = false,
   })  : _text = text,
-        _useTextLength = useTextLength,
         _onTapFunction = onTapFunction;
 
   final String _text;
   final Function _onTapFunction;
-  final bool _useTextLength;
-  // late AudioController _audioController;
 
   @override
   Widget build(BuildContext context) {
-    // _audioController = context.read<AudioController>();
     return AspectRatio(
       aspectRatio: 835 / 353,
       child: GestureDetector(
@@ -43,10 +38,11 @@ class ButtonWithText extends StatelessWidget {
                   child: AutoSizeText(
                     _text,
                     style: TextStyle(
-                      fontSize: _useTextLength ? width / 4 : width / 4,
+                      fontSize: width / 4,
                       color: Colors.white,
                       fontFamily: 'GSR_B',
                     ),
+                    maxLines: 1,
                   ),
                 );
               },

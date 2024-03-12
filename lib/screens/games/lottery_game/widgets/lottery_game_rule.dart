@@ -355,11 +355,6 @@ class _RuleScreenState extends State<RuleScreen> {
             ),
           ],
         ),
-        // child: AutoSizeText(
-        //   '難度${difficulties[widget.game.gameLevel]} 號碼數量${widget.game.numberOfDigits}',
-        //   style: const TextStyle(fontSize: 100, fontFamily: 'GSR_B'),
-        //   maxLines: 1,
-        // ),
       ),
     );
   }

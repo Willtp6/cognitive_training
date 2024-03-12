@@ -177,13 +177,6 @@ class _RoutePlanningGameTutorialModeState
     final width = MediaQuery.of(context).size.width;
     return Stack(
       children: [
-        Container(
-          height: height * 0.5,
-          width: width * 0.5,
-          decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.5),
-          ),
-        ),
         if (tutorialProgress <= 9) ...[
           TutorialDoctor(tutorialProgress: tutorialProgress),
           ChatBubble(tutorialProgress: tutorialProgress),

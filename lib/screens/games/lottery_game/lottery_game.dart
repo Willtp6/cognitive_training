@@ -13,13 +13,13 @@ class LotteryGame {
   int continuousLose;
 
   LotteryGame({
-    required this.gameLevel,
-    required this.numberOfDigits,
-    required this.continuousCorrectRateBiggerThan50,
-    required this.loseInCurrentDigit,
-    required this.continuousWin,
-    required this.continuousLose,
-    required this.isTutorial,
+    this.gameLevel = 0,
+    this.numberOfDigits = 2,
+    this.continuousCorrectRateBiggerThan50 = 0,
+    this.loseInCurrentDigit = 0,
+    this.continuousWin = 0,
+    this.continuousLose = 0,
+    this.isTutorial = true,
   });
 
   late List<int> numArray;
@@ -40,7 +40,6 @@ class LotteryGame {
   int gameProgress = 0;
   bool playerWin = false;
   bool disableButton = false;
-  bool isPaused = false;
   bool isCaseFunctioned = false;
   int numOfChosen = 0;
   int currentIndex = 0;
