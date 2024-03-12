@@ -89,24 +89,6 @@ class RoutePlanningGameForge2d extends Forge2DGame
 
   @override
   FutureOr<void> onLoad() async {
-    // debugMode = true;
-    //? the problem is that the size need to times 10 ?
-    //? because in forge2d game size is 10 times smaller than in flame game.
-    //? while the other which takes gameRef.size to get size don't need to
-    //? times 10 reason is unknown.
-    // joystick = JoystickComponent(
-    //   knob: CircleComponent(
-    //     radius: size.y / 5,
-    //     paint: BasicPalette.red.withAlpha(0).paint(),
-    //   ),
-    //   background: CircleComponent(
-    //     radius: size.y / 2,
-    //     paint: BasicPalette.red.withAlpha(0).paint(),
-    //   ),
-    //   // margin: EdgeInsets.only(
-    //   //     left: (size.y / 10 + 215 / 720 * size.y) * 10, bottom: size.y),
-    //   position: size / 2,
-    // );
     map = MapEntity(
       size: size,
       position: size / 2,
@@ -126,9 +108,7 @@ class RoutePlanningGameForge2d extends Forge2DGame
       WallComponent(v1: Vector2(size.x, 0), v2: Vector2(size.x, size.y)),
 
       map,
-      // joystick,
       targetList,
-      // rider,
     ]);
     alarmClock = SpriteComponent(
       sprite: await loadSprite('route_planning_game/hints/alarm_clock.png'),
@@ -164,8 +144,6 @@ class RoutePlanningGameForge2d extends Forge2DGame
     targetList.addBuildings(buildings: buildings);
 
     map.addBlocks(mapIndex: chosenMap);
-    //! test for all block
-    // map.addAllBuildingsAsHome();
     map.addBuildings(buildings: buildings);
     startTime = DateTime.now();
   }

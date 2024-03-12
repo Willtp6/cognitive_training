@@ -13,6 +13,12 @@ enum ResultType {
   lose,
 }
 
+enum LevelChangeResult {
+  noChange,
+  upgrade,
+  downgrade,
+}
+
 class GameInstance {
   int gameLevel;
   List<int> responseTimeList;
@@ -180,13 +186,13 @@ class GameInstance {
     }
   }
 
-  int gameLevelChange() {
+  LevelChangeResult gameLevelChange() {
     if (continuousWin >= 5) {
       continuousWin = 0;
       continuousLose = 0;
       if (gameLevel < 3) {
         gameLevel++;
-        return 1;
+        return LevelChangeResult.upgrade;
       }
     }
     if (continuousLose >= 5) {
@@ -194,10 +200,10 @@ class GameInstance {
       continuousLose = 0;
       if (gameLevel > 0) {
         gameLevel--;
-        return 2;
+        return LevelChangeResult.downgrade;
       }
     }
-    return 0;
+    return LevelChangeResult.noChange;
   }
 
   void recordGame() {

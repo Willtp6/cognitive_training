@@ -77,19 +77,7 @@ class BuildingComponent extends BodyComponent<RoutePlanningGameForge2d>
       anchor: Anchor.center,
     );
     add(buildingSprite);
-    //! comment for debug
-    if (gameRef.gameLevel < 2 && building.isTarget) {
-      flagSprite = SpriteComponent(
-        sprite: await gameRef.loadSprite(RoutePlanningGameConst.flagImagePath),
-        size: buildingSize / 2,
-        position: Matrix2.rotation(-bodyAngle)
-            .transform(flagPosition[flagDirection]!),
-        // anchor: anchorDir[flagDirection],
-        angle: -bodyAngle,
-        anchor: Anchor.center,
-      );
-      add(flagSprite);
-    }
+    if (gameRef.gameLevel < 2 && building.isTarget) addHintFlag();
     //* hints
     repeatedSprite = SpriteComponent(
       sprite: await gameRef.loadSprite(RoutePlanningGameConst.repeatedHint),
@@ -124,7 +112,7 @@ class BuildingComponent extends BodyComponent<RoutePlanningGameForge2d>
   @override
   void beginContact(Object other, Contact contact) {
     //* if multiple contact happened
-    if (contactCounter++ > 1) return;
+    if (++contactCounter > 1) return;
     //* do not change image if there is any target not visited by rider
     if (isHome && !gameRef.targetList.allVisited()) return;
     buildingSprite.current = ImageType.light;
@@ -135,12 +123,24 @@ class BuildingComponent extends BodyComponent<RoutePlanningGameForge2d>
   @override
   void endContact(Object other, Contact contact) {
     //* if multiple contact happened
-    if (contactCounter-- >= 1) return;
+    if (--contactCounter >= 1) return;
     //* this situation happen only when home building is not changed but still visited by user
     if (buildingSprite.current == ImageType.normal) return;
     buildingSprite.current = ImageType.normal;
     buildingSprite.size /= 2;
     super.endContact(other, contact);
+  }
+
+  void addHintFlag() async {
+    flagSprite = SpriteComponent(
+      sprite: await gameRef.loadSprite(RoutePlanningGameConst.flagImagePath),
+      size: buildingSize / 2,
+      position:
+          Matrix2.rotation(-bodyAngle).transform(flagPosition[flagDirection]!),
+      angle: -bodyAngle,
+      anchor: Anchor.center,
+    );
+    add(flagSprite);
   }
 
   void repeatedTapped() {

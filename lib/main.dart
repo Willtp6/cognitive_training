@@ -88,7 +88,8 @@ class MyApp extends StatelessWidget {
                     path: 'lottery_game',
                     builder: (context, state) {
                       final parameters = state.queryParams;
-                      final isTutorial = parameters['isTutorial'] ?? 'false';
+                      final enterTutorialMode =
+                          parameters['enterTutorialMode'] ?? 'false';
 
                       final databaseInfoProvider =
                           context.read<DatabaseInfoProvider>();
@@ -102,7 +103,7 @@ class MyApp extends StatelessWidget {
                         loseInCurrentDigit: database.loseInCurrentDigit,
                         historyContinuousWin: database.historyContinuousWin,
                         historyContinuousLose: database.historyContinuousLose,
-                        isTutorial: isTutorial == 'true',
+                        isTutorial: enterTutorialMode == 'true',
                       );
                     },
                   ),
@@ -118,10 +119,10 @@ class MyApp extends StatelessWidget {
                     path: 'fishing_game',
                     builder: (context, state) {
                       final parameters = state.queryParams;
-                      final enterTutotialMode =
-                          parameters['enterTutotialMode'] ?? 'false';
+                      final enterTutorialMode =
+                          parameters['enterTutorialMode'] ?? 'false';
                       return FishingGamePlay(
-                        enterWithTutorialMode: enterTutotialMode == 'true',
+                        enterWithTutorialMode: enterTutorialMode == 'true',
                       );
                     },
                   ),
@@ -137,8 +138,8 @@ class MyApp extends StatelessWidget {
                     path: 'poker_game',
                     builder: (context, state) {
                       final parameters = state.queryParams;
-                      final isTutorial =
-                          parameters['enterWithTutorialMode'] ?? 'false';
+                      final enterTutorialMode =
+                          parameters['enterTutorialMode'] ?? 'false';
                       final databaseInfoProvider =
                           context.read<DatabaseInfoProvider>();
                       final database = databaseInfoProvider.pokerGameDatabase;
@@ -146,7 +147,7 @@ class MyApp extends StatelessWidget {
                         startLevel: database.currentLevel,
                         historyContinuousWin: database.historyContinuousWin,
                         historyContinuousLose: database.historyContinuousLose,
-                        enterWithTutorialMode: isTutorial == 'true',
+                        enterWithTutorialMode: enterTutorialMode == 'true',
                         responseTimeList: database.responseTimeList,
                       );
                     },
@@ -164,10 +165,10 @@ class MyApp extends StatelessWidget {
                     path: 'route_planning_game',
                     builder: (context, state) {
                       final parameters = state.queryParams;
-                      final enterTutotialMode =
-                          parameters['enterTutotialMode'] ?? 'false';
+                      final enterTutorialMode =
+                          parameters['enterTutorialMode'] ?? 'false';
                       return RoutePlanningGameForge2dPlay(
-                        enterWithTutorialMode: enterTutotialMode == 'true',
+                        enterWithTutorialMode: enterTutorialMode == 'true',
                       );
                     },
                   ),

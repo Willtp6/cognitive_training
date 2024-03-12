@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'dart:math';
 import 'package:cognitive_training/audio/audio_controller.dart';
 import 'package:cognitive_training/constants/globals.dart';
@@ -8,6 +7,7 @@ import 'package:cognitive_training/models/database_models.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:logger/logger.dart';
+import 'package:pausable_timer/pausable_timer.dart';
 import 'package:provider/provider.dart';
 import 'poker_game_instance.dart';
 import 'poker_game_tutorial.dart';
@@ -20,6 +20,7 @@ import 'widgets/no_card_button.dart';
 import 'widgets/poker_game_rule.dart';
 import 'widgets/response_word.dart';
 import 'widgets/showed_coins.dart';
+import 'widgets/exit_button.dart';
 
 class PokerGameScene extends StatefulWidget {
   const PokerGameScene({
@@ -46,11 +47,10 @@ class _PokerGameStateScene extends State<PokerGameScene>
   late AnimationController _controllerChosenPlayer;
   late AnimationController _controllerChosenComputer;
   late AnimationController _controllerChangeMoney;
+  late AnimationController _controllerAlarmClock;
   late GameInstance game;
   late AudioController audioController;
-  Timer? timer;
-  Timer? timerForDelayingResult;
-  Timer? timerForDelayingRoundresult;
+  PausableTimer? countdownTimer;
   bool isPlayerTurn = false;
   bool showWord = false;
   late DatabaseInfoProvider databaseInfoProvider;
@@ -63,21 +63,15 @@ class _PokerGameStateScene extends State<PokerGameScene>
   void initState() {
     super.initState();
     _controller = AnimationController(
-      duration: const Duration(milliseconds: 1500),
-      vsync: this,
-    );
+        duration: const Duration(milliseconds: 1500), vsync: this);
     _controllerChosenPlayer = AnimationController(
-      duration: const Duration(milliseconds: 1000),
-      vsync: this,
-    );
+        duration: const Duration(milliseconds: 1000), vsync: this);
     _controllerChosenComputer = AnimationController(
-      duration: const Duration(milliseconds: 1000),
-      vsync: this,
-    );
+        duration: const Duration(milliseconds: 1000), vsync: this);
     _controllerChangeMoney = AnimationController(
-      duration: const Duration(milliseconds: 1400),
-      vsync: this,
-    );
+        duration: const Duration(milliseconds: 1400), vsync: this);
+    _controllerAlarmClock = AnimationController(
+        duration: const Duration(milliseconds: 3000), vsync: this);
     game = widget.enterWithTutorialMode
         ? GameInstance()
         : GameInstance(
@@ -95,9 +89,8 @@ class _PokerGameStateScene extends State<PokerGameScene>
     _controllerChosenPlayer.dispose();
     _controllerChosenComputer.dispose();
     _controllerChangeMoney.dispose();
-    timer?.cancel();
-    timerForDelayingResult?.cancel();
-    timerForDelayingRoundresult?.cancel();
+    _controllerAlarmClock.dispose();
+    countdownTimer?.cancel();
     audioController.stopAllAudio();
     super.dispose();
   }
@@ -108,25 +101,51 @@ class _PokerGameStateScene extends State<PokerGameScene>
     //random 1-3 times choose card
     final int numberOfRandomChoice = Random().nextInt(randomTime) + 1;
     int counter = 0;
-    timer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      setState(() {
-        if (counter < numberOfRandomChoice) {
+    countdownTimer = PausableTimer.periodic(const Duration(seconds: 1), () {
+      if (counter < numberOfRandomChoice) {
+        setState(() {
           game.isChosenComputer
               .fillRange(0, game.isChosenComputer.length, false);
           game.isChosenComputer[Random().nextInt(game.computer.hand.length)] =
               true;
           counter++;
-        } else {
-          timer.cancel();
+        });
+      } else {
+        countdownTimer?.cancel();
+        setState(() {
           isPlayerTurn = true;
           game.computerCard = game.computer.hand
               .removeAt(game.isChosenComputer.indexWhere((element) => true));
           game.isChosenComputer
               .fillRange(0, game.isChosenComputer.length, false);
           game.start = DateTime.now();
+        });
+
+        int timeInMilliseconds = game.getTimeLimit();
+        if (timeInMilliseconds >= 3000) {
+          countdownTimer = PausableTimer(
+              Duration(milliseconds: timeInMilliseconds - 3000 + 1), () {
+            audioController.playSfx(PokerGameConst.ticTokSfx);
+            _controllerAlarmClock.forward();
+            countdownTimer =
+                PausableTimer(const Duration(milliseconds: 3000), () {
+              timeLimitExceeded();
+            })
+                  ..start();
+          })
+            ..start();
+        } else {
+          audioController.playSfx(PokerGameConst.ticTokSfx);
+          _controllerAlarmClock.forward();
+          countdownTimer =
+              PausableTimer(Duration(milliseconds: timeInMilliseconds), () {
+            timeLimitExceeded();
+          })
+                ..start();
         }
-      });
-    });
+      }
+    })
+      ..start();
   }
 
   void roundResult() {
@@ -137,18 +156,18 @@ class _PokerGameStateScene extends State<PokerGameScene>
       isPlayerTurn = false;
     });
     switch (game.gameLevelChange()) {
-      case 0:
+      case LevelChangeResult.noChange:
         if (game.computer.hand.isEmpty) {
           _showGameEndDialog();
         } else {
           simulatePlayerAction();
         }
         break;
-      case 1:
+      case LevelChangeResult.upgrade:
         Logger().i('level upgrade');
         _showLevelUpgradeDialog();
         break;
-      case 2:
+      case LevelChangeResult.downgrade:
         Logger().i('level downgrade');
         _showLevelDownGradeDialog();
 
@@ -168,9 +187,10 @@ class _PokerGameStateScene extends State<PokerGameScene>
       setState(() {
         game.shuffleBack();
         game.dealCards();
-        Timer(const Duration(seconds: 2), () {
+        countdownTimer = PausableTimer(const Duration(seconds: 2), () {
           simulatePlayerAction();
-        });
+        })
+          ..start();
       });
       _controller.forward();
     });
@@ -182,13 +202,13 @@ class _PokerGameStateScene extends State<PokerGameScene>
       game.cardDealed = true;
     });
     _controller.reset();
-    _controller.forward();
-    Future.delayed(const Duration(seconds: 2), () => simulatePlayerAction());
+    _controller.forward().whenComplete(() => simulatePlayerAction());
   }
 
   void timeLimitExceeded() {
     audioController.stopPlayingInstruction();
     audioController.stopAllSfx();
+    _controllerAlarmClock.reset();
     //* set board first to prevent any other interaction
     setState(() {
       isPlayerTurn = false;
@@ -205,8 +225,8 @@ class _PokerGameStateScene extends State<PokerGameScene>
     //* start the animation for money value change
     _controllerChangeMoney.reset();
     _controllerChangeMoney.forward();
-    //todo modify this to prevent from setstate after dispose
-    timerForDelayingResult = Timer(const Duration(milliseconds: 750), () {
+
+    countdownTimer = PausableTimer(const Duration(milliseconds: 750), () {
       setState(() {
         game.resultType = ResultType.lose;
         game.continuousWinLose();
@@ -215,22 +235,20 @@ class _PokerGameStateScene extends State<PokerGameScene>
         game.backgroundPath = PokerGameConst.playerLoseBackground;
         showWord = true;
       });
-    });
-    // Future.delayed(const Duration(milliseconds: 750), () {
-
-    // });
-    timerForDelayingRoundresult =
-        Timer(const Duration(seconds: 2, milliseconds: 500), () {
-      roundResult();
-    });
-    // Future.delayed(const Duration(seconds: 2, milliseconds: 500), () {
-    //   roundResult();
-    // });
+      countdownTimer =
+          PausableTimer(const Duration(seconds: 1, milliseconds: 750), () {
+        roundResult();
+      })
+            ..start();
+    })
+      ..start();
   }
 
   void settlement() {
     audioController.stopPlayingInstruction();
     audioController.stopAllSfx();
+    _controllerAlarmClock.reset();
+    countdownTimer?.cancel();
     setState(() {
       game.getResult();
       databaseInfoProvider.addPlayTime(game.start, game.end);
@@ -256,7 +274,7 @@ class _PokerGameStateScene extends State<PokerGameScene>
     //* start animation
     _controllerChangeMoney.reset();
     _controllerChangeMoney.forward();
-    timerForDelayingResult = Timer(const Duration(milliseconds: 750), () {
+    countdownTimer = PausableTimer(const Duration(milliseconds: 750), () {
       setState(() {
         if (game.resultType == ResultType.win) {
           audioController.playSfx(PokerGameConst.winSfx);
@@ -268,12 +286,13 @@ class _PokerGameStateScene extends State<PokerGameScene>
           showWord = true;
         }
       });
-    });
-
-    timerForDelayingRoundresult =
-        Timer(const Duration(seconds: 2, milliseconds: 500), () {
-      roundResult();
-    });
+      countdownTimer =
+          PausableTimer(const Duration(seconds: 1, milliseconds: 750), () {
+        roundResult();
+      })
+            ..start();
+    })
+      ..start();
   }
 
   void nextTutorialProgress() {
@@ -370,11 +389,8 @@ class _PokerGameStateScene extends State<PokerGameScene>
                       )
                     ],
                     AlarmClock(
-                      timeInMilliSeconds:
-                          game.isTutorial ? 2000 : game.getTimeLimit(),
-                      audioController: audioController,
+                      animationController: _controllerAlarmClock,
                       isTutorial: game.isTutorial,
-                      callback: game.isTutorial ? () {} : timeLimitExceeded,
                     ),
                     if (game.isChosen.contains(true))
                       Align(
@@ -387,12 +403,6 @@ class _PokerGameStateScene extends State<PokerGameScene>
                         ),
                       )
                   ],
-                  // PlayerHandCard(
-                  //   game: game,
-                  //   controllerChosenPlayer: _controllerChosenPlayer,
-                  //   controller: _controller,
-                  //   callback: playerCardOnTap,
-                  // ),
                   Align(
                     alignment: const Alignment(0.0, 0.8),
                     child: FractionallySizedBox(
@@ -455,7 +465,6 @@ class _PokerGameStateScene extends State<PokerGameScene>
                   PlayerCoinAnimation(
                       controller: _controllerChangeMoney,
                       string: playerCoinChange),
-
                   if (game.isTutorial &&
                       _pokerGameTutorial.tutorialProgress < 8) ...[
                     if (_pokerGameTutorial.tutorialProgress < 7) ...[
@@ -466,7 +475,16 @@ class _PokerGameStateScene extends State<PokerGameScene>
                     _pokerGameTutorial.chatBubble(),
                     _pokerGameTutorial.getContinueButton(nextTutorialProgress),
                   ],
-                  exitButton(),
+                  ExitButton(
+                    callback: () {
+                      if (isTutorialModePop()) {
+                        _showSkipTutorialDialog();
+                      } else {
+                        _showExitDialog();
+                      }
+                    },
+                    alignment: const Alignment(0.95, -0.5),
+                  ),
                 ],
               ),
             ),
@@ -506,48 +524,6 @@ class _PokerGameStateScene extends State<PokerGameScene>
         });
       }
     }
-  }
-
-  Align exitButton() {
-    return Align(
-      alignment: const Alignment(0.95, -0.5),
-      child: FractionallySizedBox(
-        widthFactor: 0.5 * 1 / 7,
-        child: AspectRatio(
-          aspectRatio: 1,
-          child: GestureDetector(
-            onTap: () {
-              if (isTutorialModePop()) {
-                _showSkipTutorialDialog();
-              } else {
-                _showExitDialog();
-              }
-            },
-            child: Container(
-              decoration: BoxDecoration(
-                color: Colors.pink,
-                border: Border.all(color: Colors.black, width: 1),
-                shape: BoxShape.circle,
-              ),
-              child: FractionallySizedBox(
-                heightFactor: 0.8,
-                widthFactor: 0.8,
-                child: LayoutBuilder(
-                  builder: (BuildContext context, BoxConstraints constraints) {
-                    double iconSize = constraints.maxWidth;
-                    return Icon(
-                      Icons.cancel,
-                      color: Colors.white,
-                      size: iconSize,
-                    );
-                  },
-                ),
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
   }
 
   void _showGameEndDialog() {
@@ -635,6 +611,32 @@ class _PokerGameStateScene extends State<PokerGameScene>
 
   void _showExitDialog() {
     audioController.pauseAllAudio();
+    countdownTimer?.pause();
+    bool controllerAnimating = false,
+        controllerChosenPlayerAnimating = false,
+        controllerChosenComputerAnimating = false,
+        controllerChangeMoneyAnimating = false,
+        controllerAlarmClockAnimating = false;
+    if (_controller.isAnimating) {
+      controllerAnimating = true;
+      _controller.stop();
+    }
+    if (_controllerChangeMoney.isAnimating) {
+      controllerChangeMoneyAnimating = true;
+      _controllerChangeMoney.stop();
+    }
+    if (_controllerChosenComputer.isAnimating) {
+      controllerChosenComputerAnimating = true;
+      _controllerChosenComputer.stop();
+    }
+    if (_controllerChosenPlayer.isAnimating) {
+      controllerChosenPlayerAnimating = true;
+      _controllerChosenPlayer.stop();
+    }
+    if (_controllerAlarmClock.isAnimating) {
+      controllerAlarmClockAnimating = true;
+      _controllerAlarmClock.stop();
+    }
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -652,6 +654,19 @@ class _PokerGameStateScene extends State<PokerGameScene>
           option2: '繼續遊戲',
           option2Callback: () {
             audioController.resumeAllAudio();
+            countdownTimer?.start();
+            if (controllerAnimating) _controller.forward();
+            if (controllerChangeMoneyAnimating) {
+              _controllerChangeMoney.forward();
+            }
+            if (controllerChosenComputerAnimating) {
+              _controllerChosenComputer.forward();
+            }
+            if (controllerChosenPlayerAnimating) {
+              _controllerChosenPlayer.forward();
+            }
+            if (controllerAlarmClockAnimating) _controllerAlarmClock.forward();
+
             Navigator.of(context).pop();
           },
         );

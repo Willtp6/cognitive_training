@@ -113,11 +113,10 @@ class _LotteryGameSceneState extends State<LotteryGameScene>
   }
 
   void setPeriodicTimer() {
-    countdownTimer = PausableTimer(const Duration(seconds: 2), () {
-      Logger().d('time up');
+    countdownTimer = PausableTimer(const Duration(seconds: 1), () {
       _playNumberSound();
-    });
-    countdownTimer?.start();
+    })
+      ..start();
   }
 
   void _playNumberSound() async {
@@ -130,8 +129,8 @@ class _LotteryGameSceneState extends State<LotteryGameScene>
       countdownTimer = PausableTimer(const Duration(seconds: 1), () {
         setState(() => game.showNumber = '');
         setPeriodicTimer();
-      });
-      countdownTimer?.start();
+      })
+        ..start();
     } else {
       cancelTimer();
     }

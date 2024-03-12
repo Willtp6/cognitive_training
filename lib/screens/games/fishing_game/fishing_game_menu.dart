@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:cognitive_training/audio/audio_controller.dart';
 import 'package:cognitive_training/constants/fishing_game_const.dart';
 import 'package:cognitive_training/constants/globals.dart';
@@ -11,10 +9,7 @@ import 'package:provider/provider.dart';
 import '../../../shared/button_with_text.dart';
 
 class FishingGameMenu extends StatefulWidget {
-  // static const String id = "FishingGameMenu";
   const FishingGameMenu({super.key});
-
-  // final FishingGame game;
 
   @override
   State<FishingGameMenu> createState() => _FishingGameMenuState();
@@ -27,10 +22,6 @@ class _FishingGameMenuState extends State<FishingGameMenu>
   late AudioController _audioController;
   bool buttonEnabled = true;
 
-  late Timer _timer;
-  int passedTime = 0;
-  bool appPaused = false;
-
   @override
   void initState() {
     super.initState();
@@ -39,30 +30,13 @@ class _FishingGameMenuState extends State<FishingGameMenu>
       vsync: this,
     );
     WidgetsBinding.instance.addObserver(this);
-    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      if (!appPaused) {
-        passedTime++;
-      }
-    });
   }
 
   @override
   void dispose() {
     _controller.dispose();
-    _timer.cancel();
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
-  }
-
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.paused) {
-      // App is paused
-      appPaused = true;
-    } else if (state == AppLifecycleState.resumed) {
-      // App is resumed
-      appPaused = false;
-    }
   }
 
   void startGame() {
@@ -72,7 +46,7 @@ class _FishingGameMenuState extends State<FishingGameMenu>
         final db = databaseInfoProvider.fishingGameDatabase;
         context.pushNamed(
           'fishing_game',
-          queryParams: {'enterTutotialMode': (!db.doneTutorial).toString()},
+          queryParams: {'enterTutorialMode': (!db.doneTutorial).toString()},
         );
       }).whenComplete(() {
         _controller.reset();
@@ -88,7 +62,7 @@ class _FishingGameMenuState extends State<FishingGameMenu>
       _controller.forward().whenComplete(() {
         context.pushNamed(
           'fishing_game',
-          queryParams: {'startLevel': 0.toString(), 'isTutorial': 'true'},
+          queryParams: {'enterTutorialMode': 'true'},
         );
       }).whenComplete(() {
         _controller.reset();

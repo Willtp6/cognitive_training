@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
 
 abstract class ExitButtonTemplate extends StatelessWidget {
-  const ExitButtonTemplate({super.key});
+  const ExitButtonTemplate({super.key, this.alignment = Alignment.topRight});
 
+  final Alignment alignment;
   void onTapFunction();
 
   @override
   Widget build(BuildContext context) {
     return Align(
-      alignment: Alignment.topRight,
+      alignment: alignment,
       child: Padding(
         padding: const EdgeInsets.only(right: 10, top: 10),
         child: FractionallySizedBox(

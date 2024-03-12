@@ -20,8 +20,9 @@ class TargetList extends SpriteComponent
   @override
   FutureOr<void> onLoad() async {
     sprite = await gameRef.loadSprite(RoutePlanningGameConst.targetList);
-    size.y = gameRef.size.y;
-    size.x = size.y * 215 / 720;
+    // size.y = gameRef.size.y;
+    // size.x = size.y * 215 / 720;
+    size = Vector2(gameRef.size.y * 215 / 720, gameRef.size.y);
     listItem = RectangleComponent(
       size: Vector2(size.x * 0.6, size.y * 0.75),
       position: Vector2(size.x / 2, size.y * 0.525),
@@ -53,7 +54,6 @@ class TargetList extends SpriteComponent
       );
     }
     listItem.addAll(targetsSprite);
-    // add(listItem);
   }
 
   void removeAllBuildings() {

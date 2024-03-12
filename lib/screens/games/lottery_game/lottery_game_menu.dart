@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:cognitive_training/audio/audio_controller.dart';
 import 'package:cognitive_training/constants/globals.dart';
@@ -24,10 +22,6 @@ class _LotteryGameMenu extends State<LotteryGameMenu>
   late AudioController _audioController;
   bool buttonEnabled = true;
 
-  late Timer _timer;
-  int passedTime = 0;
-  bool appPaused = false;
-
   @override
   void initState() {
     super.initState();
@@ -36,91 +30,38 @@ class _LotteryGameMenu extends State<LotteryGameMenu>
       vsync: this,
     );
     WidgetsBinding.instance.addObserver(this);
-    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      if (!appPaused) {
-        passedTime++;
-      }
-    });
   }
 
   @override
   void dispose() {
     _controller.dispose();
-    _timer.cancel();
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
-  }
-
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.paused) {
-      // App is paused
-      appPaused = true;
-    } else if (state == AppLifecycleState.resumed) {
-      // App is resumed
-      appPaused = false;
-    }
   }
 
   void startGame() {
     if (buttonEnabled) {
       buttonEnabled = false;
-      _controller.forward();
-      Future.delayed(const Duration(seconds: 2), () {
-        _controller.reset();
-        // final level = userInfoProvider.lotteryGameDatabase.currentLevel;
-        // final digit = userInfoProvider.lotteryGameDatabase.currentDigit;
-        // final historyWin =
-        //     userInfoProvider.lotteryGameDatabase.historyContinuousWin;
-        // final historyLose =
-        //     userInfoProvider.lotteryGameDatabase.historyContinuousLose;
+      _audioController.playSfx(Globals.clickButtonSound);
+      _controller.forward().whenComplete(() {
         final doneTutorial =
             databaseInfoProvider.lotteryGameDatabase.doneTutorial;
-        if (doneTutorial) {
-          GoRouter.of(context).pushNamed(
-            'lottery_game',
-            queryParams: {
-              // 'startLevel': level.toString(),
-              // 'startDigit': digit.toString(),
-              // 'historyContinuousWin': historyWin.toString(),
-              // 'historyContinuousLose': historyLose.toString(),
-              'isTutorial': (!doneTutorial).toString(),
-            },
-          );
-        } else {
-          GoRouter.of(context).pushNamed(
-            'lottery_game',
-            queryParams: {'isTutorial': 'true'},
-          );
-        }
+        context.pushNamed('lottery_game',
+            queryParams: {'enterTutorialMode': (!doneTutorial).toString()});
         buttonEnabled = true;
-      });
-      Future.delayed(const Duration(seconds: 3, milliseconds: 500), () {
-        _controller.reset();
-      });
-      _audioController.playSfx(Globals.clickButtonSound);
+      }).whenComplete(() => _controller.reset());
     }
   }
 
   void startTutorial() {
     if (buttonEnabled) {
       buttonEnabled = false;
-      _controller.forward();
-      Future.delayed(const Duration(seconds: 2), () {
-        GoRouter.of(context).pushNamed(
-          'lottery_game',
-          queryParams: {
-            'startLevel': 0.toString(),
-            'startDigit': 1.toString(),
-            'isTutorial': 'true'
-          },
-        );
-        buttonEnabled = true;
-      });
-      Future.delayed(const Duration(seconds: 3, milliseconds: 500), () {
-        _controller.reset();
-      });
       _audioController.playSfx(Globals.clickButtonSound);
+      _controller.forward().whenComplete(() {
+        context.pushNamed('lottery_game',
+            queryParams: {'enterTutotialMode': 'true'});
+        buttonEnabled = true;
+      }).whenComplete(() => _controller.reset());
     }
   }
 
