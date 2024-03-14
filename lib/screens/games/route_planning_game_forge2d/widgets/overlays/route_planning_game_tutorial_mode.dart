@@ -560,9 +560,9 @@ class DottedContainer extends StatelessWidget {
               dashPattern: const [8, 4],
               // padding: const EdgeInsets.all(10),
               strokeCap: StrokeCap.round,
-              child: Container(),
+              child: const SizedBox.expand(),
             )
-          : Container(),
+          : const SizedBox.expand(),
     );
   }
 
@@ -685,24 +685,6 @@ class HintArrow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // return Align(
-    //   alignment: hintArrowAlignment[tutorialProgress],
-    //   child: FractionallySizedBox(
-    //     heightFactor: 0.15,
-    //     child: AspectRatio(
-    //       aspectRatio: 1,
-    //       child: tutorialProgress == 2 ||
-    //               tutorialProgress == 4 ||
-    //               tutorialProgress == 5 ||
-    //               tutorialProgress == 7 ||
-    //               tutorialProgress == 8
-    //           ? Image.asset(TutorialModeConst.downArrow)
-    //           : tutorialProgress == 1 || tutorialProgress == 6
-    //               ? Image.asset(TutorialModeConst.leftArrow)
-    //               : Container(),
-    //     ),
-    //   ),
-    // );
     return Positioned(
       top: positions[tutorialProgress]['top'],
       bottom: positions[tutorialProgress]['bottom'],
@@ -718,7 +700,7 @@ class HintArrow extends StatelessWidget {
           ? Image.asset(TutorialModeConst.downArrow)
           : tutorialProgress == 1 || tutorialProgress == 6
               ? Image.asset(TutorialModeConst.leftArrow)
-              : Container(),
+              : const SizedBox.expand(),
     );
   }
 }

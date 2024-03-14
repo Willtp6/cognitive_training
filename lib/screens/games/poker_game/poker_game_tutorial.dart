@@ -256,7 +256,7 @@ class PokerGameTutorial {
             dashPattern: const [8, 4],
             padding: const EdgeInsets.all(10),
             strokeCap: StrokeCap.round,
-            child: Container(),
+            child: const SizedBox.expand(),
           ),
         ),
       ),

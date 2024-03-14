@@ -1,11 +1,12 @@
-import 'package:auto_size_text/auto_size_text.dart';
 import 'package:cognitive_training/audio/audio_controller.dart';
 import 'package:cognitive_training/constants/globals.dart';
 import 'package:cognitive_training/constants/poker_game_const.dart';
 import 'package:cognitive_training/models/database_info_provider.dart';
+import 'package:cognitive_training/screens/games/shared/game_label.dart';
 import 'package:cognitive_training/shared/button_with_text.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:pausable_timer/pausable_timer.dart';
 import 'package:provider/provider.dart';
 
 class PokerGameMenu extends StatefulWidget {
@@ -22,6 +23,9 @@ class _PokerGameMenu extends State<PokerGameMenu>
   late AudioController _audioController;
   bool buttonEnabled = true;
 
+  PausableTimer? _timer;
+  int passedTime = 0;
+
   @override
   void initState() {
     _controller = AnimationController(
@@ -29,12 +33,39 @@ class _PokerGameMenu extends State<PokerGameMenu>
       vsync: this,
     );
     WidgetsBinding.instance.addObserver(this);
+    _timer = PausableTimer.periodic(const Duration(seconds: 1), () {
+      passedTime++;
+    })
+      ..start();
     super.initState();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+
+    switch (state) {
+      case AppLifecycleState.resumed:
+        _timer?.start();
+        break;
+      case AppLifecycleState.paused:
+        _timer?.pause();
+        break;
+      case AppLifecycleState.inactive:
+        _timer?.pause();
+        break;
+      case AppLifecycleState.detached:
+        break;
+      case AppLifecycleState.hidden:
+        break;
+    }
   }
 
   @override
   void dispose() {
     _controller.dispose();
+    databaseInfoProvider.updateMaxPlayTime(passedTime);
+    _timer?.cancel();
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
@@ -74,7 +105,7 @@ class _PokerGameMenu extends State<PokerGameMenu>
                   alignment: Alignment.center,
                   child: Stack(
                     children: [
-                      gameLabel(),
+                      const GameLabel(labelText: '撲 克 牌'),
                       Align(
                         alignment: const Alignment(0.0, 0.9),
                         child: FractionallySizedBox(
@@ -146,38 +177,5 @@ class _PokerGameMenu extends State<PokerGameMenu>
 
       context.pop();
     }
-  }
-
-  Align gameLabel() {
-    return Align(
-      alignment: const Alignment(0.0, -0.7),
-      child: FractionallySizedBox(
-        heightFactor: 0.2,
-        widthFactor: 0.4,
-        child: FittedBox(
-          child: Container(
-            decoration: BoxDecoration(
-              color: Colors.white,
-              border: Border.all(color: Colors.grey, width: 8),
-              borderRadius: BorderRadius.circular(50.0),
-            ),
-            child: const Center(
-              child: Padding(
-                padding: EdgeInsets.all(20.0),
-                child: AutoSizeText(
-                  '撲 克 牌',
-                  style: TextStyle(
-                    fontFamily: "GSR_B",
-                    fontSize: 100,
-                    color: Colors.black,
-                    decoration: TextDecoration.none,
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
   }
 }

@@ -428,11 +428,11 @@ class DottedContainer extends StatelessWidget {
                   dashPattern: const [8, 4],
                   padding: const EdgeInsets.all(10),
                   strokeCap: StrokeCap.round,
-                  child: Container(),
+                  child: const SizedBox.expand(),
                 ),
               ),
             )
-          : Container(),
+          : const SizedBox.expand(),
     );
   }
 }
@@ -465,7 +465,7 @@ class HintArrow extends StatelessWidget {
                   ? Image.asset(TutorialModeConst.leftArrow)
                   : tutorialProgress == 6
                       ? Image.asset(TutorialModeConst.upArrow)
-                      : Container(),
+                      : const SizedBox.expand(),
         ),
       ),
     );

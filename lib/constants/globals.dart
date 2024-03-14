@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:logger/logger.dart';
 
 class Globals {
   Globals._();
@@ -16,11 +15,11 @@ class Globals {
   static const String coinWithoutTap =
       'assets/images/shared/coin_without_tap.png';
 
-  static AlertDialog exitDialog(
-      {required Function continueCallback,
-      required Function exitCallback,
-      required bool isTutorialMode}) {
-    Logger().d(isTutorialMode);
+  static AlertDialog exitDialog({
+    required Function continueCallback,
+    required Function exitCallback,
+    required bool isTutorialMode,
+  }) {
     return AlertDialog(
       title: const Center(
         child: Text(

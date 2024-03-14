@@ -5,6 +5,7 @@ import 'package:cognitive_training/models/database_info_provider.dart';
 import 'package:cognitive_training/screens/games/shared/game_label.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:pausable_timer/pausable_timer.dart';
 import 'package:provider/provider.dart';
 import '../../../shared/button_with_text.dart';
 
@@ -22,6 +23,9 @@ class _FishingGameMenuState extends State<FishingGameMenu>
   late AudioController _audioController;
   bool buttonEnabled = true;
 
+  PausableTimer? _timer;
+  int passedTime = 0;
+
   @override
   void initState() {
     super.initState();
@@ -30,11 +34,37 @@ class _FishingGameMenuState extends State<FishingGameMenu>
       vsync: this,
     );
     WidgetsBinding.instance.addObserver(this);
+    _timer = PausableTimer.periodic(const Duration(seconds: 1), () {
+      passedTime++;
+    })
+      ..start();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+
+    switch (state) {
+      case AppLifecycleState.resumed:
+        _timer?.start();
+        break;
+      case AppLifecycleState.paused:
+        _timer?.pause();
+        break;
+      case AppLifecycleState.inactive:
+        _timer?.pause();
+        break;
+      case AppLifecycleState.detached:
+        break;
+      case AppLifecycleState.hidden:
+        break;
+    }
   }
 
   @override
   void dispose() {
     _controller.dispose();
+    _timer?.cancel();
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }

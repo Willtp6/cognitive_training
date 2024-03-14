@@ -200,7 +200,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                       ),
                     ),
                   ),
-                  Expanded(flex: 1, child: Container()),
+                  const Expanded(flex: 1, child: SizedBox.expand()),
                   Expanded(
                     flex: 5,
                     child: Row(
@@ -681,7 +681,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                                 fontFamily: 'GSR_B'),
                           ),
                         )
-                      : Container(),
+                      : const SizedBox.expand(),
                 ),
                 Expanded(
                   flex: 3,
@@ -728,7 +728,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                                 fontFamily: 'GSR_B'),
                           ),
                         )
-                      : Container(),
+                      : const SizedBox.expand(),
                 ),
               ],
             ),

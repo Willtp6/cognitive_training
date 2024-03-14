@@ -110,7 +110,7 @@ class _RankingPageState extends State<RankingPage> {
                         ),
                       ],
                     )
-                  : Container(),
+                  : const SizedBox.expand(),
             );
           },
         ),
@@ -133,7 +133,7 @@ class UserIndexBar extends StatelessWidget {
       widthFactor: 0.75,
       child: Row(
         children: [
-          Expanded(flex: 5, child: Container()),
+          const Expanded(flex: 5, child: SizedBox.expand()),
           Expanded(
             flex: 12,
             child: FractionallySizedBox(
@@ -150,7 +150,7 @@ class UserIndexBar extends StatelessWidget {
               ),
             ),
           ),
-          Expanded(flex: 2, child: Container()),
+          const Expanded(flex: 2, child: SizedBox.expand()),
           Expanded(
             flex: 7,
             child: FractionallySizedBox(
@@ -166,7 +166,7 @@ class UserIndexBar extends StatelessWidget {
               ),
             ),
           ),
-          Expanded(flex: 1, child: Container())
+          const Expanded(flex: 1, child: SizedBox.expand())
         ],
       ),
     );

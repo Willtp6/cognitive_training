@@ -7,7 +7,7 @@ import 'package:cognitive_training/screens/games/shared/game_label.dart';
 import 'package:flame_audio/flame_audio.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:logger/logger.dart';
+import 'package:pausable_timer/pausable_timer.dart';
 import 'package:provider/provider.dart';
 
 import '../../../shared/button_with_text.dart';
@@ -30,10 +30,8 @@ class _RoutePlanningGameForge2dMenuState
   late AudioController audioController;
   bool buttonEnabled = true;
 
-  late Timer _timer;
+  PausableTimer? _timer;
   int passedTime = 0;
-  bool appPaused = false;
-
   @override
   void initState() {
     super.initState();
@@ -42,34 +40,40 @@ class _RoutePlanningGameForge2dMenuState
       vsync: this,
     );
     WidgetsBinding.instance.addObserver(this);
-    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      if (!appPaused) {
-        passedTime++;
-        // Logger().d('$passedTime second passed');
-      }
-    });
+    _timer = PausableTimer.periodic(const Duration(seconds: 1), () {
+      passedTime++;
+    })
+      ..start();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+
+    switch (state) {
+      case AppLifecycleState.resumed:
+        _timer?.start();
+        break;
+      case AppLifecycleState.paused:
+        _timer?.pause();
+        break;
+      case AppLifecycleState.inactive:
+        _timer?.pause();
+        break;
+      case AppLifecycleState.detached:
+        break;
+      case AppLifecycleState.hidden:
+        break;
+    }
   }
 
   @override
   void dispose() {
     _controller.dispose();
-
     databaseInfoProvider.updateMaxPlayTime(passedTime);
-    _timer.cancel();
+    _timer?.cancel();
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
-  }
-
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    Logger().d(state);
-    if (state == AppLifecycleState.paused) {
-      // App is paused
-      appPaused = true;
-    } else if (state == AppLifecycleState.resumed) {
-      // App is resumed
-      appPaused = false;
-    }
   }
 
   void startGame() {

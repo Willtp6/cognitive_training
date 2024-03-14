@@ -28,11 +28,6 @@ class DatabaseInfoProvider extends ChangeNotifier {
     });
   }
 
-  // void attachSettings(SettingsController settingsController) {
-  //   if (_settings == settingsController) return;
-  //   _settings = settingsController;
-  // }
-
   /// update all data if user update
   /// create new data if data not exists
   Future<void> updateUserData(User? newUser) async {
@@ -523,7 +518,6 @@ class DatabaseInfoProvider extends ChangeNotifier {
     if (listEquals(loginCycle, loginRewardCycle) == false) {
       haveCheckinReward = true;
     }
-    // notifyListeners();
   }
 
   List<String> _bonusRewardCycle = List.filled(3, 'unqualification');
@@ -613,7 +607,11 @@ class DatabaseInfoProvider extends ChangeNotifier {
       hasBonus = true;
     }
     bonusRewardCycle = _bonusRewardCycle;
-    if (hasBonus) haveBonusReward = true;
+    if (hasBonus) {
+      haveBonusReward = true;
+    } else {
+      haveBonusReward = false;
+    }
   }
 
   /// if user tapped the reward image it will call this functinon to handle
@@ -629,7 +627,6 @@ class DatabaseInfoProvider extends ChangeNotifier {
     //* to check if no reward
     if (listEquals(_loginCycle, _loginRewardCycle)) {
       haveCheckinReward = false;
-      // notifyListeners();
     }
   }
 
@@ -650,6 +647,7 @@ class DatabaseInfoProvider extends ChangeNotifier {
       default:
         break;
     }
+    isHaveBonusReward();
   }
 
   // ----------------------------------------------------------------

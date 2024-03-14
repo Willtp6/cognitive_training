@@ -4,6 +4,7 @@ import 'package:cognitive_training/constants/globals.dart';
 import 'package:cognitive_training/constants/lottery_game_const.dart';
 import 'package:cognitive_training/models/database_info_provider.dart';
 import 'package:cognitive_training/screens/games/lottery_game/lottery_game.dart';
+import 'package:cognitive_training/screens/games/shared/exit_button_template.dart';
 import 'package:cognitive_training/shared/button_with_text.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
@@ -414,52 +415,16 @@ class _LotteryGameSceneState extends State<LotteryGameScene>
                     _lotteryGameTutorial
                         .getContinueButton(_nextTutorialProgress),
                   ],
-                  exitButton(),
+                  ExitButton(callback: () {
+                    pagePaused = true;
+                    countdownTimer?.pause();
+                    if (isTutorialModePop()) {
+                      _showSkipTutorialDialog();
+                    } else {
+                      _showExitDialog();
+                    }
+                  }),
                 ],
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Align exitButton() {
-    return Align(
-      alignment: const Alignment(0.95, -0.9),
-      child: FractionallySizedBox(
-        widthFactor: 0.5 * 1 / 7,
-        child: AspectRatio(
-          aspectRatio: 1,
-          child: GestureDetector(
-            onTap: () async {
-              pagePaused = true;
-              countdownTimer?.pause();
-              if (isTutorialModePop()) {
-                _showSkipTutorialDialog();
-              } else {
-                _showExitDialog();
-              }
-            },
-            child: Container(
-              decoration: BoxDecoration(
-                color: Colors.pink,
-                border: Border.all(color: Colors.black, width: 1),
-                shape: BoxShape.circle,
-              ),
-              child: FractionallySizedBox(
-                heightFactor: 0.8,
-                widthFactor: 0.8,
-                child: LayoutBuilder(
-                  builder: (BuildContext context, BoxConstraints constraints) {
-                    double iconSize = constraints.maxWidth;
-                    return Icon(
-                      Icons.cancel,
-                      color: Colors.white,
-                      size: iconSize,
-                    );
-                  },
-                ),
               ),
             ),
           ),
@@ -471,7 +436,7 @@ class _LotteryGameSceneState extends State<LotteryGameScene>
   Row _getForm() {
     return Row(
       children: [
-        Flexible(flex: 1, child: Container()),
+        const Flexible(flex: 1, child: SizedBox.expand()),
         Flexible(
           flex: 5,
           child: LayoutBuilder(
@@ -481,12 +446,12 @@ class _LotteryGameSceneState extends State<LotteryGameScene>
               if (game.gameLevel < 2) {
                 return Row(
                   children: [
-                    Flexible(flex: 1, child: Container()),
+                    const Flexible(flex: 1, child: SizedBox.expand()),
                     Flexible(
                       flex: 7,
                       child: Column(
                         children: [
-                          Flexible(flex: 2, child: Container()),
+                          const Flexible(flex: 2, child: SizedBox.expand()),
                           Expanded(
                             flex: 4,
                             child: Opacity(
@@ -574,11 +539,11 @@ class _LotteryGameSceneState extends State<LotteryGameScene>
                               ),
                             ),
                           ),
-                          Flexible(flex: 2, child: Container()),
+                          const Flexible(flex: 2, child: SizedBox.expand()),
                         ],
                       ),
                     ),
-                    Flexible(flex: 1, child: Container()),
+                    const Flexible(flex: 1, child: SizedBox.expand()),
                   ],
                 );
               } else {
@@ -590,12 +555,12 @@ class _LotteryGameSceneState extends State<LotteryGameScene>
                   key: formKey,
                   child: Row(
                     children: <Widget>[
-                      Expanded(flex: 1, child: Container()),
+                      const Expanded(flex: 1, child: SizedBox.expand()),
                       Expanded(
                         flex: 13,
                         child: Column(
                           children: <Widget>[
-                            Expanded(flex: 1, child: Container()),
+                            const Expanded(flex: 1, child: SizedBox.expand()),
                             Expanded(
                               flex: 6,
                               child: LayoutBuilder(
@@ -644,7 +609,7 @@ class _LotteryGameSceneState extends State<LotteryGameScene>
                                 },
                               ),
                             ),
-                            Expanded(flex: 1, child: Container()),
+                            const Expanded(flex: 1, child: SizedBox.expand()),
                           ],
                         ),
                       ),
@@ -692,7 +657,7 @@ class _LotteryGameSceneState extends State<LotteryGameScene>
                     ),
                   ),
                 )
-              : Container(),
+              : const SizedBox.expand(),
         ),
       ],
     );
@@ -876,5 +841,16 @@ class _LotteryGameSceneState extends State<LotteryGameScene>
         );
       },
     );
+  }
+}
+
+class ExitButton extends ExitButtonTemplate {
+  const ExitButton({super.key, required this.callback});
+
+  final Function callback;
+
+  @override
+  void onTapFunction() {
+    callback();
   }
 }

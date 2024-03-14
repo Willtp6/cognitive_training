@@ -25,7 +25,7 @@ class ComputerChosenCard extends StatelessWidget {
           child: card != null
               ? Image.asset(
                   PokerGameConst.cardImageList[card!.suit]![card!.rank - 1])
-              : Container(),
+              : const SizedBox.expand(),
         ),
       ),
     );
@@ -54,7 +54,7 @@ class PlayerChosenCard extends StatelessWidget {
           child: card != null
               ? Image.asset(
                   PokerGameConst.cardImageList[card!.suit]![card!.rank - 1])
-              : Container(),
+              : const SizedBox.expand(),
         ),
       ),
     );

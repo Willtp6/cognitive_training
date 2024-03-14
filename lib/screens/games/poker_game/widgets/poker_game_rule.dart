@@ -176,7 +176,7 @@ class _RuleScreenState extends State<RuleScreen> {
                                           text: isAudioOver ? '開始' : '開始',
                                           onTapFunction: startGame,
                                         )
-                                      : Container(),
+                                      : const SizedBox.expand(),
                                 ),
                               ),
                             ],

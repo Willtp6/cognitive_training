@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:cognitive_training/constants/globals.dart';
 import 'package:cognitive_training/constants/reward_page_const.dart';
 import 'package:cognitive_training/models/database_info_provider.dart';
+import 'package:cognitive_training/screens/games/shared/exit_button_template.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:logger/logger.dart';
@@ -29,51 +30,28 @@ class _RewardPageState extends State<RewardPage> {
             ),
           ),
           child: Stack(children: [
-            Row(
+            const Row(
               children: [
-                Flexible(flex: 1, child: Container()),
+                Flexible(flex: 1, child: SizedBox.expand()),
                 Flexible(
                   flex: 5,
                   child: Column(
                     children: [
-                      Flexible(flex: 1, child: Container()),
-                      const Flexible(flex: 8, child: CheckinReward()),
-                      Expanded(
-                        flex: 1,
-                        child: Container(),
-                      ),
-                      const Flexible(flex: 8, child: BonusReward()),
-                      Flexible(flex: 1, child: Container()),
+                      Flexible(flex: 1, child: SizedBox.expand()),
+                      Flexible(flex: 8, child: CheckinReward()),
+                      Flexible(flex: 1, child: SizedBox.expand()),
+                      Flexible(flex: 8, child: BonusReward()),
+                      Flexible(flex: 1, child: SizedBox.expand()),
                     ],
                   ),
                 ),
-                Expanded(flex: 1, child: Container()),
+                Expanded(flex: 1, child: SizedBox.expand()),
               ],
             ),
-            Align(
-              alignment: Alignment.topRight,
-              child: FractionallySizedBox(
-                heightFactor: 0.25,
-                widthFactor: 0.1,
-                child: Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: FittedBox(
-                    fit: BoxFit.contain,
-                    child: ElevatedButton(
-                      onPressed: () {
-                        GoRouter.of(context).pop();
-                      },
-                      style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.red,
-                          shape: const CircleBorder()),
-                      child: const Icon(
-                        Icons.cancel,
-                        size: 100,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
+            ExitButton(
+              callback: () {
+                context.pop();
+              },
             ),
           ]),
         ),
@@ -127,15 +105,6 @@ class CheckinRewardState extends State<CheckinReward> {
                               ? rewardImage(i, haveReward: true)
                               : rewardImage(i),
                     ),
-                    // if (provider.loginCycle[i] &&
-                    //     provider.loginRewardCycle[i]) ...[
-                    //   Expanded(child: rewardImage(i, rewardTaken: true)),
-                    // ] else if (provider.loginCycle[i] &&
-                    //     !provider.loginRewardCycle[i]) ...[
-                    //   Expanded(child: rewardImage(i, haveReward: true)),
-                    // ] else ...[
-                    //   Expanded(child: rewardImage(i)),
-                    // ]
                   ]
                 ],
               );
@@ -239,9 +208,9 @@ class _BonusRewardState extends State<BonusReward> {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Expanded(
+        const Expanded(
           flex: 2,
-          child: Container(),
+          child: SizedBox.expand(),
         ),
         Expanded(
           flex: 5,
@@ -284,9 +253,9 @@ class _BonusRewardState extends State<BonusReward> {
             ),
           ),
         ),
-        Expanded(
+        const Expanded(
           flex: 2,
-          child: Container(),
+          child: SizedBox.expand(),
         ),
       ],
     );
@@ -348,5 +317,16 @@ class _BonusRewardState extends State<BonusReward> {
         ),
       ],
     );
+  }
+}
+
+class ExitButton extends ExitButtonTemplate {
+  const ExitButton({super.key, required this.callback});
+
+  final Function callback;
+
+  @override
+  void onTapFunction() {
+    callback();
   }
 }
