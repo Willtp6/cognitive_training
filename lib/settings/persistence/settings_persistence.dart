@@ -22,4 +22,20 @@ abstract class SettingsPersistence {
   Future<void> saveTimeOfLastDatabaseUpdate(String time);
 
   Future<String> getTimeOfLastDatabaseUpdate();
+
+  Future<void> saveRuleListenedLotteryGame(List<String> status);
+
+  Future<List<String>> getRuleListenedLotteryGame();
+
+  Future<void> saveRuleListeneFishingGame(List<String> status);
+
+  Future<List<String>> getRuleListenedFishingGame();
+
+  Future<void> saveRuleListenedPokerGame(List<String> status);
+
+  Future<List<String>> getRuleListenedPokerGame();
+
+  Future<void> saveRuleListenedRoutePlanningGame(List<String> status);
+
+  Future<List<String>> getRuleListenedRoutePlanningGame();
 }

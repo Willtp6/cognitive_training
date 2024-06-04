@@ -168,6 +168,6 @@ class PokerGameConst {
         'audio/poker_game/instruction_record/taiwanese/find_the_same.m4a',
   };
   static const ticTokSfx = 'audio/poker_game/sfx/tictoc.mp3';
-  static const winSfx = 'audio/poker_game/sfx/win.wav';
+  static const winSfx = 'audio/poker_game/sfx/win_new.mp3';
   static const loseSfx = 'audio/poker_game/sfx/lose.mp3';
 }

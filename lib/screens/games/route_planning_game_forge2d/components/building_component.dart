@@ -33,7 +33,10 @@ class BuildingComponent extends BodyComponent<RoutePlanningGameForge2d>
     this.flagDirection = "",
     this.isHome = false,
   }) : super(
-            renderBody: false, paint: BasicPalette.blue.withAlpha(100).paint());
+          priority: 5,
+          renderBody: false,
+          paint: BasicPalette.blue.withAlpha(100).paint(),
+        );
 
   late SpriteGroupComponent buildingSprite;
   late SpriteComponent flagSprite;

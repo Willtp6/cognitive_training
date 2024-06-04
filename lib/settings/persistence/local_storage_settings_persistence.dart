@@ -77,4 +77,56 @@ class LocalStorageSettingsPersistence extends SettingsPersistence {
     final pref = await instanceFuture;
     pref.setString('timeOfLastDatabaseUpdate', time);
   }
+
+  @override
+  Future<List<String>> getRuleListenedLotteryGame() async {
+    final pref = await instanceFuture;
+    return pref.getStringList('ruleListenedLotteryGame') ??
+        ['false', 'false', 'false', 'false', 'false'];
+  }
+
+  @override
+  Future<void> saveRuleListenedLotteryGame(List<String> status) async {
+    final pref = await instanceFuture;
+    pref.setStringList('ruleListenedLotteryGame', status);
+  }
+
+  @override
+  Future<List<String>> getRuleListenedFishingGame() async {
+    final pref = await instanceFuture;
+    return pref.getStringList('ruleListenedFisingingGame') ??
+        ['false', 'false', 'false', 'false', 'false'];
+  }
+
+  @override
+  Future<void> saveRuleListeneFishingGame(List<String> status) async {
+    final pref = await instanceFuture;
+    pref.setStringList('ruleListenedFisingingGame', status);
+  }
+
+  @override
+  Future<List<String>> getRuleListenedPokerGame() async {
+    final pref = await instanceFuture;
+    return pref.getStringList('ruleListenedPokerGame') ??
+        ['false', 'false', 'false', 'false', 'false'];
+  }
+
+  @override
+  Future<void> saveRuleListenedPokerGame(List<String> status) async {
+    final pref = await instanceFuture;
+    pref.setStringList('ruleListenedPokerGame', status);
+  }
+
+  @override
+  Future<List<String>> getRuleListenedRoutePlanningGame() async {
+    final pref = await instanceFuture;
+    return pref.getStringList('ruleListenedRoutePlanningGame') ??
+        ['false', 'false', 'false', 'false', 'false'];
+  }
+
+  @override
+  Future<void> saveRuleListenedRoutePlanningGame(List<String> status) async {
+    final pref = await instanceFuture;
+    pref.setStringList('ruleListenedRoutePlanningGame', status);
+  }
 }

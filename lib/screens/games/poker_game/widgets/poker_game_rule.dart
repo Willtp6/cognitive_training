@@ -3,9 +3,10 @@ import 'package:audioplayers/audioplayers.dart';
 import 'package:cognitive_training/audio/audio_controller.dart';
 import 'package:cognitive_training/constants/globals.dart';
 import 'package:cognitive_training/constants/poker_game_const.dart';
+import 'package:cognitive_training/settings/setting_controller.dart';
 import 'package:cognitive_training/shared/button_with_text.dart';
 import 'package:flutter/material.dart';
-import 'package:logger/logger.dart';
+import 'package:provider/provider.dart';
 
 import '../../shared/progress_bar.dart';
 import '../poker_game_instance.dart';
@@ -37,25 +38,9 @@ class _RuleScreenState extends State<RuleScreen> {
     const Alignment(0.9, -0.5),
   ];
 
+  late SettingsController _settings;
   bool isAudioOver = false;
   late StreamSubscription<PlayerState> listener;
-
-  void showButton() {
-    if (mounted) {
-      setState(() {
-        isAudioOver = true;
-      });
-    }
-  }
-
-  void hideButton() {
-    if (mounted && isAudioOver) {
-      Logger().d('set');
-      setState(() {
-        isAudioOver = false;
-      });
-    }
-  }
 
   @override
   void initState() {
@@ -71,10 +56,15 @@ class _RuleScreenState extends State<RuleScreen> {
         .listen((event) {
       switch (event) {
         case PlayerState.playing:
-          hideButton();
           break;
         case PlayerState.completed:
-          showButton();
+          List<String> status = _settings.ruleListenedPokerGame.value;
+          if (status[widget.game.gameLevel - 1] == 'false') {
+            setState(() {
+              status[widget.game.gameLevel - 1] = 'true';
+              _settings.setRuleListenedPokerGame(status);
+            });
+          }
           break;
         default:
           break;
@@ -93,6 +83,7 @@ class _RuleScreenState extends State<RuleScreen> {
 
   @override
   Widget build(BuildContext context) {
+    _settings = context.watch<SettingsController>();
     return Align(
       child: IgnorePointer(
         ignoring: widget.game.cardDealed,
@@ -170,10 +161,12 @@ class _RuleScreenState extends State<RuleScreen> {
                               ),
                               Flexible(
                                 child: Center(
-                                  child: isAudioOver
+                                  child: widget.game.isTutorial ||
+                                          _settings.ruleListenedPokerGame.value[
+                                                  widget.game.gameLevel - 1] ==
+                                              'true'
                                       ? ButtonWithText(
-                                          // text: isAudioOver ? '開始' : '跳過並開始',
-                                          text: isAudioOver ? '開始' : '開始',
+                                          text: '開始遊戲',
                                           onTapFunction: startGame,
                                         )
                                       : const SizedBox.expand(),

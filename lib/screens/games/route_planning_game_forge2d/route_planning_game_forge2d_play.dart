@@ -1,3 +1,4 @@
+import 'package:cognitive_training/audio/audio_controller.dart';
 import 'package:cognitive_training/models/database_info_provider.dart';
 
 import 'package:provider/provider.dart';
@@ -9,7 +10,6 @@ import 'package:flutter/material.dart';
 
 import 'widgets/overlays/exit_dialog.dart';
 import 'widgets/overlays/route_planning_game_rule.dart';
-import 'widgets/overlays/endgame_button.dart';
 import 'widgets/overlays/game_win.dart';
 import 'widgets/overlays/game_lose.dart';
 import 'widgets/overlays/route_planning_game_tutorial_mode.dart';
@@ -24,6 +24,7 @@ class RoutePlanningGameForge2dPlay extends StatelessWidget {
   Widget build(BuildContext context) {
     DatabaseInfoProvider databaseInfoProvider =
         context.read<DatabaseInfoProvider>();
+    AudioController audioController = context.read<AudioController>();
     return SafeArea(
       child: Scaffold(
         body: PopScope(
@@ -60,10 +61,13 @@ class RoutePlanningGameForge2dPlay extends StatelessWidget {
                       ExitDialog(game: game),
               RoutePlanningGameRule.id:
                   (BuildContext context, RoutePlanningGameForge2d game) =>
-                      RoutePlanningGameRule(game: game),
-              EndGameButton.id:
-                  (BuildContext context, RoutePlanningGameForge2d game) =>
-                      EndGameButton(game: game),
+                      RoutePlanningGameRule(
+                        game: game,
+                        audioController: audioController,
+                      ),
+              // EndGameButton.id:
+              //     (BuildContext context, RoutePlanningGameForge2d game) =>
+              //         EndGameButton(game: game),
               GameWin.id:
                   (BuildContext context, RoutePlanningGameForge2d game) =>
                       GameWin(game: game),

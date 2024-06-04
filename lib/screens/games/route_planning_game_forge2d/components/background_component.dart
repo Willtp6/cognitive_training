@@ -6,10 +6,15 @@ import 'package:flame/palette.dart';
 
 class BackgroundComponent extends RectangleComponent
     with HasGameRef<RoutePlanningGameForge2d> {
+  BackgroundComponent()
+      : super(
+          priority: 0,
+          paint: BasicPalette.white.paint(),
+        );
+
   @override
   FutureOr<void> onLoad() {
     size = gameRef.size;
-    paint = BasicPalette.white.paint();
     return super.onLoad();
   }
 }

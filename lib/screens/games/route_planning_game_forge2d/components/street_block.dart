@@ -7,7 +7,10 @@ class StreetBlock extends BodyComponent {
   StreetBlock({
     required this.vertices,
     required this.position,
-  }) : super(paint: BasicPalette.gray.withAlpha(100).paint());
+  }) : super(
+          paint: const PaletteEntry(Color.fromARGB(255, 200, 200, 200)).paint(),
+          priority: 4,
+        );
 
   @override
   Body createBody() {

@@ -15,7 +15,6 @@ class ExitDialog extends StatelessWidget {
 
   void continueCallback() {
     game.overlays.remove(ExitDialog.id);
-    // game.resetGame();
     game.resumeEngine();
   }
 
@@ -25,14 +24,6 @@ class ExitDialog extends StatelessWidget {
         context.read<DatabaseInfoProvider>();
     AudioController audioController = context.read<AudioController>();
     audioController.pauseAllAudio();
-    // return Globals.exitDialog(
-    //   continueCallback: continueCallback,
-    //   exitCallback: () {
-    //     game.overlays.remove(ExitDialog.id);
-    //     context.pop();
-    //   },
-    //   isTutorialMode: false,
-    // );
     return game.isTutorial
         ? Globals.dialogTemplate(
             title: '確定要離開嗎?',
@@ -64,6 +55,7 @@ class ExitDialog extends StatelessWidget {
             option2: '繼續遊戲',
             option2Callback: () {
               game.overlays.remove(ExitDialog.id);
+              game.overlays.add(ExitButton.id);
               game.resumeEngine();
               game.timerEnabled = true;
               game.alarmClockAudio?.resume();

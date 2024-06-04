@@ -1,6 +1,10 @@
+import 'dart:async';
+
+import 'package:audioplayers/audioplayers.dart';
 import 'package:cognitive_training/audio/audio_controller.dart';
 import 'package:cognitive_training/constants/globals.dart';
 import 'package:cognitive_training/constants/route_planning_game_const.dart';
+import 'package:cognitive_training/settings/setting_controller.dart';
 import 'package:cognitive_training/shared/button_with_text.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -12,14 +16,11 @@ class RoutePlanningGameRule extends StatefulWidget {
   const RoutePlanningGameRule({
     super.key,
     required this.game,
-    //required this.audioController,
-    //required this.lotteryGameTutorial,
-    //required this.callback,
+    required this.audioController,
   });
 
   final RoutePlanningGameForge2d game;
-  //final AudioController audioController;
-  // final Function() callback;
+  final AudioController audioController;
 
   @override
   State<RoutePlanningGameRule> createState() => _RoutePlanningGameRuleState();
@@ -36,7 +37,8 @@ class _RoutePlanningGameRuleState extends State<RoutePlanningGameRule>
   ];
 
   late AnimationController _controller;
-  late AudioController _audioController;
+  late SettingsController _settings;
+  late StreamSubscription<PlayerState> listener;
   bool buttonEnabled = true;
 
   @override
@@ -46,18 +48,37 @@ class _RoutePlanningGameRuleState extends State<RoutePlanningGameRule>
     WidgetsBinding.instance.addPostFrameCallback((_) {
       playRuleAudio();
     });
+    listener = widget.audioController.instructionPlayer.onPlayerStateChanged
+        .listen((event) {
+      switch (event) {
+        case PlayerState.playing:
+          break;
+        case PlayerState.completed:
+          List<String> status = _settings.ruleListenedRoutePlanningGame.value;
+          if (status[widget.game.gameLevel - 1] == 'false') {
+            setState(() {
+              status[widget.game.gameLevel - 1] = 'true';
+              _settings.setRuleListenedRoutePlanningGame(status);
+            });
+          }
+          break;
+        default:
+          break;
+      }
+    });
     super.initState();
   }
 
   @override
   void dispose() {
+    listener.cancel();
     _controller.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    _audioController = context.read<AudioController>();
+    _settings = context.watch<SettingsController>();
     return Container(
       decoration: BoxDecoration(
         color: Colors.grey.withOpacity(0.5),
@@ -127,8 +148,14 @@ class _RoutePlanningGameRuleState extends State<RoutePlanningGameRule>
                             ),
                             Flexible(
                               child: Center(
-                                child: ButtonWithText(
-                                    text: '開始遊戲', onTapFunction: _startGame),
+                                child: _settings.ruleListenedRoutePlanningGame
+                                            .value[widget.game.gameLevel - 1] ==
+                                        'true'
+                                    ? ButtonWithText(
+                                        text: '開始遊戲',
+                                        onTapFunction: _startGame,
+                                      )
+                                    : const SizedBox.expand(),
                               ),
                             ),
                           ],
@@ -158,7 +185,7 @@ class _RoutePlanningGameRuleState extends State<RoutePlanningGameRule>
         path = RoutePlanningGameConst.gameRuleLevel3to5;
         break;
     }
-    _audioController.playInstructionRecord(path);
+    widget.audioController.playInstructionRecord(path);
   }
 
   void _listenAgain() {
@@ -168,12 +195,10 @@ class _RoutePlanningGameRuleState extends State<RoutePlanningGameRule>
   void _startGame() {
     if (buttonEnabled) {
       buttonEnabled = false;
-      _audioController.playSfx(Globals.clickButtonSound);
-      _audioController.stopPlayingInstruction();
+      widget.audioController.playSfx(Globals.clickButtonSound);
+      widget.audioController.stopPlayingInstruction();
       _controller.forward().whenComplete(() {
         widget.game.overlays.remove(RoutePlanningGameRule.id);
-        // widget.game.overlays.remove(FishingGameRule.id);
-        // widget.game.overlays.add(TopCoins.id);
         widget.game.startGame();
         buttonEnabled = false;
       });

@@ -17,11 +17,11 @@ class TargetList extends SpriteComponent
 
   late RectangleComponent listItem;
 
+  TargetList({super.priority = 3});
+
   @override
   FutureOr<void> onLoad() async {
     sprite = await gameRef.loadSprite(RoutePlanningGameConst.targetList);
-    // size.y = gameRef.size.y;
-    // size.x = size.y * 215 / 720;
     size = Vector2(gameRef.size.y * 215 / 720, gameRef.size.y);
     listItem = RectangleComponent(
       size: Vector2(size.x * 0.6, size.y * 0.75),

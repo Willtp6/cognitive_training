@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 import 'package:cognitive_training/screens/games/route_planning_game_forge2d/route_planning_game_forge2d.dart';
 import 'package:flame/components.dart';
 import 'package:flame/input.dart';
@@ -66,6 +67,7 @@ class Rider extends BodyComponent<RoutePlanningGameForge2d>
 
   Rider()
       : super(
+          priority: 6,
           renderBody: false,
           paint: BasicPalette.pink.withAlpha(100).paint(),
         );
@@ -139,6 +141,12 @@ class Rider extends BodyComponent<RoutePlanningGameForge2d>
   bool onDragUpdate(DragUpdateInfo info) {
     if ((info.eventPosition.game).distanceTo(body.position) <=
         riderSize * 1.5) {
+      double angle = Vector2(1, 0).angleTo(info.delta.game);
+      if (angle <= pi / 2 || angle <= -pi / 2) {
+        riderSpriteComponent.current = MoveType.slideRight;
+      } else {
+        riderSpriteComponent.current = MoveType.slideLeft;
+      }
       body.linearVelocity = info.delta.game * speed * 10;
     } else {
       body.linearVelocity = Vector2.all(0);

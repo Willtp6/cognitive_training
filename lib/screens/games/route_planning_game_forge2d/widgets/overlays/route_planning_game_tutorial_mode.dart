@@ -46,7 +46,6 @@ class _RoutePlanningGameTutorialModeState
         widget.game.generateBuildings();
         widget.game.targetList.addBuildings(buildings: widget.game.buildings);
 
-        widget.game.map.priority = 0;
         await widget.game.map.addBuildings(buildings: widget.game.buildings);
         //*
         widget.game.rider = Rider();
@@ -64,7 +63,6 @@ class _RoutePlanningGameTutorialModeState
             _targetComponent = building;
           }
         }
-        Logger().d(widget.game.map.buildingInBlock[8].length);
         //* set if the one is not originally in the map
         if (widget.game.map.buildingInBlock[8].length != 1) {
           _targetComponent!.buildingPosition = widget
@@ -75,9 +73,7 @@ class _RoutePlanningGameTutorialModeState
         }
         break;
       case 2:
-        widget.game.targetList.priority = 0;
-        widget.game.rider.priority = 3;
-
+        widget.game.rider.priority = 6;
         break;
       case 3:
         widget.game.rider.riderSpriteComponent.add(
@@ -95,12 +91,9 @@ class _RoutePlanningGameTutorialModeState
       case 5:
         break;
       case 6:
-        // widget.game.targetList
-        widget.game.targetList.priority = 3;
         widget.game.targetList.targetsSprite[2].opacity = 0.3;
         break;
       case 7:
-        widget.game.targetList.priority = 0;
         //* error
         _targetComponent!.errorSprite
             .add(OpacityEffect.to(1, EffectController(duration: 0.1)));
@@ -134,7 +127,6 @@ class _RoutePlanningGameTutorialModeState
             databaseInfoProvider.routePlanningGameDatabase.currentLevel;
         //* remove rider
         widget.game.resetGame();
-        // widget.game.rider.removeFromParent();
 
         //* reset overlays
         widget.game.overlays
@@ -157,7 +149,7 @@ class _RoutePlanningGameTutorialModeState
         size: widget.game.size,
         anchor: Anchor.center,
         paint: BasicPalette.gray.withAlpha(100).paint(),
-        priority: 1,
+        priority: 5,
       );
       widget.game.add(background);
 
@@ -524,17 +516,6 @@ class DottedContainer extends StatelessWidget {
     buildingSize * 1.625,
     buildingSize * 1.625,
   ];
-  // static const List<double> dottedLineContainerASRatio = [
-  //   1,
-  //   215 / 720,
-  //   2,
-  //   1,
-  //   1,
-  //   1,
-  //   1,
-  //   1,
-  //   1,
-  // ];
 
   @override
   Widget build(BuildContext context) {
@@ -565,27 +546,6 @@ class DottedContainer extends StatelessWidget {
           : const SizedBox.expand(),
     );
   }
-
-  // double? multiplyTheHeight(double? heightFactor) {
-  //   if (heightFactor != null) {
-  //     return heightFactor * screenHeight;
-  //   }
-  //   return null;
-  // }
-
-  // double? multiplyTheWidth(double? widthFactor) {
-  //   if (widthFactor != null) {
-  //     return widthFactor * screenWidth;
-  //   }
-  //   return null;
-  // }
-
-  // double? multiplyMapWidth(double? widthFactor) {
-  //   if (widthFactor != null) {
-  //     return widthFactor * (screenWidth - screenHeight * 215 / 720);
-  //   }
-  //   return null;
-  // }
 }
 
 class HintArrow extends StatelessWidget {
@@ -615,18 +575,6 @@ class HintArrow extends StatelessWidget {
     targetBarHeight = screenHeight;
     targetBarWidth = targetBarHeight * 215 / 720;
   }
-
-  // static const List<Alignment> hintArrowAlignment = [
-  //   Alignment.center,
-  //   Alignment(-0.65, 0.0),
-  //   Alignment(0.55, 0.45),
-  //   Alignment.center,
-  //   Alignment(0.65, 0.4),
-  //   Alignment(0.65, 0.4),
-  //   Alignment(-0.7, 0.325),
-  //   Alignment(0.65, 0.4),
-  //   Alignment(0.65, 0.4),
-  // ];
 
   late final List<Map<String, double?>> positions = [
     {"top": null, "left": null, "bottom": null, "right": null},

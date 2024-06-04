@@ -16,7 +16,7 @@ class MapEntity extends RectangleComponent
     required super.size,
     required super.anchor,
     super.paint,
-  });
+  }) : super(priority: 1);
 
   late final double mapWidth;
   late final double mapHeight;

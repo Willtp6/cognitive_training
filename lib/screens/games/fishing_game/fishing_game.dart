@@ -164,6 +164,8 @@ class FishingGame extends FlameGame with HasCollisionDetection, HasTappables {
       //* all animation have been pleyed once
       rodTappable = true;
       reachedAnimationCounter = 0;
+      //* pause the audio to indicate that player can tap rods
+      FlameAudio.bgm.pause();
       switch (gameLevel) {
         case 0:
         case 1:
@@ -177,18 +179,13 @@ class FishingGame extends FlameGame with HasCollisionDetection, HasTappables {
           } else {
             //* reset for next game but do not repeat animation
             repeatTime = 0;
-            Future.delayed(const Duration(seconds: 1, milliseconds: 500), () {
+            Future.delayed(const Duration(seconds: 2, milliseconds: 500), () {
               bubbleAudioPlayer?.pause();
             });
           }
           break;
-        // case 4:
-        //   Future.delayed(const Duration(seconds: 1, milliseconds: 500), () {
-        //     bubbleAudioPlayer?.pause();
-        //   });
-        //   break;
         default:
-          Future.delayed(const Duration(seconds: 1, milliseconds: 500), () {
+          Future.delayed(const Duration(seconds: 2, milliseconds: 500), () {
             bubbleAudioPlayer?.pause();
           });
           break;
@@ -196,43 +193,12 @@ class FishingGame extends FlameGame with HasCollisionDetection, HasTappables {
     }
   }
 
-  // void checkCounterNumbers() {
-  //   if (reachedAnimationCounter == Globals.numOfRods[gameLevel]) {
-  //     //* all animation have been pleyed once
-  //     rodTappable = true;
-  //     reachedAnimationCounter = 0;
-  //     switch (gameLevel) {
-  //       case 0:
-  //       case 1:
-  //         resetTimers();
-  //         break;
-  //       case 2:
-  //       case 3:
-  //         if (repeatTime < 1) {
-  //           repeatTime++;
-  //           resetTimers();
-  //         } else {
-  //           //* reset for next game but do not repeat animation
-  //           repeatTime = 0;
-  //         }
-  //         break;
-  //       case 4:
-  //         break;
-  //       default:
-  //         break;
-  //     }
-  //   }
-  // }
-
   void resetTimers() {
-    // _audioPlayer.play(AssetSource('audio/fishing_game/sfx/Bubbles.wav'));
-    // FlameAudio.loop(FishingGameConst.bubbleAudio).then((value) => value.pause());
     //* delay for next bubble loop
     add(TimerComponent(
-      period: 1.5,
+      period: 2.5,
       removeOnFinish: true,
       onTick: () {
-        // reachedAnimationCounter = 0;
         for (var item in rippleTimers) {
           item.timer.start();
         }
@@ -278,8 +244,9 @@ class FishingGame extends FlameGame with HasCollisionDetection, HasTappables {
   }
 
   void getResult() {
-    //* stop bubble audio
+    //* stop bubble audio also restart bgm
     bubbleAudioPlayer?.pause();
+    FlameAudio.bgm.resume();
     //*
     overlays.remove(TopCoins.id);
     backGroundComponent.changeToResult();

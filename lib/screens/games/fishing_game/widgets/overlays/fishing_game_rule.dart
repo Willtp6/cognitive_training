@@ -1,6 +1,10 @@
+import 'dart:async';
+
+import 'package:audioplayers/audioplayers.dart';
 import 'package:cognitive_training/audio/audio_controller.dart';
 import 'package:cognitive_training/constants/fishing_game_const.dart';
 import 'package:cognitive_training/constants/globals.dart';
+import 'package:cognitive_training/settings/setting_controller.dart';
 import 'package:cognitive_training/shared/button_with_text.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -13,13 +17,13 @@ class FishingGameRule extends StatefulWidget {
   const FishingGameRule({
     super.key,
     required this.game,
-    //required this.audioController,
+    required this.audioController,
     //required this.lotteryGameTutorial,
     //required this.callback,
   });
 
   final FishingGame game;
-  //final AudioController audioController;
+  final AudioController audioController;
   // final Function() callback;
 
   @override
@@ -37,8 +41,9 @@ class _FishingGameRuleState extends State<FishingGameRule>
   ];
 
   late AnimationController _controller;
+  late SettingsController _settings;
   late AudioController _audioController;
-  bool buttonEnabled = true;
+  late StreamSubscription<PlayerState> listener;
 
   @override
   void initState() {
@@ -46,6 +51,24 @@ class _FishingGameRuleState extends State<FishingGameRule>
         vsync: this, duration: const Duration(milliseconds: 500));
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _audioController.playInstructionRecord(FishingGameConst.gameRule);
+    });
+    listener = widget.audioController.instructionPlayer.onPlayerStateChanged
+        .listen((event) {
+      switch (event) {
+        case PlayerState.playing:
+          break;
+        case PlayerState.completed:
+          List<String> status = _settings.ruleListenedFishingGame.value;
+          if (status[widget.game.gameLevel - 1] == 'false') {
+            setState(() {
+              status[widget.game.gameLevel - 1] = 'true';
+              _settings.setRuleListenedFishingGame(status);
+            });
+          }
+          break;
+        default:
+          break;
+      }
     });
     super.initState();
   }
@@ -59,6 +82,7 @@ class _FishingGameRuleState extends State<FishingGameRule>
   @override
   Widget build(BuildContext context) {
     _audioController = context.read<AudioController>();
+    _settings = context.watch<SettingsController>();
     return FadeTransition(
       opacity: Tween(begin: 1.0, end: 0.0).animate(_controller),
       child: Center(
@@ -122,8 +146,14 @@ class _FishingGameRuleState extends State<FishingGameRule>
                           ),
                           Flexible(
                             child: Center(
-                              child: ButtonWithText(
-                                  text: '開始遊戲', onTapFunction: _startGame),
+                              child: _settings.ruleListenedFishingGame
+                                          .value[widget.game.gameLevel] ==
+                                      'true'
+                                  ? ButtonWithText(
+                                      text: '開始遊戲',
+                                      onTapFunction: _startGame,
+                                    )
+                                  : const SizedBox.expand(),
                             ),
                           ),
                         ],
@@ -144,17 +174,13 @@ class _FishingGameRuleState extends State<FishingGameRule>
   }
 
   void _startGame() {
-    if (buttonEnabled) {
-      buttonEnabled = false;
-      _audioController.playSfx(Globals.clickButtonSound);
-
-      _controller.forward().whenComplete(() {
-        widget.game.overlays.remove(FishingGameRule.id);
-        widget.game.overlays.add(TopCoins.id);
-        widget.game.startGame();
-        buttonEnabled = false;
-      });
-    }
+    _audioController.playSfx(Globals.clickButtonSound);
+    _audioController.stopPlayingInstruction();
+    _controller.forward().whenComplete(() {
+      widget.game.overlays.remove(FishingGameRule.id);
+      widget.game.overlays.add(TopCoins.id);
+      widget.game.startGame();
+    });
   }
 }
 

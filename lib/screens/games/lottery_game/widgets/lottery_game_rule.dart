@@ -5,9 +5,11 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:cognitive_training/audio/audio_controller.dart';
 import 'package:cognitive_training/constants/globals.dart';
 import 'package:cognitive_training/screens/games/shared/progress_bar.dart';
+import 'package:cognitive_training/settings/setting_controller.dart';
 import 'package:cognitive_training/shared/button_with_text.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
+import 'package:provider/provider.dart';
 
 import '../lottery_game.dart';
 import '../lottery_game_tutorial.dart';
@@ -143,8 +145,8 @@ class _RuleScreenState extends State<RuleScreen> {
 
   List<String> difficulties = ['一', '二', '三', '四', '五'];
 
+  late SettingsController _settings;
   late StreamSubscription<PlayerState> listener;
-  bool isAudioOver = false;
 
   @override
   void initState() {
@@ -152,12 +154,15 @@ class _RuleScreenState extends State<RuleScreen> {
         .listen((event) {
       switch (event) {
         case PlayerState.playing:
-          if (isAudioOver = true) {
-            setState(() => isAudioOver = false);
-          }
           break;
         case PlayerState.completed:
-          setState(() => isAudioOver = true);
+          List<String> status = _settings.ruleListenedLotteryGame.value;
+          if (status[widget.game.gameLevel - 1] == 'false') {
+            setState(() {
+              status[widget.game.gameLevel - 1] = 'true';
+              _settings.setRuleListenedLotteryGame(status);
+            });
+          }
           break;
         default:
           break;
@@ -169,12 +174,12 @@ class _RuleScreenState extends State<RuleScreen> {
   @override
   void dispose() {
     listener.cancel();
-
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    _settings = context.watch<SettingsController>();
     return Align(
       child: FractionallySizedBox(
         widthFactor: 0.7,
@@ -265,10 +270,16 @@ class _RuleScreenState extends State<RuleScreen> {
                               ),
                               Flexible(
                                 child: Center(
-                                  child: ButtonWithText(
-                                    text: isAudioOver ? '開始' : '跳過並開始',
-                                    onTapFunction: startGame,
-                                  ),
+                                  child: widget.game.isTutorial ||
+                                          _settings.ruleListenedLotteryGame
+                                                      .value[
+                                                  widget.game.gameLevel - 1] ==
+                                              'true'
+                                      ? ButtonWithText(
+                                          text: '開始遊戲',
+                                          onTapFunction: startGame,
+                                        )
+                                      : const SizedBox(),
                                 ),
                               ),
                             ],
@@ -376,7 +387,6 @@ class _RuleScreenState extends State<RuleScreen> {
         Logger().d(path);
         if (path != null) {
           widget.audioController.playInstructionRecord(path);
-          setState(() => isAudioOver = false);
         }
       });
     }

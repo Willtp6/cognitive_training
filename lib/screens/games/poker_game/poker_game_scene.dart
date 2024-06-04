@@ -483,7 +483,9 @@ class _PokerGameStateScene extends State<PokerGameScene>
                         _showExitDialog();
                       }
                     },
-                    alignment: const Alignment(0.95, -0.5),
+                    alignment: game.isTutorial
+                        ? Alignment.topRight
+                        : const Alignment(0.95, -0.5),
                   ),
                 ],
               ),

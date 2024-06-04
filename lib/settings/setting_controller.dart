@@ -13,6 +13,14 @@ class SettingsController {
   ValueNotifier<String> timeOfDailyNotification2 = ValueNotifier('');
   ValueNotifier<String> timeOfDailyNotification3 = ValueNotifier('');
   ValueNotifier<String> timeOfLastDatabaseUpdate = ValueNotifier('');
+  ValueNotifier<List<String>> ruleListenedLotteryGame =
+      ValueNotifier(['false', 'false', 'false', 'false', 'false']);
+  ValueNotifier<List<String>> ruleListenedFishingGame =
+      ValueNotifier(['false', 'false', 'false', 'false', 'false']);
+  ValueNotifier<List<String>> ruleListenedPokerGame =
+      ValueNotifier(['false', 'false', 'false', 'false', 'false']);
+  ValueNotifier<List<String>> ruleListenedRoutePlanningGame =
+      ValueNotifier(['false', 'false', 'false', 'false', 'false']);
 
   Future<void> loadStateFromPersistence() async {
     await Future.wait([
@@ -32,6 +40,18 @@ class SettingsController {
       _persistence
           .getTimeOfLastDatabaseUpdate()
           .then((value) => timeOfLastDatabaseUpdate.value = value),
+      _persistence
+          .getRuleListenedLotteryGame()
+          .then((value) => ruleListenedLotteryGame.value = value),
+      _persistence
+          .getRuleListenedFishingGame()
+          .then((value) => ruleListenedFishingGame.value = value),
+      _persistence
+          .getRuleListenedPokerGame()
+          .then((value) => ruleListenedPokerGame.value = value),
+      _persistence
+          .getRuleListenedRoutePlanningGame()
+          .then((value) => ruleListenedRoutePlanningGame.value = value),
     ]);
   }
 
@@ -63,5 +83,25 @@ class SettingsController {
   void setTimeOfLastDatabaseUpdate(String time) {
     timeOfLastDatabaseUpdate.value = time;
     _persistence.saveTimeOfLastDatabaseUpdate(time);
+  }
+
+  void setRuleListenedLotteryGame(List<String> status) {
+    ruleListenedLotteryGame.value = status;
+    _persistence.saveRuleListenedLotteryGame(status);
+  }
+
+  void setRuleListenedFishingGame(List<String> status) {
+    ruleListenedFishingGame.value = status;
+    _persistence.saveRuleListeneFishingGame(status);
+  }
+
+  void setRuleListenedPokerGame(List<String> status) {
+    ruleListenedPokerGame.value = status;
+    _persistence.saveRuleListenedPokerGame(status);
+  }
+
+  void setRuleListenedRoutePlanningGame(List<String> status) {
+    ruleListenedRoutePlanningGame.value = status;
+    _persistence.saveRuleListenedRoutePlanningGame(status);
   }
 }

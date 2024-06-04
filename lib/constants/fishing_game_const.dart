@@ -74,9 +74,10 @@ class FishingGameConst {
   static const String fishingResultEmptyRod = "fishing_game/rod/rod_empty.png";
 
   //* animation
+  // static const String rippleAnimation =
+  //     'assets/images/fishing_game/ripple/ripple_animation.riv';
   static const String rippleAnimation =
-      'assets/images/fishing_game/ripple/ripple_animation.riv';
-
+      'assets/images/fishing_game/ripple/ripple_animation_2_5.riv';
   //* audio
   static const gameRule = {
     'chinese': 'audio/fishing_game/instruction_record/chinese/game_rule.m4a',

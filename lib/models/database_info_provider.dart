@@ -607,10 +607,8 @@ class DatabaseInfoProvider extends ChangeNotifier {
       hasBonus = true;
     }
     bonusRewardCycle = _bonusRewardCycle;
-    if (hasBonus) {
-      haveBonusReward = true;
-    } else {
-      haveBonusReward = false;
+    if (hasBonus != haveBonusReward) {
+      haveBonusReward = hasBonus;
     }
   }
 

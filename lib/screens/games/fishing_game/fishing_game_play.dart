@@ -50,7 +50,10 @@ class FishingGamePlay extends StatelessWidget {
                   ],
             overlayBuilderMap: {
               FishingGameRule.id: (BuildContext context, FishingGame game) =>
-                  FishingGameRule(game: game),
+                  FishingGameRule(
+                    game: game,
+                    audioController: audioController,
+                  ),
               ExitButton.id: (BuildContext context, FishingGame game) =>
                   ExitButton(game: game),
               ExitDialog.id: (BuildContext context, FishingGame game) =>

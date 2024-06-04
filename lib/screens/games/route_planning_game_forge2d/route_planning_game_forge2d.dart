@@ -9,6 +9,7 @@ import 'package:cognitive_training/screens/games/route_planning_game_forge2d/wid
 import 'package:flame/components.dart' hide Timer;
 import 'package:flame/effects.dart';
 import 'package:flame/game.dart';
+import 'package:flame/palette.dart';
 import 'package:flame_audio/flame_audio.dart';
 import 'package:flame_forge2d/forge2d_game.dart';
 import 'package:logger/logger.dart';
@@ -51,6 +52,7 @@ class RoutePlanningGameForge2d extends Forge2DGame
   static const List<double> hintImageShowTime = [double.infinity, 1, 0, 0, 0];
 
   late List<Building> buildings = [];
+  late List<WallComponent> walls = [];
   late TargetList targetList;
   late Rider rider;
   late JoystickComponent joystick;
@@ -95,34 +97,59 @@ class RoutePlanningGameForge2d extends Forge2DGame
       anchor: Anchor.center,
     );
     targetList = TargetList();
-
+    // alarmClock = SpriteComponent(
+    //   sprite: await loadSprite('route_planning_game/hints/alarm_clock.png'),
+    //   size: Vector2.all(size.y * 0.8),
+    //   position: Vector2(size.x * 0.5, size.y * 0.5),
+    //   angle: -pi / 16,
+    //   anchor: Anchor.center,
+    //   priority: 2, //* the let this component fixed in background
+    // )
+    //   ..add(OpacityEffect.to(0.5, EffectController(duration: 0.1)))
+    //   ..add(RotateEffect.by(
+    //       pi / 8,
+    //       EffectController(
+    //         duration: 0.4,
+    //         reverseDuration: 0.4,
+    //         infinite: true,
+    //       )));
     //* all of them are static component
     addAll([
       BackgroundComponent(),
-      //* four edges
-      WallComponent(v1: Vector2(0, 0), v2: Vector2(size.x, 0)),
-      WallComponent(v1: Vector2(0, size.y), v2: Vector2(size.x, size.y)),
-      WallComponent(
-          v1: Vector2(215 / 720 * size.y, 0),
-          v2: Vector2(215 / 720 * size.y, size.y)),
-      WallComponent(v1: Vector2(size.x, 0), v2: Vector2(size.x, size.y)),
-
       map,
       targetList,
+      //* this is a mask for walls
+      //* if don't add this the red wall may render in the top notification bar
+      RectangleComponent(
+        position: Vector2.all(0),
+        size: Vector2(size.x, size.y),
+        anchor: Anchor.bottomLeft,
+        priority: 6,
+      )..paint = BasicPalette.black.paint(),
     ]);
-    alarmClock = SpriteComponent(
-      sprite: await loadSprite('route_planning_game/hints/alarm_clock.png'),
-      size: Vector2.all(size.y / 5),
-      position: Vector2(size.x * 0.8, size.y / 2),
-      angle: -pi / 16,
-      anchor: Anchor.center,
-    )..add(RotateEffect.by(
-        pi / 8,
-        EffectController(
-          duration: 0.4,
-          reverseDuration: 0.4,
-          infinite: true,
-        )));
+    walls = [
+      WallComponent(
+          v1: Vector2(215 / 720 * size.y, 0),
+          v2: Vector2(size.x, 0),
+          v3: Vector2(size.x, -size.y),
+          v4: Vector2(215 / 720 * size.y, -size.y)),
+      WallComponent(
+          v1: Vector2(215 / 720 * size.y, size.y),
+          v2: Vector2(size.x, size.y),
+          v3: Vector2(215 / 720 * size.y, size.y * 2),
+          v4: Vector2(size.x, size.y * 2)),
+      WallComponent(
+          v1: Vector2(215 / 720 * size.y, 0),
+          v2: Vector2(215 / 720 * size.y, size.y),
+          v3: Vector2(215 / 720 * size.y - size.x, size.y),
+          v4: Vector2(215 / 720 * size.y - size.x, 0)),
+      WallComponent(
+          v1: Vector2(size.x, 0),
+          v2: Vector2(size.x, size.y),
+          v3: Vector2(size.x * 2, size.y),
+          v4: Vector2(size.x * 2, 0)),
+    ];
+    addAll(walls);
     return super.onLoad();
   }
 
@@ -276,16 +303,23 @@ class RoutePlanningGameForge2d extends Forge2DGame
           // Logger().d(remainTime);
           //* start alarm clock animation
           if (remainTime <= 5 && !alarmClockAdded) {
-            add(alarmClock);
+            // add(alarmClock);
             alarmClockAdded = true;
-            alarmClockAudio =
-                await FlameAudio.loop(RoutePlanningGameConst.tictocAudio);
+            // alarmClockAudio =
+            //     await FlameAudio.loop(RoutePlanningGameConst.tictocAudio);
+            for (var wall in walls) {
+              wall.addEffect();
+            }
           }
           //* cancel timer and trigger time up event
           if (remainTime <= 0) {
-            alarmClock.removeFromParent();
+            // alarmClock.removeFromParent();
             alarmClockAdded = false;
-            alarmClockAudio?.pause();
+            // alarmClockAudio?.pause();
+            for (var wall in walls) {
+              wall.removeEffect();
+              Logger().d('adad');
+            }
             countDownTimer?.cancel();
             gameLose();
           }
