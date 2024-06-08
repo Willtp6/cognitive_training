@@ -188,7 +188,7 @@ class RoutePlanningGameForge2d extends Forge2DGame
     buildings.clear();
     while (buildings.length < numOfBuildings[gameLevel]) {
       int toAddId = Random().nextInt(40);
-      //* which means the is already in the list
+      //* which means the building is already in the list
       if (buildings.where((element) => element.id == toAddId).isNotEmpty) {
         continue;
       } else {

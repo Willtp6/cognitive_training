@@ -147,7 +147,7 @@ class _FishingGameRuleState extends State<FishingGameRule>
                           Flexible(
                             child: Center(
                               child: _settings.ruleListenedFishingGame
-                                          .value[widget.game.gameLevel] ==
+                                          .value[widget.game.gameLevel - 1] ==
                                       'true'
                                   ? ButtonWithText(
                                       text: '開始遊戲',

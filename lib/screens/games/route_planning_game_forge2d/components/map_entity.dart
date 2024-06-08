@@ -18,6 +18,13 @@ class MapEntity extends RectangleComponent
     super.paint,
   }) : super(priority: 1);
 
+  Map<String, int> positionPriority = {
+    "up": 0,
+    "left": 1,
+    "right": 1,
+    "down": 2,
+  };
+
   late final double mapWidth;
   late final double mapHeight;
   late final MapInfo mapInfo;
@@ -59,13 +66,34 @@ class MapEntity extends RectangleComponent
   Future<void> addBuildings({required List<Building> buildings}) async {
     buildingComponents.clear();
 
+    List<int> buildingInBlocks =
+        List.generate(mapInfo.buildingInfo[gameRef.chosenMap].length, (_) => 0);
+
+    homeComponent = BuildingComponent(
+      isHome: true,
+      building: Building(id: -1, isTarget: false),
+      buildingSize: Vector2.all(mapInfo.buildingSize),
+      buildingPosition:
+          mapInfo.homePosition[gameRef.chosenMap].buildingPosition +
+              plusOffset(mapInfo.blockStartPosition[gameRef.chosenMap]
+                  [MapInfo.homeBlock[gameRef.chosenMap]]),
+      bodyAngle: mapInfo.homePosition[gameRef.chosenMap].bodyAngle,
+      flagDirection: mapInfo.homePosition[gameRef.chosenMap].direction,
+    );
+
+    //* add home
+    buildingComponents.add(homeComponent);
+
     //* random spread the buildings to all blocks
     buildingInBlock =
         List.generate(mapInfo.mapVectors[gameRef.chosenMap].length, (_) => []);
+
     int index = 0;
     while (index < buildings.length) {
       int blockToAdd =
           Random().nextInt(mapInfo.mapVectors[gameRef.chosenMap].length);
+      //* add this to force not to add new blocks to block which have home
+      if (blockToAdd == MapInfo.homeBlock[gameRef.chosenMap]) continue;
       //* check if the block to add new building have enough space
       if (buildingInBlock[blockToAdd].length <
           mapInfo.buildingInfo[gameRef.chosenMap][blockToAdd].length) {
@@ -98,26 +126,7 @@ class MapEntity extends RectangleComponent
         );
       }
     }
-    Map<String, int> positionPriority = {
-      "up": 0,
-      "left": 1,
-      "right": 1,
-      "down": 2,
-    };
 
-    homeComponent = BuildingComponent(
-        isHome: true,
-        building: Building(id: -1, isTarget: false),
-        buildingSize: Vector2.all(mapInfo.buildingSize),
-        buildingPosition:
-            mapInfo.homePosition[gameRef.chosenMap].buildingPosition +
-                plusOffset(mapInfo.blockStartPosition[gameRef.chosenMap]
-                    [MapInfo.homeBlock[gameRef.chosenMap]]),
-        bodyAngle: mapInfo.homePosition[gameRef.chosenMap].bodyAngle,
-        flagDirection: mapInfo.homePosition[gameRef.chosenMap].direction);
-
-    //* add home
-    buildingComponents.add(homeComponent);
     //* sort the position by the priority of image layer
     buildingComponents.sort((a, b) => positionPriority[a.flagDirection]!
         .compareTo(positionPriority[b.flagDirection]!));
