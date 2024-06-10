@@ -264,6 +264,12 @@ class _LotteryGameSceneState extends State<LotteryGameScene>
     return game.isTutorial;
   }
 
+  bool checkIfShowCorrectBar() {
+    return game.gameLevel <= 3 ||
+        (game.gameLevel == 4 &&
+            (game.specialRules == 0 || game.specialRules == 3));
+  }
+
   @override
   Widget build(BuildContext context) {
     databaseInfoProvider = context.read<DatabaseInfoProvider>();
@@ -392,12 +398,7 @@ class _LotteryGameSceneState extends State<LotteryGameScene>
                         ),
                       ),
                     ],
-                    if (game.gameLevel <= 3 ||
-                        (game.gameLevel == 4 &&
-                            (game.specialRules == 0 ||
-                                game.specialRules == 3))) ...[
-                      CorrectRateBar(game: game),
-                    ],
+                    if (checkIfShowCorrectBar()) CorrectRateBar(game: game),
                   ],
                   //* tutorial part
                   if (widget.isTutorial &&
@@ -415,15 +416,17 @@ class _LotteryGameSceneState extends State<LotteryGameScene>
                     _lotteryGameTutorial
                         .getContinueButton(_nextTutorialProgress),
                   ],
-                  ExitButton(callback: () {
-                    pagePaused = true;
-                    countdownTimer?.pause();
-                    if (isTutorialModePop()) {
-                      _showSkipTutorialDialog();
-                    } else {
-                      _showExitDialog();
-                    }
-                  }),
+                  ExitButton(
+                    callback: () {
+                      pagePaused = true;
+                      countdownTimer?.pause();
+                      if (isTutorialModePop()) {
+                        _showSkipTutorialDialog();
+                      } else {
+                        _showExitDialog();
+                      }
+                    },
+                  ),
                 ],
               ),
             ),

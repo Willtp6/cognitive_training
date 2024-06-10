@@ -157,9 +157,9 @@ class _RuleScreenState extends State<RuleScreen> {
           break;
         case PlayerState.completed:
           List<String> status = _settings.ruleListenedLotteryGame.value;
-          if (status[widget.game.gameLevel - 1] == 'false') {
+          if (status[widget.game.gameLevel] == 'false') {
             setState(() {
-              status[widget.game.gameLevel - 1] = 'true';
+              status[widget.game.gameLevel] = 'true';
               _settings.setRuleListenedLotteryGame(status);
             });
           }
@@ -273,7 +273,7 @@ class _RuleScreenState extends State<RuleScreen> {
                                   child: widget.game.isTutorial ||
                                           _settings.ruleListenedLotteryGame
                                                       .value[
-                                                  widget.game.gameLevel - 1] ==
+                                                  widget.game.gameLevel] ==
                                               'true'
                                       ? ButtonWithText(
                                           text: '開始遊戲',

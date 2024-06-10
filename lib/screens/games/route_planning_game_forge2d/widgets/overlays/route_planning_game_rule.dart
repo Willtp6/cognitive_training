@@ -55,9 +55,9 @@ class _RoutePlanningGameRuleState extends State<RoutePlanningGameRule>
           break;
         case PlayerState.completed:
           List<String> status = _settings.ruleListenedRoutePlanningGame.value;
-          if (status[widget.game.gameLevel - 1] == 'false') {
+          if (status[widget.game.gameLevel] == 'false') {
             setState(() {
-              status[widget.game.gameLevel - 1] = 'true';
+              status[widget.game.gameLevel] = 'true';
               _settings.setRuleListenedRoutePlanningGame(status);
             });
           }
@@ -149,7 +149,7 @@ class _RoutePlanningGameRuleState extends State<RoutePlanningGameRule>
                             Flexible(
                               child: Center(
                                 child: _settings.ruleListenedRoutePlanningGame
-                                            .value[widget.game.gameLevel - 1] ==
+                                            .value[widget.game.gameLevel] ==
                                         'true'
                                     ? ButtonWithText(
                                         text: '開始遊戲',

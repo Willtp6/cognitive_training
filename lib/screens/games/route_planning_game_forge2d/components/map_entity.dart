@@ -66,9 +66,6 @@ class MapEntity extends RectangleComponent
   Future<void> addBuildings({required List<Building> buildings}) async {
     buildingComponents.clear();
 
-    List<int> buildingInBlocks =
-        List.generate(mapInfo.buildingInfo[gameRef.chosenMap].length, (_) => 0);
-
     homeComponent = BuildingComponent(
       isHome: true,
       building: Building(id: -1, isTarget: false),

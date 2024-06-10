@@ -59,9 +59,9 @@ class _FishingGameRuleState extends State<FishingGameRule>
           break;
         case PlayerState.completed:
           List<String> status = _settings.ruleListenedFishingGame.value;
-          if (status[widget.game.gameLevel - 1] == 'false') {
+          if (status[widget.game.gameLevel] == 'false') {
             setState(() {
-              status[widget.game.gameLevel - 1] = 'true';
+              status[widget.game.gameLevel] = 'true';
               _settings.setRuleListenedFishingGame(status);
             });
           }
@@ -147,7 +147,7 @@ class _FishingGameRuleState extends State<FishingGameRule>
                           Flexible(
                             child: Center(
                               child: _settings.ruleListenedFishingGame
-                                          .value[widget.game.gameLevel - 1] ==
+                                          .value[widget.game.gameLevel] ==
                                       'true'
                                   ? ButtonWithText(
                                       text: '開始遊戲',

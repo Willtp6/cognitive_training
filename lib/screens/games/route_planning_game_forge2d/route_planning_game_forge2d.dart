@@ -7,7 +7,6 @@ import 'package:cognitive_training/models/database_info_provider.dart';
 import 'package:cognitive_training/models/database_models.dart';
 import 'package:cognitive_training/screens/games/route_planning_game_forge2d/widgets/overlays/exit_button.dart';
 import 'package:flame/components.dart' hide Timer;
-import 'package:flame/effects.dart';
 import 'package:flame/game.dart';
 import 'package:flame/palette.dart';
 import 'package:flame_audio/flame_audio.dart';

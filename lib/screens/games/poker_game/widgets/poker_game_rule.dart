@@ -59,9 +59,9 @@ class _RuleScreenState extends State<RuleScreen> {
           break;
         case PlayerState.completed:
           List<String> status = _settings.ruleListenedPokerGame.value;
-          if (status[widget.game.gameLevel - 1] == 'false') {
+          if (status[widget.game.gameLevel] == 'false') {
             setState(() {
-              status[widget.game.gameLevel - 1] = 'true';
+              status[widget.game.gameLevel] = 'true';
               _settings.setRuleListenedPokerGame(status);
             });
           }
@@ -163,7 +163,7 @@ class _RuleScreenState extends State<RuleScreen> {
                                 child: Center(
                                   child: widget.game.isTutorial ||
                                           _settings.ruleListenedPokerGame.value[
-                                                  widget.game.gameLevel - 1] ==
+                                                  widget.game.gameLevel] ==
                                               'true'
                                       ? ButtonWithText(
                                           text: '開始遊戲',
