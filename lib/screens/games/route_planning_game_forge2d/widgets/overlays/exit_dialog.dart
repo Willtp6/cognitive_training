@@ -58,7 +58,7 @@ class ExitDialog extends StatelessWidget {
               game.overlays.add(ExitButton.id);
               game.resumeEngine();
               game.timerEnabled = true;
-              game.alarmClockAudio?.resume();
+              // game.alarmClockAudio?.resume();
               FlameAudio.bgm.resume();
               audioController.resumeAllAudio();
             },

@@ -63,9 +63,9 @@ class RoutePlanningGameForge2d extends Forge2DGame
   Timer? countDownTimer;
   late int remainTime;
   bool timerEnabled = true;
-  late SpriteComponent alarmClock;
+  // late SpriteComponent alarmClock;
   bool alarmClockAdded = false;
-  AudioPlayer? alarmClockAudio;
+  // AudioPlayer? alarmClockAudio;
 
   //* record data
   late DateTime startTime;
@@ -83,7 +83,7 @@ class RoutePlanningGameForge2d extends Forge2DGame
   @override
   void onDetach() {
     FlameAudio.bgm.stop();
-    alarmClockAudio?.release();
+    // alarmClockAudio?.release();
     countDownTimer?.cancel();
     Logger().d('detached');
   }
@@ -201,9 +201,13 @@ class RoutePlanningGameForge2d extends Forge2DGame
   }
 
   void gameWin() {
-    alarmClock.removeFromParent();
-    alarmClockAdded = false;
-    alarmClockAudio?.pause();
+    if (alarmClockAdded) {
+      for (var wall in walls) {
+        wall.removeEffect();
+      }
+      alarmClockAdded = false;
+    }
+
     countDownTimer?.cancel();
     recordGame('Win');
     FlameAudio.bgm.stop();
@@ -317,7 +321,6 @@ class RoutePlanningGameForge2d extends Forge2DGame
             // alarmClockAudio?.pause();
             for (var wall in walls) {
               wall.removeEffect();
-              Logger().d('adad');
             }
             countDownTimer?.cancel();
             gameLose();

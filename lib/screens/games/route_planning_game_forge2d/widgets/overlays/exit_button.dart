@@ -15,7 +15,7 @@ class ExitButton extends ExitButtonTemplate {
   @override
   void onTapFunction() {
     game.pauseEngine();
-    game.alarmClockAudio?.pause();
+    // game.alarmClockAudio?.pause();
     game.timerEnabled = false;
 
     FlameAudio.bgm.pause();
